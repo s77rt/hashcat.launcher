@@ -1,5 +1,5 @@
 # hashcat.launcher
-hashcat.launcher is a cross-platform app that run and control hashcat
+hashcat.launcher is a cross-platform app that run and control hashcat  
 it is designed to make it easier to use hashcat offering a friendly graphical user interface
 
 ## Installation
