@@ -10,5 +10,5 @@ it is designed to make it easier to use hashcat offering a friendly graphical us
 ## Changelog
 Refer to [CHANGELOG.md](https://github.com/s77rt/hashcat.launcher/blob/master/docs/CHANGELOG.md)
 
-__
+___
 [Report a bug / Request a feature](https://github.com/s77rt/hashcat.launcher/issues/new)
