@@ -24,7 +24,7 @@ func fake_hash_type_selector_hack(hcl_gui *hcl_gui, hash_type_fakeselector *widg
 }
 
 func load_hash_type_selector(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) {
-	var modal widget.PopUp
+	var modal *widget.PopUp
 	data := widget.NewVBox()
 	data.Children = []fyne.CanvasObject{widget.NewLabel("Results will appear here...")}
 	search := widget.NewEntry()
@@ -32,7 +32,7 @@ func load_hash_type_selector(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Bo
 	search.OnChanged = func(keyword string){
 		if len(keyword) >= 2 {
 			go func(){
-				load_hash_type_options(&modal, data, hcl_gui, hash_type_fakeselector, hcl_gui.hashcat.available_hash_types, keyword)
+				load_hash_type_options(modal, data, hcl_gui, hash_type_fakeselector, hcl_gui.hashcat.available_hash_types, keyword)
 			}()
 		}
 	}
@@ -50,7 +50,7 @@ func load_hash_type_selector(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Bo
 	        hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
     	}
     })
-	modal = *widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+	modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
 }
 
 func load_hash_type_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box, items []*xwidget.SelectorOption, keyword string) {
@@ -72,7 +72,7 @@ func load_hash_type_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_
 func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.CanvasObject {
 	// Basic Static Configs...
 	hashcat_img := canvas.NewImageFromResource(hcl_gui.Icon)
-	hashcat_img.SetMinSize(fyne.Size{50, 90})
+	hashcat_img.SetMinSize(fyne.Size{100, 100})
 	
 	hcl_gui.hc_hash_file = widget.NewSelect([]string{}, func(s string) {
 		_, file := filepath.Split(s)
@@ -1283,13 +1283,13 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 		widget.NewLabelWithStyle("Welcome to hashcat.launcher v"+Version, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		spacer(0,5),
 		widget.NewHBox(
-			spacer(30,0),
+			spacer(5,0),
 			fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 				hashcat_img,
 			),
 			widget.NewVBox(
 				widget.NewHBox(
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{105, 35}),
+					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{80, 35}),
 						widget.NewVBox(
 							widget.NewLabelWithStyle("Hash File:", fyne.TextAlignTrailing, fyne.TextStyle{}),
 						),
@@ -1334,7 +1334,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
 						widget.NewVBox(
 							widget.NewButton("...", func(){
-								file, err := dialog2.File().Title("Select Hash File").Filter("Hash Files", "txt", "dat", "hccapx").Load()
+								file, err := dialog2.File().Title("Select Hash File").Filter("Hash Files", "hash", "txt", "dat", "hccapx").Load()
 								if err == nil {
 									hcl_gui.hc_hash_file.Options = append([]string{file}, hcl_gui.hc_hash_file.Options[:min(len(hcl_gui.hc_hash_file.Options), 4)]...)
 									hcl_gui.hc_hash_file.SetSelected(file)
@@ -1344,7 +1344,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 					),
 				),
 				widget.NewHBox(
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{105, 35}),
+					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{80, 35}),
 						widget.NewVBox(
 							widget.NewLabelWithStyle("Separator:", fyne.TextAlignTrailing, fyne.TextStyle{}),
 						),
@@ -1371,7 +1371,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 					),
 				),
 				widget.NewHBox(
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{105, 35}),
+					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{80, 35}),
 						widget.NewVBox(
 							widget.NewLabelWithStyle("Mode:", fyne.TextAlignTrailing, fyne.TextStyle{}),
 						),

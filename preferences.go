@@ -34,7 +34,7 @@ func SetPreference_hashcat_status_timer(app fyne.App, hcl_gui *hcl_gui, value in
 }
 
 func GetPreference_hashcat_extra_args(app fyne.App) string {
-	return app.Preferences().StringWithFallback("hashcat_extra_args", "")
+	return app.Preferences().StringWithFallback("hashcat_extra_args", "--logfile-disable --restore-disable")
 }
 
 func SetPreference_hashcat_extra_args(app fyne.App, hcl_gui *hcl_gui, value string) {

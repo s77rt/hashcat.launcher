@@ -38,7 +38,7 @@ func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		}
 	})
 
-	hcl_gui.max_active_sessions_select = widget.NewSelect([]string{"1", "2", "3"}, func(s string){
+	hcl_gui.max_active_sessions_select = widget.NewSelect([]string{"1", "2", "3", "4", "5"}, func(s string){
 		v, _ := strconv.Atoi(s)
 		SetPreference_max_active_sessions(app, hcl_gui, v)
 	})
@@ -66,7 +66,7 @@ func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 			),
 		),
 		widget.NewGroup("Notes",
-			widget.NewLabel("hashcat version must be v5.1.0+1774 (not v5.1.0) or newer"),
+			widget.NewLabel("hashcat version must be "+hashcat_min_version+" or higher"),
 		),
 	)
 }

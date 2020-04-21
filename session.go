@@ -7,9 +7,13 @@ import (
 	"strconv"
 	"time"
 	"fmt"
+	"errors"
+	"path/filepath"
+	"runtime"
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+	"fyne.io/fyne/dialog"
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
 )
 
@@ -35,19 +39,57 @@ func (session *Session) Start() {
 	go func() {
 		time.Sleep(time.Second)
 		if session.Process.Stdin_stream != nil {
-			io.WriteString(session.Process.Stdin_stream, "s")
+			session.Refresh()
 		}
 	}()
 }
 
+func (session *Session) Refresh() {
+	if runtime.GOOS == "windows" {
+		session.Process.PostKey(0x53)
+	} else {
+		io.WriteString(session.Process.Stdin_stream, "s")
+	}
+}
+func (session *Session) Pause() {
+	if runtime.GOOS == "windows" {
+		session.Process.PostKey(0x50)
+	} else {
+		io.WriteString(session.Process.Stdin_stream, "p")
+	}
+}
+func (session *Session) Resume() {
+	if runtime.GOOS == "windows" {
+		session.Process.PostKey(0x52)
+	} else {
+		io.WriteString(session.Process.Stdin_stream, "r")
+	}
+}
+func (session *Session) Quit() {
+	if runtime.GOOS == "windows" {
+		session.Process.PostKey(0x51)
+	} else {
+		io.WriteString(session.Process.Stdin_stream, "q")
+	}
+}
+
 func (session *Session) SetTabTextStatus(hcl_gui *hcl_gui, text string) {
 	session.Tab.Text = "["+text+"]"
+	hcl_gui.tabs.Refresh()
+}
+
+func (hcl_gui *hcl_gui) RemoveSession(session *Session) {
+    for i, v := range hcl_gui.sessions {
+        if v == session {
+            hcl_gui.sessions = append(hcl_gui.sessions[:i], hcl_gui.sessions[i+1:]...)
+        }
+    }	
 }
 
 func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 	hcl_gui.count_all_sessions++
 	session := &Session{}
-	session.Id = "Test"
+	session.Id = fmt.Sprintf("hcl_%d_%s", hcl_gui.count_all_sessions, RandomString(7))
 	session.Journal = Journal{[3]*widget.Label{
 		widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Monospace:true}),
 		widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Monospace:true}),
@@ -79,44 +121,42 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 	guess_charset := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
 
 	start := widget.NewButton("Start", func(){
-		session.Start()
+		if hcl_gui.count_active_sessions < hcl_gui.max_active_sessions {
+			session.Start()
+		} else {
+			dialog.ShowError(errors.New("Max Active Sessions Reached!"), hcl_gui.window)
+		}
 	})
 	refresh := widget.NewButton("Refresh", func(){
-		io.WriteString(session.Process.Stdin_stream, "s")
+		session.Refresh()
 	})
 	refresh.Disable()
 	var pause, resume *widget.Button
 	pause = widget.NewButton("Pause", func(){
-		io.WriteString(session.Process.Stdin_stream, "p")
+		session.Pause()
 		go func(){
 			time.Sleep(100*time.Millisecond)
-			io.WriteString(session.Process.Stdin_stream, "s")
+			session.Refresh()
 		}()
 		session.Journal.UpdateJournal("Paused")
-		resume.Enable()
-		pause.Disable()
 	})
 	pause.Disable()
 	resume = widget.NewButton("Resume", func(){
-		io.WriteString(session.Process.Stdin_stream, "r")
+		session.Resume()
 		go func(){
 			time.Sleep(100*time.Millisecond)
-			io.WriteString(session.Process.Stdin_stream, "s")
+			session.Refresh()
 		}()
 		session.Journal.UpdateJournal("Resumed")
-		pause.Enable()
-		resume.Disable()
 	})
 	resume.Disable()
 	stop := widget.NewButton("Stop", func(){
-		io.WriteString(session.Process.Stdin_stream, "q")
+		session.Quit()
 		session.Journal.UpdateJournal("Graceful Stop")
 	})
 	stop.Disable()
 	terminate := widget.NewButton("Terminate", func(){
-		if started {
-			io.WriteString(session.Process.Stdin_stream, "q")
-		}
+		session.Quit()
 		session.Journal.UpdateJournal("Forceful Stop")
 		session.Process.Kill()
 		terminated = true
@@ -124,17 +164,18 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 	terminate.Disable()
 	terminate_n_close := widget.NewButton("Terminate & Close", func(){
 		if started {
-			io.WriteString(session.Process.Stdin_stream, "q")
+			session.Quit()
 		}
 		session.Journal.UpdateJournal("Forceful Stop")
 		session.Process.Kill()
 		terminated = true
 		var tab_index int
 		if tab_index = hcl_gui.tabs.CurrentTabIndex()-1; tab_index < 4 {
-			tab_index = 0
+			tab_index = 3
 		} 
 		hcl_gui.tabs.SelectTabIndex(tab_index)
 		hcl_gui.tabs.Remove(session.Tab)
+		hcl_gui.RemoveSession(session)
 	})
 
 	args := func() []string {
@@ -203,25 +244,47 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 		return args
 	}()
 
+	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
 	session.Process = subprocess.Subprocess{
 		subprocess.SubprocessStatusNotRunning,
+		wdir,
 		hcl_gui.hashcat.binary_file,
 		args,
 		nil,
 		nil,
-		func(s string){
+		func(s string) {
 			fmt.Fprintf(os.Stdout, "%s\n", s)
+			info_line := re_info.FindStringSubmatch(s)
+			if len(info_line) == 1 {
+				session.Journal.UpdateJournal(info_line[0])
+				return
+			}
 			status_line := re_status.FindStringSubmatch(s)
 			if len(status_line) == 3 {
 				switch status_line[1] {
 				case "Status":
 					if status.Text == "Initializing" {
-						session.Journal.UpdateJournal("Cracking...")
+						session.Journal.UpdateJournal("Running...")
+						session.SetTabTextStatus(hcl_gui, "Running")
 						pause.Enable()
 						stop.Enable()
+					} else if status_line[2] == "Paused" {
+						session.SetTabTextStatus(hcl_gui, "Paused")
+						pause.Disable()
+						resume.Enable()
+					} else {
+						if status_line[2] != "Quit" {
+							session.SetTabTextStatus(hcl_gui, "Running")
+							pause.Enable()
+							resume.Disable()
+						} else {
+							session.SetTabTextStatus(hcl_gui, "Stopped")
+							pause.Disable()
+							stop.Disable()
+							resume.Disable()
+						}
 					}
 					status.SetText(status_line[2])
-					session.SetTabTextStatus(hcl_gui, status_line[2])
 				case "Hash.Name", "Hash.Type":
 					hash_type.SetText(status_line[2])
 				case "Hash.Target":
@@ -284,7 +347,7 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 				}
 			}
 		},
-		func(s string){
+		func(s string) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
 			if len(s) > 0 {
 				status.SetText("An error occurred")
@@ -317,10 +380,12 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 				status.SetText("Terminated")
 				session.SetTabTextStatus(hcl_gui, "Terminated")
 			} else if status.Text == "Initializing" || status.Text == "Running" {
-				status.SetText("An error occurred")
-				session.SetTabTextStatus(hcl_gui, "Error")
+				status.SetText("Exited")
+				session.SetTabTextStatus(hcl_gui, "Exited")
+			} else if session.Tab.Text != "[Stopped]" {
+				session.SetTabTextStatus(hcl_gui, "Finished")
 			}
-			session.Journal.UpdateJournal("Finished.")
+			session.Journal.UpdateJournal("Ended.")
 			go AutoStart(hcl_gui)
 		},
 	}

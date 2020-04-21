@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"strconv"
+	"path/filepath"
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
@@ -66,13 +67,15 @@ type hashcat_hash_type int
 func get_available_hash_typess(hcl_gui *hcl_gui) {
 	var hashmode, hashtype string
 	hcl_gui.hashcat.available_hash_types = []*xwidget.SelectorOption{}
+	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
 	cmd := subprocess.Subprocess{
 		subprocess.SubprocessStatusNotRunning,
+		wdir,
 		hcl_gui.hashcat.binary_file,
 		[]string{"--example-hashes", "--quiet"},
 		nil,
 		nil,
-		func(s string){
+		func(s string) {
 			mode_line := re_mode.FindStringSubmatch(s)
 			if len(mode_line) == 2 {
 				hashmode = mode_line[1]
@@ -84,7 +87,7 @@ func get_available_hash_typess(hcl_gui *hcl_gui) {
 				}
 			}
 		},
-		func(s string){
+		func(s string) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
 		},
 		func(){},
@@ -96,16 +99,18 @@ func get_available_hash_typess(hcl_gui *hcl_gui) {
 func get_devices_info(hcl_gui *hcl_gui) string {
 	info := ""
 	errors := ""
+	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
 	cmd := subprocess.Subprocess{
 		subprocess.SubprocessStatusNotRunning,
+		wdir,
 		hcl_gui.hashcat.binary_file,
 		[]string{"-I", "--force", "--quiet"},
 		nil,
 		nil,
-		func(s string){
+		func(s string) {
 			info += re_ansi.ReplaceAllString(s, "")+"\n"
 		},
-		func(s string){
+		func(s string) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
 			errors += re_ansi.ReplaceAllString(s, "")+"\n"
 		},
@@ -122,16 +127,18 @@ func get_devices_info(hcl_gui *hcl_gui) string {
 func get_benchmark(hcl_gui *hcl_gui) string {
 	benchmark := ""
 	errors := ""
+	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
 	cmd := subprocess.Subprocess{
 		subprocess.SubprocessStatusNotRunning,
+		wdir,
 		hcl_gui.hashcat.binary_file,
 		[]string{"-O", fmt.Sprintf("-m%d", hcl_gui.hashcat.args.hash_type), "-b", fmt.Sprintf("-w%d", hcl_gui.hashcat.args.workload_profile), "-D", intSliceToString(hcl_gui.hashcat.args.devices_types,","), "--force", "--quiet"},
 		nil,
 		nil,
-		func(s string){
+		func(s string) {
 			benchmark += re_ansi.ReplaceAllString(s, "")+"\n"
 		},
-		func(s string){
+		func(s string) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
 			errors += re_ansi.ReplaceAllString(s, "")+"\n"
 		},
