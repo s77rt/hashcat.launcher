@@ -1,0 +1,5 @@
+*.exe
+*.bin
+hashcat.launcher
+hashcat.launcher.exe
+hashcat.launcher.bin
