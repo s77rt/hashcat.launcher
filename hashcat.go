@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"strconv"
+	"strings"
 	"path/filepath"
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
@@ -309,6 +310,40 @@ func set_outfile_format(hcl_gui *hcl_gui, outfile_format string) {
 	*/
 	}
 	hcl_gui.hashcat.args.outfile_format = outfile_format_int
+}
+
+// Others
+func get_mask_length(mask string) int {
+	if len(mask) == 0 {
+		return 0
+	}
+	length := 0
+	skip_next := false
+	for _, s := range strings.Split(mask, " ") {
+		if len(s) == 0 {
+			continue
+		}
+		if skip_next == true {
+			skip_next = false
+			continue
+		}
+		if s[0] == 0x2d {
+			if len(s) == 2 {
+				skip_next = true
+			}
+			continue
+		}
+		for _, l := range s {
+			if l == 0x3f {
+				continue
+			}
+			length++
+		}
+		if length > 0 {
+			break
+		}
+	}
+	return length
 }
 
 // Init

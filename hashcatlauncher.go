@@ -12,7 +12,7 @@ import (
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
-const Version = "0.1.1"
+const Version = "0.1.2"
 
 const hashcat_min_version = "v5.1.0+1774"
 
@@ -59,8 +59,7 @@ func (hcl_gui *hcl_gui) LoadUI(app fyne.App) {
 	hcl_gui.window.SetIcon(hcl_gui.Icon)
 	hcl_gui.tabs = widget.NewTabContainer(
 		widget.NewTabItem("         About         ", aboutScreen()),
-		widget.NewTabItem("Options", optionsScreen(app, hcl_gui)),
-		widget.NewTabItem("Appearance", appearanceScreen(hcl_gui, hash_type_fakeselector)),
+		widget.NewTabItem("Options", optionsScreen(app, hcl_gui, hash_type_fakeselector)),
 		widget.NewTabItem("Launcher", launcherScreen(hcl_gui, hash_type_fakeselector)),
 	)
 	hcl_gui.tabs.SetTabLocation(widget.TabLocationLeading)

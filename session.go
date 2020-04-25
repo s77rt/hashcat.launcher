@@ -170,8 +170,8 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 		session.Process.Kill()
 		terminated = true
 		var tab_index int
-		if tab_index = hcl_gui.tabs.CurrentTabIndex()-1; tab_index < 4 {
-			tab_index = 3
+		if tab_index = hcl_gui.tabs.CurrentTabIndex()-1; tab_index < 3 {
+			tab_index = 2
 		} 
 		hcl_gui.tabs.SelectTabIndex(tab_index)
 		hcl_gui.tabs.Remove(session.Tab)

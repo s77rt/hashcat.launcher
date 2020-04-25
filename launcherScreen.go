@@ -27,21 +27,29 @@ func load_hash_type_selector(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Bo
 	var modal *widget.PopUp
 	data := widget.NewVBox()
 	data.Children = []fyne.CanvasObject{widget.NewLabel("Results will appear here...")}
+	results_box := 	widget.NewScrollContainer(data)
 	search := widget.NewEntry()
 	search.SetPlaceHolder("Type to search")
 	search.OnChanged = func(keyword string){
 		if len(keyword) >= 2 {
+			results_box.Offset = fyne.NewPos(0,0)
 			go func(){
 				load_hash_type_options(modal, data, hcl_gui, hash_type_fakeselector, hcl_gui.hashcat.available_hash_types, keyword)
 			}()
 		}
 	}
-	c := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{500, 600}),
-		widget.NewScrollContainer(
-			widget.NewVBox(
-				search,
-				data,
+	c := widget.NewVBox(
+		widget.NewHBox(
+			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{485, 40}),
+				widget.NewHScrollContainer(search),
 			),
+			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{15, 15}),
+				widget.NewButton("X", func(){modal.Hide()}),
+				widget.NewButton("?", func(){dialog.ShowInformation("Help", "Type at least two chars to search for hash types.\nIf nothing appears make sure that you have set hashcat binary file correctly.", hcl_gui.window)}),
+			),
+		),
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{500, 600}),
+			results_box,
 		),
 	)
     hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
@@ -135,143 +143,143 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	// Mode Configs start from here...
 
 	// Dictionary Mode
-	dictonaries := []string{}
-	dictonaries_stats := widget.NewLabel("Loaded 0 files")
-	dictonaries_list := widget.NewMultiLineEntry()
-	dictonaries_list.SetPlaceHolder("Click [+] to add files... -or- Paste files pathes")
-	dictonaries_list.OnChanged = func(s string){
-		dictonaries = []string{}
+	dictionaries := []string{}
+	dictionaries_stats := widget.NewLabel("Loaded 0 files")
+	dictionaries_list := widget.NewMultiLineEntry()
+	dictionaries_list.SetPlaceHolder("Click [+] to add files... -or- Paste files pathes")
+	dictionaries_list.OnChanged = func(s string){
+		dictionaries = []string{}
 		valid_files := 0
 		files_list := strings.Split(strings.Replace(s, "\r\n", "\n", -1), "\n")
 		for _, file := range files_list {
 			if _, err := os.Stat(file); err == nil {
-				dictonaries = append(dictonaries, file)
+				dictionaries = append(dictionaries, file)
 				valid_files++
 			}
 		}
-		dictonaries_stats.SetText(fmt.Sprintf("Loaded %d files", valid_files))
+		dictionaries_stats.SetText(fmt.Sprintf("Loaded %d files", valid_files))
 	}
 	// Dictionaries Rules
-	dictonaries_rule1 := ""
-	dictonaries_rule2 := ""
-	dictonaries_rule3 := ""
-	dictonaries_rule4 := ""
+	dictionaries_rule1 := ""
+	dictionaries_rule2 := ""
+	dictionaries_rule3 := ""
+	dictionaries_rule4 := ""
 	// Rule 1
-	dictonaries_rule1_select := widget.NewSelect([]string{}, func(string){})
-	dictonaries_rule1_check := widget.NewCheck("Rule 1:", func(bool){})
-	dictonaries_rule1_select.OnChanged = func(s string) {
-		dictonaries_rule1_check.SetChecked(true)
+	dictionaries_rule1_select := widget.NewSelect([]string{}, func(string){})
+	dictionaries_rule1_check := widget.NewCheck("Rule 1:", func(bool){})
+	dictionaries_rule1_select.OnChanged = func(s string) {
+		dictionaries_rule1_check.SetChecked(true)
 		_, file := filepath.Split(s)
-		dictonaries_rule1_select.Selected = file
-		dictonaries_rule1 = s
+		dictionaries_rule1_select.Selected = file
+		dictionaries_rule1 = s
 	}
-	dictonaries_rule1_check.OnChanged = func(check bool) {
+	dictionaries_rule1_check.OnChanged = func(check bool) {
 		if check {
-			dictonaries_rule1_select.Selected = "(Select one)"
+			dictionaries_rule1_select.Selected = "(Select one)"
 		} else {
-			dictonaries_rule1_select.Selected = "None"
+			dictionaries_rule1_select.Selected = "None"
 		}
-		dictonaries_rule1_select.Refresh()
-		dictonaries_rule1 = ""
+		dictionaries_rule1_select.Refresh()
+		dictionaries_rule1 = ""
 	}
-	dictonaries_rule1_button := widget.NewButton("...", func(){
+	dictionaries_rule1_button := widget.NewButton("...", func(){
 		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Load()
 			if err == nil {
-				dictonaries_rule1_check.SetChecked(true)
-				dictonaries_rule1_select.Options = append([]string{file}, dictonaries_rule1_select.Options[:min(len(dictonaries_rule1_select.Options), 4)]...)
-				dictonaries_rule1_select.SetSelected(file)
+				dictionaries_rule1_check.SetChecked(true)
+				dictionaries_rule1_select.Options = append([]string{file}, dictionaries_rule1_select.Options[:min(len(dictionaries_rule1_select.Options), 4)]...)
+				dictionaries_rule1_select.SetSelected(file)
 			}
 	})
-	dictonaries_rule1_select.Selected = "None"
+	dictionaries_rule1_select.Selected = "None"
 	// Rule 2
-	dictonaries_rule2_select := widget.NewSelect([]string{}, func(string){})
-	dictonaries_rule2_check := widget.NewCheck("Rule 2:", func(bool){})
-	dictonaries_rule2_select.OnChanged = func(s string) {
-		dictonaries_rule2_check.SetChecked(true)
+	dictionaries_rule2_select := widget.NewSelect([]string{}, func(string){})
+	dictionaries_rule2_check := widget.NewCheck("Rule 2:", func(bool){})
+	dictionaries_rule2_select.OnChanged = func(s string) {
+		dictionaries_rule2_check.SetChecked(true)
 		_, file := filepath.Split(s)
-		dictonaries_rule2_select.Selected = file
-		dictonaries_rule2 = s
+		dictionaries_rule2_select.Selected = file
+		dictionaries_rule2 = s
 	}
-	dictonaries_rule2_check.OnChanged = func(check bool) {
+	dictionaries_rule2_check.OnChanged = func(check bool) {
 		if check {
-			dictonaries_rule2_select.Selected = "(Select one)"
+			dictionaries_rule2_select.Selected = "(Select one)"
 		} else {
-			dictonaries_rule2_select.Selected = "None"
+			dictionaries_rule2_select.Selected = "None"
 		}
-		dictonaries_rule2_select.Refresh()
-		dictonaries_rule2 = ""
+		dictionaries_rule2_select.Refresh()
+		dictionaries_rule2 = ""
 	}
-	dictonaries_rule2_button := widget.NewButton("...", func(){
+	dictionaries_rule2_button := widget.NewButton("...", func(){
 		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Load()
 			if err == nil {
-				dictonaries_rule2_check.SetChecked(true)
-				dictonaries_rule2_select.Options = append([]string{file}, dictonaries_rule2_select.Options[:min(len(dictonaries_rule2_select.Options), 4)]...)
-				dictonaries_rule2_select.SetSelected(file)
+				dictionaries_rule2_check.SetChecked(true)
+				dictionaries_rule2_select.Options = append([]string{file}, dictionaries_rule2_select.Options[:min(len(dictionaries_rule2_select.Options), 4)]...)
+				dictionaries_rule2_select.SetSelected(file)
 			}
 	})
-	dictonaries_rule2_select.Selected = "None"
+	dictionaries_rule2_select.Selected = "None"
 	// Rule 3
-	dictonaries_rule3_select := widget.NewSelect([]string{}, func(string){})
-	dictonaries_rule3_check := widget.NewCheck("Rule 3:", func(bool){})
-	dictonaries_rule3_select.OnChanged = func(s string) {
-		dictonaries_rule3_check.SetChecked(true)
+	dictionaries_rule3_select := widget.NewSelect([]string{}, func(string){})
+	dictionaries_rule3_check := widget.NewCheck("Rule 3:", func(bool){})
+	dictionaries_rule3_select.OnChanged = func(s string) {
+		dictionaries_rule3_check.SetChecked(true)
 		_, file := filepath.Split(s)
-		dictonaries_rule3_select.Selected = file
-		dictonaries_rule3 = s
+		dictionaries_rule3_select.Selected = file
+		dictionaries_rule3 = s
 	}
-	dictonaries_rule3_check.OnChanged = func(check bool) {
+	dictionaries_rule3_check.OnChanged = func(check bool) {
 		if check {
-			dictonaries_rule3_select.Selected = "(Select one)"
+			dictionaries_rule3_select.Selected = "(Select one)"
 		} else {
-			dictonaries_rule3_select.Selected = "None"
+			dictionaries_rule3_select.Selected = "None"
 		}
-		dictonaries_rule3_select.Refresh()
-		dictonaries_rule3 = ""
+		dictionaries_rule3_select.Refresh()
+		dictionaries_rule3 = ""
 	}
-	dictonaries_rule3_button := widget.NewButton("...", func(){
+	dictionaries_rule3_button := widget.NewButton("...", func(){
 		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Load()
 			if err == nil {
-				dictonaries_rule3_check.SetChecked(true)
-				dictonaries_rule3_select.Options = append([]string{file}, dictonaries_rule3_select.Options[:min(len(dictonaries_rule3_select.Options), 4)]...)
-				dictonaries_rule3_select.SetSelected(file)
+				dictionaries_rule3_check.SetChecked(true)
+				dictionaries_rule3_select.Options = append([]string{file}, dictionaries_rule3_select.Options[:min(len(dictionaries_rule3_select.Options), 4)]...)
+				dictionaries_rule3_select.SetSelected(file)
 			}
 	})
-	dictonaries_rule3_select.Selected = "None"
+	dictionaries_rule3_select.Selected = "None"
 	// Rule 4
-	dictonaries_rule4_select := widget.NewSelect([]string{}, func(string){})
-	dictonaries_rule4_check := widget.NewCheck("Rule 4:", func(bool){})
-	dictonaries_rule4_select.OnChanged = func(s string) {
-		dictonaries_rule4_check.SetChecked(true)
+	dictionaries_rule4_select := widget.NewSelect([]string{}, func(string){})
+	dictionaries_rule4_check := widget.NewCheck("Rule 4:", func(bool){})
+	dictionaries_rule4_select.OnChanged = func(s string) {
+		dictionaries_rule4_check.SetChecked(true)
 		_, file := filepath.Split(s)
-		dictonaries_rule4_select.Selected = file
-		dictonaries_rule4 = s
+		dictionaries_rule4_select.Selected = file
+		dictionaries_rule4 = s
 	}
-	dictonaries_rule4_check.OnChanged = func(check bool) {
+	dictionaries_rule4_check.OnChanged = func(check bool) {
 		if check {
-			dictonaries_rule4_select.Selected = "(Select one)"
+			dictionaries_rule4_select.Selected = "(Select one)"
 		} else {
-			dictonaries_rule4_select.Selected = "None"
+			dictionaries_rule4_select.Selected = "None"
 		}
-		dictonaries_rule4_select.Refresh()
-		dictonaries_rule4 = ""
+		dictionaries_rule4_select.Refresh()
+		dictionaries_rule4 = ""
 	}
-	dictonaries_rule4_button := widget.NewButton("...", func(){
+	dictionaries_rule4_button := widget.NewButton("...", func(){
 		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Load()
 			if err == nil {
-				dictonaries_rule4_check.SetChecked(true)
-				dictonaries_rule4_select.Options = append([]string{file}, dictonaries_rule4_select.Options[:min(len(dictonaries_rule4_select.Options), 4)]...)
-				dictonaries_rule4_select.SetSelected(file)
+				dictionaries_rule4_check.SetChecked(true)
+				dictionaries_rule4_select.Options = append([]string{file}, dictionaries_rule4_select.Options[:min(len(dictionaries_rule4_select.Options), 4)]...)
+				dictionaries_rule4_select.SetSelected(file)
 			}
 	})
-	dictonaries_rule4_select.Selected = "None"
+	dictionaries_rule4_select.Selected = "None"
 
 	hcl_gui.hc_dictionary_attack_conf = widget.NewVBox(
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{490, 200}),
 			widget.NewVBox(
-				widget.NewGroup("Dictonaries",
+				widget.NewGroup("Dictionaries",
 					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{490, 103}),
 						widget.NewScrollContainer(
-							dictonaries_list,
+							dictionaries_list,
 						),
 					),
 					widget.NewHBox(
@@ -282,7 +290,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 									widget.NewButton("+", func(){
 										file, err := dialog2.File().Title("Add Dictionary").Filter("Text Files", "txt", "dict").Load()
 										if err == nil {
-											dictonaries_list.SetText(dictonaries_list.Text+file+"\n")
+											dictionaries_list.SetText(dictionaries_list.Text+file+"\n")
 										}
 									}),
 									spacer(10,0),
@@ -294,7 +302,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 												fmt.Fprintf(os.Stderr, "can't load config: %s\n", err)
 												dialog.ShowError(err, hcl_gui.window)
 											} else {
-												dictonaries_list.SetText(string(data))
+												dictionaries_list.SetText(string(data))
 											}
 										}
 									}),
@@ -308,7 +316,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 											} else {
 												defer f.Close()
 												w := bufio.NewWriter(f)
-												_, err := w.WriteString(dictonaries_list.Text)
+												_, err := w.WriteString(dictionaries_list.Text)
 												if err != nil {
 													fmt.Fprintf(os.Stderr, "can't save config: %s\n", err)
 													dialog.ShowError(err, hcl_gui.window)
@@ -319,7 +327,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 										}
 									}),
 									spacer(135,0),
-									widget.NewButton("Clear All", func(){dictonaries_list.SetText("")}),
+									widget.NewButton("Clear All", func(){dictionaries_list.SetText("")}),
 								),
 							),
 						),
@@ -328,7 +336,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						widget.NewScrollContainer(
 							widget.NewHBox(
 								spacer(5, 0),
-								dictonaries_stats,
+								dictionaries_stats,
 							),
 						),
 					),
@@ -342,68 +350,68 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 					widget.NewHBox(
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
 							widget.NewVBox(
-								dictonaries_rule1_check,
+								dictionaries_rule1_check,
 							),
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{355, 35}),
 							widget.NewVBox(
-								dictonaries_rule1_select,
+								dictionaries_rule1_select,
 							),
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
 							widget.NewVBox(
-								dictonaries_rule1_button,
+								dictionaries_rule1_button,
 							),
 						),
 					),
 					widget.NewHBox(
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
 							widget.NewVBox(
-								dictonaries_rule2_check,
+								dictionaries_rule2_check,
 							),
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{355, 35}),
 							widget.NewVBox(
-								dictonaries_rule2_select,
+								dictionaries_rule2_select,
 							),
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
 							widget.NewVBox(
-								dictonaries_rule2_button,
+								dictionaries_rule2_button,
 							),
 						),
 					),
 					widget.NewHBox(
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
 							widget.NewVBox(
-								dictonaries_rule3_check,
+								dictionaries_rule3_check,
 							),
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{355, 35}),
 							widget.NewVBox(
-								dictonaries_rule3_select,
+								dictionaries_rule3_select,
 							),
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
 							widget.NewVBox(
-								dictonaries_rule3_button,
+								dictionaries_rule3_button,
 							),
 						),
 					),
 					widget.NewHBox(
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
 							widget.NewVBox(
-								dictonaries_rule4_check,
+								dictionaries_rule4_check,
 							),
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{355, 35}),
 							widget.NewVBox(
-								dictonaries_rule4_select,
+								dictionaries_rule4_select,
 							),
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
 							widget.NewVBox(
-								dictonaries_rule4_button,
+								dictionaries_rule4_button,
 							),
 						),
 					),
@@ -434,8 +442,6 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	combinator_left_rule_entry.SetText("c")
 	combinator_left_rule_entry.Disable()
 	combinator_left_rule_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 25)]
-		combinator_left_rule_entry.SetText(s)
 		combinator_left_rule = s
 	}
 	combinator_left_rule_check := widget.NewCheck("Left Rule:", func(check bool){
@@ -467,8 +473,6 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	combinator_right_rule_entry.SetText("$!")
 	combinator_right_rule_entry.Disable()
 	combinator_right_rule_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 25)]
-		combinator_right_rule_entry.SetText(s)
 		combinator_right_rule = s
 	}
 	combinator_right_rule_check := widget.NewCheck("Right Rule:", func(check bool){
@@ -537,7 +541,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{290, 35}),
 							widget.NewVBox(
-								combinator_left_rule_entry,
+								widget.NewHScrollContainer(combinator_left_rule_entry),
 							),
 						),
 					),
@@ -551,7 +555,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{290, 35}),
 							widget.NewVBox(
-								combinator_right_rule_entry,
+								widget.NewHScrollContainer(combinator_right_rule_entry),
 							),
 						),
 					),
@@ -563,12 +567,22 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 
 	// Mask Mode
 	mask := ""
+	mask_length := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
 	mask_entry := widget.NewEntry()
 	mask_entry.SetPlaceHolder("?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a")
 	mask_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 35)]
-		mask_entry.SetText(s)
-		mask = s
+		if mask_length.Text == "[F]" {
+			mask = ""
+			mask_entry.SetText("")
+			mask_length.SetText("")
+		} else {
+			if l := get_mask_length(s); l > 0 {
+				mask_length.SetText(fmt.Sprintf("[%d]", l))
+			} else {
+				mask_length.SetText("")
+			}
+			mask = s
+		}
 	}
 	mask_increment_min := ""
 	mask_increment_min_entry := widget.NewEntry()
@@ -612,8 +626,6 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	mask_customcharset1_entry.SetText("?l?u?d")
 	mask_customcharset1_entry.Disable()
 	mask_customcharset1_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 25)]
-		mask_customcharset1_entry.SetText(s)
 		mask_customcharset1 = s
 	}
 	mask_customcharset1_check := widget.NewCheck("Custom charset 1:", func(check bool){
@@ -630,8 +642,6 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	mask_customcharset2_entry.SetText("?l?d")
 	mask_customcharset2_entry.Disable()
 	mask_customcharset2_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 25)]
-		mask_customcharset2_entry.SetText(s)
 		mask_customcharset2 = s
 	}
 	mask_customcharset2_check := widget.NewCheck("Custom charset 2:", func(check bool){
@@ -648,8 +658,6 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	mask_customcharset3_entry.SetText("?d?s")
 	mask_customcharset3_entry.Disable()
 	mask_customcharset3_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 25)]
-		mask_customcharset3_entry.SetText(s)
 		mask_customcharset3 = s
 	}
 	mask_customcharset3_check := widget.NewCheck("Custom charset 3:", func(check bool){
@@ -666,8 +674,6 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	mask_customcharset4_entry.SetText("ABCDabcd1234")
 	mask_customcharset4_entry.Disable()
 	mask_customcharset4_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 25)]
-		mask_customcharset4_entry.SetText(s)
 		mask_customcharset4 = s
 	}
 	mask_customcharset4_check := widget.NewCheck("Custom charset 4:", func(check bool){
@@ -690,12 +696,25 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 								widget.NewHBox(
 									spacer(10, 0),
 									widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
+									mask_length,
 								),
 							),
 						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{360, 35}),
+						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{330, 35}),
 							widget.NewVBox(
-								mask_entry,
+								widget.NewHScrollContainer(mask_entry),
+							),
+						),
+						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
+							widget.NewVBox(
+								widget.NewButton("...", func(){
+									file, err := dialog2.File().Title("Select Mask File").Filter("Mask Files", "txt", "hcmask").Load()
+									if err == nil {
+										mask_entry.SetText("[hcmask file]")
+										mask_length.SetText("[F]")
+										mask = file
+									}
+								}),
 							),
 						),
 					),
@@ -736,7 +755,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{265, 35}),
 							widget.NewVBox(
-								mask_customcharset1_entry,
+								widget.NewHScrollContainer(mask_customcharset1_entry),
 							),
 						),
 					),
@@ -750,7 +769,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{265, 35}),
 							widget.NewVBox(
-								mask_customcharset2_entry,
+								widget.NewHScrollContainer(mask_customcharset2_entry),
 							),
 						),
 					),
@@ -764,7 +783,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{265, 35}),
 							widget.NewVBox(
-								mask_customcharset3_entry,
+								widget.NewHScrollContainer(mask_customcharset3_entry),
 							),
 						),
 					),
@@ -778,7 +797,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{265, 35}),
 							widget.NewVBox(
-								mask_customcharset4_entry,
+								widget.NewHScrollContainer(mask_customcharset4_entry),
 							),
 						),
 					),
@@ -810,8 +829,6 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	hybrid1_left_rule_entry.SetText("^e^h^t")
 	hybrid1_left_rule_entry.Disable()
 	hybrid1_left_rule_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 25)]
-		hybrid1_left_rule_entry.SetText(s)
 		hybrid1_left_rule = s
 	}
 	hybrid1_left_rule_check := widget.NewCheck("Rule:", func(check bool){
@@ -825,12 +842,22 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	})
 	// Right
 	hybrid1_right_mask := ""
+	hybrid1_right_mask_length := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
 	hybrid1_right_mask_entry := widget.NewEntry()
 	hybrid1_right_mask_entry.SetPlaceHolder("?d?d?d?d")
 	hybrid1_right_mask_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 35)]
-		hybrid1_right_mask_entry.SetText(s)
-		hybrid1_right_mask = s
+		if hybrid1_right_mask_length.Text == "[F]" {
+			hybrid1_right_mask = ""
+			hybrid1_right_mask_entry.SetText("")
+			hybrid1_right_mask_length.SetText("")
+		} else {
+			if l := get_mask_length(s); l > 0 {
+				hybrid1_right_mask_length.SetText(fmt.Sprintf("[%d]", l))
+			} else {
+				hybrid1_right_mask_length.SetText("")
+			}
+			hybrid1_right_mask = s
+		}
 	}
 	hybrid1_right_mask_increment_min := ""
 	hybrid1_right_mask_increment_min_entry := widget.NewEntry()
@@ -905,7 +932,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 35}),
 							widget.NewVBox(
-								hybrid1_left_rule_entry,
+								widget.NewHScrollContainer(hybrid1_left_rule_entry),
 							),
 						),
 					),
@@ -918,12 +945,25 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 								widget.NewHBox(
 									spacer(10, 0),
 									widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
+									hybrid1_right_mask_length,
 								),
 							),
 						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{360, 35}),
+						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{330, 35}),
 							widget.NewVBox(
-								hybrid1_right_mask_entry,
+								widget.NewHScrollContainer(hybrid1_right_mask_entry),
+							),
+						),
+						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
+							widget.NewVBox(
+								widget.NewButton("...", func(){
+									file, err := dialog2.File().Title("Select Mask File").Filter("Mask Files", "txt", "hcmask").Load()
+									if err == nil {
+										hybrid1_right_mask_entry.SetText("[hcmask file]")
+										hybrid1_right_mask_length.SetText("[F]")
+										hybrid1_right_mask = file
+									}
+								}),
 							),
 						),
 					),
@@ -962,12 +1002,22 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	// Hybrid2 Mode
 	// Left
 	hybrid2_left_mask := ""
+	hybrid2_left_mask_length := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
 	hybrid2_left_mask_entry := widget.NewEntry()
 	hybrid2_left_mask_entry.SetPlaceHolder("?u?l?l?l?l?l?l?l")
 	hybrid2_left_mask_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 35)]
-		hybrid2_left_mask_entry.SetText(s)
-		hybrid2_left_mask = s
+		if hybrid2_left_mask_length.Text == "[F]" {
+			hybrid2_left_mask = ""
+			hybrid2_left_mask_entry.SetText("")
+			hybrid2_left_mask_length.SetText("")
+		} else {
+			if l := get_mask_length(s); l > 0 {
+				hybrid2_left_mask_length.SetText(fmt.Sprintf("[%d]", l))
+			} else {
+				hybrid2_left_mask_length.SetText("")
+			}
+			hybrid2_left_mask = s
+		}
 	}
 	hybrid2_left_mask_increment_min := ""
 	hybrid2_left_mask_increment_min_entry := widget.NewEntry()
@@ -1026,8 +1076,6 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	hybrid2_right_rule_entry.SetText("$1 $2 $3 $!")
 	hybrid2_right_rule_entry.Disable()
 	hybrid2_right_rule_entry.OnChanged = func(s string) {
-		s = s[:min(len(s), 25)]
-		hybrid2_right_rule_entry.SetText(s)
 		hybrid2_right_rule = s
 	}
 	hybrid2_right_rule_check := widget.NewCheck("Rule:", func(check bool){
@@ -1050,12 +1098,25 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 								widget.NewHBox(
 									spacer(10, 0),
 									widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
+									hybrid2_left_mask_length,
 								),
 							),
 						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{360, 35}),
+						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{330, 35}),
 							widget.NewVBox(
-								hybrid2_left_mask_entry,
+								widget.NewHScrollContainer(hybrid2_left_mask_entry),
+							),
+						),
+						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
+							widget.NewVBox(
+								widget.NewButton("...", func(){
+									file, err := dialog2.File().Title("Select Mask File").Filter("Mask Files", "txt", "hcmask").Load()
+									if err == nil {
+										hybrid2_left_mask_entry.SetText("[hcmask file]")
+										hybrid2_left_mask_length.SetText("[F]")
+										hybrid2_left_mask = file
+									}
+								}),
 							),
 						),
 					),
@@ -1118,7 +1179,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 35}),
 							widget.NewVBox(
-								hybrid2_right_rule_entry,
+								widget.NewHScrollContainer(hybrid2_right_rule_entry),
 							),
 						),
 					),
@@ -1156,8 +1217,8 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 			// Dictionary Mode
 			case hashcat_attack_mode_Dictionary:
 				// Dictionaries
-				if len(dictonaries) > 0 {
-					attack_payload = append(attack_payload, dictonaries...)
+				if len(dictionaries) > 0 {
+					attack_payload = append(attack_payload, dictionaries...)
 				} else {
 					err := errors.New("You must add at least one dictionary")
 					fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -1165,17 +1226,17 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 					return []string{}
 				}
 				// Rules
-				if len(dictonaries_rule1) > 0 {
-					attack_payload = append(attack_payload, []string{"-r", dictonaries_rule1}...)
+				if len(dictionaries_rule1) > 0 {
+					attack_payload = append(attack_payload, []string{"-r", dictionaries_rule1}...)
 				}
-				if len(dictonaries_rule2) > 0 {
-					attack_payload = append(attack_payload, []string{"-r", dictonaries_rule2}...)
+				if len(dictionaries_rule2) > 0 {
+					attack_payload = append(attack_payload, []string{"-r", dictionaries_rule2}...)
 				}
-				if len(dictonaries_rule3) > 0 {
-					attack_payload = append(attack_payload, []string{"-r", dictonaries_rule3}...)
+				if len(dictionaries_rule3) > 0 {
+					attack_payload = append(attack_payload, []string{"-r", dictionaries_rule3}...)
 				}
-				if len(dictonaries_rule4) > 0 {
-					attack_payload = append(attack_payload, []string{"-r", dictonaries_rule4}...)
+				if len(dictionaries_rule4) > 0 {
+					attack_payload = append(attack_payload, []string{"-r", dictionaries_rule4}...)
 				}
 			case hashcat_attack_mode_Combinator:
 				// Wordlists
@@ -1210,7 +1271,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 				}
 				// Mask
 				if len(mask) > 0 {
-					attack_payload = append(attack_payload, mask)
+					attack_payload = append(attack_payload, strings.Split(mask, " ")...)
 				} else {
 					err := errors.New("You must specify a mask")
 					fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -1236,7 +1297,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 				}
 				// Right
 				if len(hybrid1_right_mask) > 0 {
-					attack_payload = append(attack_payload, hybrid1_right_mask)
+					attack_payload = append(attack_payload, strings.Split(hybrid1_right_mask, " ")...)
 				} else {
 					err := errors.New("You must specify a mask")
 					fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -1249,7 +1310,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 			case hashcat_attack_mode_Hybrid2:
 				// Left
 				if len(hybrid2_left_mask) > 0 {
-					attack_payload = append(attack_payload, hybrid2_left_mask)
+					attack_payload = append(attack_payload, strings.Split(hybrid2_left_mask, " ")...)
 				} else {
 					err := errors.New("You must specify a mask")
 					fmt.Fprintf(os.Stderr, "%s\n", err)
