@@ -12,7 +12,7 @@ func monitorScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 		fyne.NewContainerWithLayout(layout.NewGridLayout(6),
 			monitorHardwares(hcl_gui)...,
 		),
-		widget.NewLabelWithStyle("IMPORTANT: The first progress bar is for the Fan and the second is for the Util | Stats will reset every: 60s", fyne.TextAlignCenter, fyne.TextStyle{}),
+		widget.NewLabelWithStyle("IMPORTANT: The first progress bar is for the Fan and the second is for the Util | Stats will reset every: 300s", fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 }
 

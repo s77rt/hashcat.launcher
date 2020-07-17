@@ -20,7 +20,7 @@ type monitor_hardware struct {
 }
 
 func (monitor *hcl_gui_monitor) Init() {
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(300 * time.Second)
 	go func() {
 		for {
 			select {
