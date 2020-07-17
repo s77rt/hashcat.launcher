@@ -6,9 +6,10 @@ import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 	dialog2 "github.com/sqweek/dialog"
+	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
-func optionsScreen(app fyne.App, hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.CanvasObject {
+func optionsScreen(app fyne.App, hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) fyne.CanvasObject {
 	hcl_gui.hc_binary_file_select = widget.NewSelect([]string{"Browse..."}, func(string){
 		file, err := dialog2.File().Title("Select hashcat binary file").Filter("Bin/Exe Files", "exe", "bin").Load()
 		if err == nil {
@@ -77,9 +78,9 @@ func optionsScreen(app fyne.App, hcl_gui *hcl_gui, hash_type_fakeselector *widge
 
 						go get_available_hash_typess(hcl_gui)
 						if hcl_gui.hashcat.args.hash_type >= 0 {
-							fake_hash_type_selector_hack(hcl_gui, hash_type_fakeselector, fmt.Sprintf("%d", hcl_gui.hashcat.args.hash_type))
+							fake_hash_type_selector_hack(hash_type_fakeselector, fmt.Sprintf("%d", hcl_gui.hashcat.args.hash_type))
 						} else {
-							fake_hash_type_selector_hack(hcl_gui, hash_type_fakeselector, "(Select one)")
+							fake_hash_type_selector_hack(hash_type_fakeselector, "(Select one)")
 						}
 					}),
 				),

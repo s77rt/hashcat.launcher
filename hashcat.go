@@ -7,7 +7,6 @@ import (
 	"strings"
 	"path/filepath"
 	"fyne.io/fyne"
-	"fyne.io/fyne/widget"
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
@@ -154,10 +153,10 @@ func get_benchmark(hcl_gui *hcl_gui) string {
 }
 
 // Set Functions
-func set_hash_type(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box, value string) {
+func set_hash_type(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector, value string) {
 	value_int, _ := strconv.ParseInt(value, 10, 32)
 	hcl_gui.hashcat.args.hash_type = hashcat_hash_type(value_int)
-	fake_hash_type_selector_hack(hcl_gui, hash_type_fakeselector, value)
+	fake_hash_type_selector_hack(hash_type_fakeselector, value)
 }
 
 func set_attack_mode(hcl_gui *hcl_gui, value string) {

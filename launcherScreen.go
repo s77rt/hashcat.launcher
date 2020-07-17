@@ -18,12 +18,12 @@ import (
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
-func fake_hash_type_selector_hack(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box, text string) {
-	hash_type_fakeselector.Children = []fyne.CanvasObject{xwidget.NewSelector(text, func(){load_hash_type_selector(hcl_gui, hash_type_fakeselector)})}
-	hash_type_fakeselector.Refresh()
+func fake_hash_type_selector_hack(hash_type_fakeselector *xwidget.Selector, text string) {
+	hash_type_fakeselector.Select.Selected = text
+	hash_type_fakeselector.Select.Refresh()
 }
 
-func load_hash_type_selector(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) {
+func load_hash_type_selector(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) {
 	var modal *widget.PopUp
 	data := widget.NewVBox()
 	data.Children = []fyne.CanvasObject{widget.NewLabel("Results will appear here...")}
@@ -52,16 +52,16 @@ func load_hash_type_selector(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Bo
 			results_box,
 		),
 	)
-    hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
-    	if key.Name == fyne.KeyEscape {
-	        modal.Hide()
-	        hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
-    	}
-    })
+	hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+		if key.Name == fyne.KeyEscape {
+			modal.Hide()
+			hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+		}
+	})
 	modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
 }
 
-func load_hash_type_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box, items []*xwidget.SelectorOption, keyword string) {
+func load_hash_type_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector, items []*xwidget.SelectorOption, keyword string) {
 	var children []fyne.CanvasObject
 	for _, item := range items {
 		if strings.Contains(strings.ToLower(item.Label.Text), strings.ToLower(keyword)) {
@@ -77,7 +77,7 @@ func load_hash_type_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_
 	data.Refresh()
 }
 
-func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.CanvasObject {
+func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) fyne.CanvasObject {
 	// Basic Static Configs...
 	hashcat_img := canvas.NewImageFromResource(hcl_gui.Icon)
 	hashcat_img.SetMinSize(fyne.Size{100, 100})
@@ -146,7 +146,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 	dictionaries := []string{}
 	dictionaries_stats := widget.NewLabel("Loaded 0 files")
 	dictionaries_list := widget.NewMultiLineEntry()
-	dictionaries_list.SetPlaceHolder("Click [+] to add files... -or- Paste files pathes")
+	dictionaries_list.SetPlaceHolder("Click [+] to add a file...\nClick [++] to add a folder...\n-or- Paste files pathes here")
 	dictionaries_list.OnChanged = func(s string){
 		dictionaries = []string{}
 		valid_files := 0
@@ -288,9 +288,24 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 							widget.NewVBox(
 								widget.NewHBox(
 									widget.NewButton("+", func(){
-										file, err := dialog2.File().Title("Add Dictionary").Filter("Text Files", "txt", "dict").Load()
+										file, err := dialog2.File().Title("Add Dictionary").Filter("Text Files", "txt", "dict", "dic", "lst").Filter("All Files", "*").Load()
 										if err == nil {
 											dictionaries_list.SetText(dictionaries_list.Text+file+"\n")
+										}
+									}),
+									widget.NewButton("++", func(){
+										dir, err := dialog2.Directory().Title("Add Dictionaries").Browse()
+										if err == nil {
+											files := ""
+											found_files, err := ioutil.ReadDir(dir)
+											if err == nil {
+												for _, file := range found_files {
+													if (!file.IsDir()) {
+														files += filepath.Join(dir, file.Name())+"\n"
+													}
+												}
+											}
+											dictionaries_list.SetText(dictionaries_list.Text+files)
 										}
 									}),
 									spacer(10,0),
@@ -326,7 +341,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 											}
 										}
 									}),
-									spacer(135,0),
+									spacer(100,0),
 									widget.NewButton("Clear All", func(){dictionaries_list.SetText("")}),
 								),
 							),
@@ -1448,7 +1463,9 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *widget.Box) fyne.C
 						),
 					),
 					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{270, 35}),
-						hash_type_fakeselector,
+						widget.NewVBox(
+							hash_type_fakeselector,
+						),
 					),
 				),
 			),

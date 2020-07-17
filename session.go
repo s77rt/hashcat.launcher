@@ -170,8 +170,8 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 		session.Process.Kill()
 		terminated = true
 		var tab_index int
-		if tab_index = hcl_gui.tabs.CurrentTabIndex()-1; tab_index < 3 {
-			tab_index = 2
+		if tab_index = hcl_gui.tabs.CurrentTabIndex()-1; tab_index < 4 {
+			tab_index = 3
 		} 
 		hcl_gui.tabs.SelectTabIndex(tab_index)
 		hcl_gui.tabs.Remove(session.Tab)
@@ -243,6 +243,11 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 
 		return args
 	}()
+
+	hardware_list := []string{}
+	for i, _ := range hcl_gui.monitor.hardwares {
+		hardware_list = append(hardware_list, fmt.Sprintf("Hardware.Mon.#%d", i+1))
+	}
 
 	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
 	session.Process = subprocess.Subprocess{
@@ -343,6 +348,58 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 					speed_line := re_speed.FindStringSubmatch(status_line[2])
 					if len(speed_line) == 1 {
 						speed.SetText(speed_line[0])
+					}
+				default:
+					if StringArrayIncludes(hardware_list, status_line[1]) {
+						hwmon := re_hwmon.FindStringSubmatch(s)
+						var hwmon_id int64 = -1
+						var hwmon_temp string = "N/A"
+						var hwmon_fan float64 = 0
+						var hwmon_util float64 = 0
+						var hwmon_core string = "N/A"
+						var hwmon_mem string = "N/A"
+						var hwmon_bus string = "N/A"
+						for i := 0; i < len(hwmon)-1; i++ {
+							switch hwmon[i] {
+							case "Temp":
+								i++
+								hwmon_temp = hwmon[i]
+							case "Fan":
+								i++
+								hwmon_fan_tmp, err := strconv.ParseFloat(hwmon[i], 64)
+								if err == nil {
+									hwmon_fan = hwmon_fan_tmp
+								}
+							case "Util":
+								i++
+								hwmon_util_tmp, err := strconv.ParseFloat(hwmon[i], 64)
+								if err == nil {
+									hwmon_util = hwmon_util_tmp
+								}
+							case "Core":
+								i++
+								hwmon_core = hwmon[i]
+							case "Mem":
+								i++
+								hwmon_mem = hwmon[i]
+							case "Bus":
+								i++
+								hwmon_bus = hwmon[i]
+							default:
+								hwmon_id_tmp, err := strconv.ParseInt(hwmon[i], 10, 64)
+								if err == nil {
+									hwmon_id = hwmon_id_tmp
+								}
+							}
+						}
+						if (hwmon_id >= 0) {
+							hcl_gui.monitor.hardwares[hwmon_id].temp.SetText(hwmon_temp)
+							hcl_gui.monitor.hardwares[hwmon_id].fan.SetValue(hwmon_fan)
+							hcl_gui.monitor.hardwares[hwmon_id].util.SetValue(hwmon_util)
+							hcl_gui.monitor.hardwares[hwmon_id].core.SetText(hwmon_core)
+							hcl_gui.monitor.hardwares[hwmon_id].mem.SetText(hwmon_mem)
+							hcl_gui.monitor.hardwares[hwmon_id].bus.SetText(hwmon_bus)
+						}
 					}
 				}
 			}

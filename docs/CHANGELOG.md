@@ -2,6 +2,15 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [0.2.0] - 17/07/2020
+### Changed:
+ - hashcat min required version: v6.0.0
+
+### Added:
+ - Can select a whole folder of dictionaries
+ - Added few more extensions to the dictionary selection dialog's filter
+ - Hardware Monitoring
+
 ## [0.1.2] - 25/04/2020
 ### Fixed:
  - Spelling errors

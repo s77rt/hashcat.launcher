@@ -11,34 +11,16 @@ import (
 
 // Selector (Fake Selector)
 type Selector struct {
-	*widget.Select
-
-	hovered bool
+	widget.Select
 
 	OnTapped func()
 }
 
 func NewSelector(text string, tappedLeft func()) *Selector {
-	newselect := widget.NewSelect([]string{}, func(string){})
-	newselect.Selected = text
-	return &Selector{
-		newselect,
-		false,
-		tappedLeft,
-	}
-}
-
-func (s *Selector) MouseIn(*desktop.MouseEvent) {
-	s.hovered = true
-	canvas.Refresh(s)
-}
-
-func (s *Selector) MouseOut() {
-	s.hovered = false
-	canvas.Refresh(s)
-}
-
-func (s *Selector) MouseMoved(*desktop.MouseEvent) {
+	newselector := &Selector{}
+	newselector.ExtendBaseWidget(newselector)
+	newselector.OnTapped = tappedLeft
+	return newselector
 }
 
 func (s *Selector) Tapped(*fyne.PointEvent) {
@@ -46,24 +28,6 @@ func (s *Selector) Tapped(*fyne.PointEvent) {
 		s.OnTapped()
 	}
 }
-
-func (s *Selector) CreateRenderer() fyne.WidgetRenderer {
-	return &selectorRenderer{s.Select.CreateRenderer(), s}
-}
-
-type selectorRenderer struct {
-	fyne.WidgetRenderer
-	selector *Selector
-}
-
-func (h *selectorRenderer) BackgroundColor() color.Color {
-	if h.selector.hovered {
-		return theme.HoverColor()
-	}
-
-	return theme.ButtonColor()
-}
-
 
 // SelectorOption (Fake SelectorOption)
 type SelectorOption struct {
