@@ -11,7 +11,7 @@ import (
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
-const Version = "0.2.0"
+const Version = "0.3.0"
 
 const hashcat_min_version = "v6.0.0"
 
@@ -25,6 +25,7 @@ type hcl_gui struct {
 	Settings *xsettings.Settings
 	tabs *widget.TabContainer
 	hc_hash_file *widget.Select
+	hc_hash_type *xwidget.Selector
 	hc_dictionary_attack_conf *widget.Box
 	hc_combinator_attack_conf *widget.Box
 	hc_mask_attack_conf *widget.Box
@@ -49,22 +50,25 @@ type hcl_gui struct {
 	autostart_sessions_select *widget.Select
 	autostart_sessions bool
 	monitor hcl_gui_monitor
+	data hcl_data
+}
+
+type hcl_data struct {
+	dictionaries FileList
+	rules FileList
 }
 
 func (hcl_gui *hcl_gui) LoadUI(app fyne.App) {
 	hcl_gui.monitor.Init()
-
-	var hash_type_fakeselector *xwidget.Selector
-	hash_type_fakeselector = xwidget.NewSelector("(Select one)", func(){load_hash_type_selector(hcl_gui, hash_type_fakeselector)})
 
 	hcl_gui.Icon = Icon
 	hcl_gui.window = app.NewWindow("hashcat.launcher v"+Version)
 	hcl_gui.window.SetIcon(hcl_gui.Icon)
 	hcl_gui.tabs = widget.NewTabContainer(
 		widget.NewTabItem("         About         ", aboutScreen()),
-		widget.NewTabItem("Options", optionsScreen(app, hcl_gui, hash_type_fakeselector)),
+		widget.NewTabItem("Options", optionsScreen(app, hcl_gui)),
 		widget.NewTabItem("Hardware.Mon", monitorScreen(hcl_gui)),
-		widget.NewTabItem("Launcher", launcherScreen(hcl_gui, hash_type_fakeselector)),
+		widget.NewTabItem("Launcher", launcherScreen(hcl_gui)),
 	)
 	hcl_gui.tabs.SetTabLocation(widget.TabLocationLeading)
 	hcl_gui.window.SetContent(hcl_gui.tabs)

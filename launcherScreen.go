@@ -18,66 +18,7 @@ import (
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
-func fake_hash_type_selector_hack(hash_type_fakeselector *xwidget.Selector, text string) {
-	hash_type_fakeselector.Select.Selected = text
-	hash_type_fakeselector.Select.Refresh()
-}
-
-func load_hash_type_selector(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) {
-	var modal *widget.PopUp
-	data := widget.NewVBox()
-	data.Children = []fyne.CanvasObject{widget.NewLabel("Results will appear here...")}
-	results_box := 	widget.NewScrollContainer(data)
-	search := widget.NewEntry()
-	search.SetPlaceHolder("Type to search")
-	search.OnChanged = func(keyword string){
-		if len(keyword) >= 2 {
-			results_box.Offset = fyne.NewPos(0,0)
-			go func(){
-				load_hash_type_options(modal, data, hcl_gui, hash_type_fakeselector, hcl_gui.hashcat.available_hash_types, keyword)
-			}()
-		}
-	}
-	c := widget.NewVBox(
-		widget.NewHBox(
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{485, 40}),
-				widget.NewHScrollContainer(search),
-			),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{15, 15}),
-				widget.NewButton("X", func(){modal.Hide()}),
-				widget.NewButton("?", func(){dialog.ShowInformation("Help", "Type at least two chars to search for hash types.\nIf nothing appears make sure that you have set hashcat binary file correctly.", hcl_gui.window)}),
-			),
-		),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{500, 600}),
-			results_box,
-		),
-	)
-	hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
-		if key.Name == fyne.KeyEscape {
-			modal.Hide()
-			hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
-		}
-	})
-	modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
-}
-
-func load_hash_type_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector, items []*xwidget.SelectorOption, keyword string) {
-	var children []fyne.CanvasObject
-	for _, item := range items {
-		if strings.Contains(strings.ToLower(item.Label.Text), strings.ToLower(keyword)) {
-			item.OnTapped = func(value string){
-				set_hash_type(hcl_gui, hash_type_fakeselector, value)
-				modal.Hide()
-				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
-			}
-			children = append(children, item)
-		}
-	}
-	data.Children = children
-	data.Refresh()
-}
-
-func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) fyne.CanvasObject {
+func launcherScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 	// Basic Static Configs...
 	hashcat_img := canvas.NewImageFromResource(hcl_gui.Icon)
 	hashcat_img.SetMinSize(fyne.Size{100, 100})
@@ -85,6 +26,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 	hcl_gui.hc_hash_file = widget.NewSelect([]string{}, func(s string) {
 		_, file := filepath.Split(s)
 		hcl_gui.hc_hash_file.Selected = file
+		hcl_gui.hc_hash_file.Refresh()
 		set_hash_file(hcl_gui, s)
 	})
 
@@ -94,6 +36,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 		outfile.SetChecked(true)
 		_, file := filepath.Split(s)
 		hcl_gui.hc_outfile.Selected = file
+		hcl_gui.hc_outfile.Refresh()
 		set_outfile(hcl_gui, s)
 	})
 	outfile.OnChanged = func(check bool) {
@@ -109,6 +52,8 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 	outfile_format.SetSelected("hash[:salt]:plain")
 
 	hcl_gui.hc_attack_mode = widget.NewSelect([]string{}, func(s string) {set_attack_mode(hcl_gui, s)})
+
+	hcl_gui.hc_hash_type = xwidget.NewSelector("(Select one)", func(){customselect_hashtype(hcl_gui)})
 
 	hcl_gui.hc_separator = widget.NewEntry()
 	hcl_gui.hc_separator.SetText("   :   ")
@@ -146,13 +91,13 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 	dictionaries := []string{}
 	dictionaries_stats := widget.NewLabel("Loaded 0 files")
 	dictionaries_list := widget.NewMultiLineEntry()
-	dictionaries_list.SetPlaceHolder("Click [+] to add a file...\nClick [++] to add a folder...\n-or- Paste files pathes here")
+	dictionaries_list.SetPlaceHolder("Click [~] to add from the FileBase...\nClick [+] to add a new file...\nClick [++] to add a new folder...\n-or- Paste files pathes here")
 	dictionaries_list.OnChanged = func(s string){
 		dictionaries = []string{}
 		valid_files := 0
 		files_list := strings.Split(strings.Replace(s, "\r\n", "\n", -1), "\n")
 		for _, file := range files_list {
-			if _, err := os.Stat(file); err == nil {
+			if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
 				dictionaries = append(dictionaries, file)
 				valid_files++
 			}
@@ -165,12 +110,14 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 	dictionaries_rule3 := ""
 	dictionaries_rule4 := ""
 	// Rule 1
-	dictionaries_rule1_select := widget.NewSelect([]string{}, func(string){})
+	var dictionaries_rule1_select *xwidget.Selector
+	dictionaries_rule1_select = xwidget.NewSelector("(Select one)", func(){customselect_rules(hcl_gui, dictionaries_rule1_select)})
 	dictionaries_rule1_check := widget.NewCheck("Rule 1:", func(bool){})
 	dictionaries_rule1_select.OnChanged = func(s string) {
 		dictionaries_rule1_check.SetChecked(true)
 		_, file := filepath.Split(s)
 		dictionaries_rule1_select.Selected = file
+		dictionaries_rule1_select.Refresh()
 		dictionaries_rule1 = s
 	}
 	dictionaries_rule1_check.OnChanged = func(check bool) {
@@ -183,21 +130,23 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 		dictionaries_rule1 = ""
 	}
 	dictionaries_rule1_button := widget.NewButton("...", func(){
-		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Load()
+		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Filter("All Files", "*").Load()
 			if err == nil {
 				dictionaries_rule1_check.SetChecked(true)
-				dictionaries_rule1_select.Options = append([]string{file}, dictionaries_rule1_select.Options[:min(len(dictionaries_rule1_select.Options), 4)]...)
+				hcl_gui.data.rules.AddFile(file)
 				dictionaries_rule1_select.SetSelected(file)
 			}
 	})
 	dictionaries_rule1_select.Selected = "None"
 	// Rule 2
-	dictionaries_rule2_select := widget.NewSelect([]string{}, func(string){})
+	var dictionaries_rule2_select *xwidget.Selector
+	dictionaries_rule2_select = xwidget.NewSelector("(Select one)", func(){customselect_rules(hcl_gui, dictionaries_rule2_select)})
 	dictionaries_rule2_check := widget.NewCheck("Rule 2:", func(bool){})
 	dictionaries_rule2_select.OnChanged = func(s string) {
 		dictionaries_rule2_check.SetChecked(true)
 		_, file := filepath.Split(s)
 		dictionaries_rule2_select.Selected = file
+		dictionaries_rule2_select.Refresh()
 		dictionaries_rule2 = s
 	}
 	dictionaries_rule2_check.OnChanged = func(check bool) {
@@ -210,21 +159,23 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 		dictionaries_rule2 = ""
 	}
 	dictionaries_rule2_button := widget.NewButton("...", func(){
-		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Load()
+		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Filter("All Files", "*").Load()
 			if err == nil {
 				dictionaries_rule2_check.SetChecked(true)
-				dictionaries_rule2_select.Options = append([]string{file}, dictionaries_rule2_select.Options[:min(len(dictionaries_rule2_select.Options), 4)]...)
+				hcl_gui.data.rules.AddFile(file)
 				dictionaries_rule2_select.SetSelected(file)
 			}
 	})
 	dictionaries_rule2_select.Selected = "None"
 	// Rule 3
-	dictionaries_rule3_select := widget.NewSelect([]string{}, func(string){})
+	var dictionaries_rule3_select *xwidget.Selector
+	dictionaries_rule3_select = xwidget.NewSelector("(Select one)", func(){customselect_rules(hcl_gui, dictionaries_rule3_select)})
 	dictionaries_rule3_check := widget.NewCheck("Rule 3:", func(bool){})
 	dictionaries_rule3_select.OnChanged = func(s string) {
 		dictionaries_rule3_check.SetChecked(true)
 		_, file := filepath.Split(s)
 		dictionaries_rule3_select.Selected = file
+		dictionaries_rule3_select.Refresh()
 		dictionaries_rule3 = s
 	}
 	dictionaries_rule3_check.OnChanged = func(check bool) {
@@ -237,21 +188,23 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 		dictionaries_rule3 = ""
 	}
 	dictionaries_rule3_button := widget.NewButton("...", func(){
-		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Load()
+		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Filter("All Files", "*").Load()
 			if err == nil {
 				dictionaries_rule3_check.SetChecked(true)
-				dictionaries_rule3_select.Options = append([]string{file}, dictionaries_rule3_select.Options[:min(len(dictionaries_rule3_select.Options), 4)]...)
+				hcl_gui.data.rules.AddFile(file)
 				dictionaries_rule3_select.SetSelected(file)
 			}
 	})
 	dictionaries_rule3_select.Selected = "None"
 	// Rule 4
-	dictionaries_rule4_select := widget.NewSelect([]string{}, func(string){})
+	var dictionaries_rule4_select *xwidget.Selector
+	dictionaries_rule4_select = xwidget.NewSelector("(Select one)", func(){customselect_rules(hcl_gui, dictionaries_rule4_select)})
 	dictionaries_rule4_check := widget.NewCheck("Rule 4:", func(bool){})
 	dictionaries_rule4_select.OnChanged = func(s string) {
 		dictionaries_rule4_check.SetChecked(true)
 		_, file := filepath.Split(s)
 		dictionaries_rule4_select.Selected = file
+		dictionaries_rule4_select.Refresh()
 		dictionaries_rule4 = s
 	}
 	dictionaries_rule4_check.OnChanged = func(check bool) {
@@ -264,10 +217,10 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 		dictionaries_rule4 = ""
 	}
 	dictionaries_rule4_button := widget.NewButton("...", func(){
-		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Load()
+		file, err := dialog2.File().Title("Select Rule").Filter("Rules Files", "txt", "rule").Filter("All Files", "*").Load()
 			if err == nil {
 				dictionaries_rule4_check.SetChecked(true)
-				dictionaries_rule4_select.Options = append([]string{file}, dictionaries_rule4_select.Options[:min(len(dictionaries_rule4_select.Options), 4)]...)
+				hcl_gui.data.rules.AddFile(file)
 				dictionaries_rule4_select.SetSelected(file)
 			}
 	})
@@ -282,11 +235,16 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 							dictionaries_list,
 						),
 					),
+					spacer(0, 7),
 					widget.NewHBox(
 						spacer(7, 0),
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{490, 35}),
 							widget.NewVBox(
 								widget.NewHBox(
+									widget.NewButton("~", func(){
+										customselect_dictionaries_dictionarylist(hcl_gui, dictionaries_list)
+									}),
+									spacer(1,0),
 									widget.NewButton("+", func(){
 										file, err := dialog2.File().Title("Add Dictionary").Filter("Text Files", "txt", "dict", "dic", "lst").Filter("All Files", "*").Load()
 										if err == nil {
@@ -341,7 +299,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 											}
 										}
 									}),
-									spacer(100,0),
+									spacer(67,0),
 									widget.NewButton("Clear All", func(){dictionaries_list.SetText("")}),
 								),
 							),
@@ -439,16 +397,18 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 	// Combinator Mode
 	// Left
 	combinator_left_wordlist := ""
-	combinator_left_wordlist_select := widget.NewSelect([]string{}, func(string){})
+	var combinator_left_wordlist_select *xwidget.Selector
+	combinator_left_wordlist_select = xwidget.NewSelector("(Select one)", func(){customselect_dictionaries(hcl_gui, combinator_left_wordlist_select)})
 	combinator_left_wordlist_select.OnChanged = func(s string){
 		_, file := filepath.Split(s)
 		combinator_left_wordlist_select.Selected = file
+		combinator_left_wordlist_select.Refresh()
 		combinator_left_wordlist = s
 	}
 	combinator_left_wordlist_button := widget.NewButton("...", func(){
-		file, err := dialog2.File().Title("Select Left Wordlist").Filter("Text Files", "txt", "dict").Load()
+		file, err := dialog2.File().Title("Select Left Wordlist").Filter("Text Files", "txt", "dict", "dic", "lst").Load()
 		if err == nil {
-			combinator_left_wordlist_select.Options = append([]string{file}, combinator_left_wordlist_select.Options[:min(len(combinator_left_wordlist_select.Options), 4)]...)
+			hcl_gui.data.dictionaries.AddFile(file)
 			combinator_left_wordlist_select.SetSelected(file)
 		}
 	})
@@ -470,16 +430,18 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 	})
 	// Right
 	combinator_right_wordlist := ""
-	combinator_right_wordlist_select := widget.NewSelect([]string{}, func(string){})
+	var combinator_right_wordlist_select *xwidget.Selector
+	combinator_right_wordlist_select = xwidget.NewSelector("(Select one)", func(){customselect_dictionaries(hcl_gui, combinator_right_wordlist_select)})
 	combinator_right_wordlist_select.OnChanged = func(s string){
 		_, file := filepath.Split(s)
 		combinator_right_wordlist_select.Selected = file
+		combinator_right_wordlist_select.Refresh()
 		combinator_right_wordlist = s
 	}
 	combinator_right_wordlist_button := widget.NewButton("...", func(){
-		file, err := dialog2.File().Title("Select Right Wordlist").Filter("Text Files", "txt", "dict").Load()
+		file, err := dialog2.File().Title("Select Right Wordlist").Filter("Text Files", "txt", "dict", "dic", "lst").Load()
 		if err == nil {
-			combinator_right_wordlist_select.Options = append([]string{file}, combinator_right_wordlist_select.Options[:min(len(combinator_right_wordlist_select.Options), 4)]...)
+			hcl_gui.data.dictionaries.AddFile(file)
 			combinator_right_wordlist_select.SetSelected(file)
 		}
 	})
@@ -826,16 +788,18 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 	// Hybrid1 Mode
 	// Left
 	hybrid1_left_wordlist := ""
-	hybrid1_left_wordlist_select := widget.NewSelect([]string{}, func(string){})
+	var hybrid1_left_wordlist_select *xwidget.Selector
+	hybrid1_left_wordlist_select = xwidget.NewSelector("(Select one)", func(){customselect_dictionaries(hcl_gui, hybrid1_left_wordlist_select)})
 	hybrid1_left_wordlist_select.OnChanged = func(s string){
 		_, file := filepath.Split(s)
 		hybrid1_left_wordlist_select.Selected = file
+		hybrid1_left_wordlist_select.Refresh()
 		hybrid1_left_wordlist = s
 	}
 	hybrid1_left_wordlist_button := widget.NewButton("...", func(){
-		file, err := dialog2.File().Title("Select Wordlist").Filter("Text Files", "txt", "dict").Load()
+		file, err := dialog2.File().Title("Select Wordlist").Filter("Text Files", "txt", "dict", "dic", "lst").Load()
 		if err == nil {
-			hybrid1_left_wordlist_select.Options = append([]string{file}, hybrid1_left_wordlist_select.Options[:min(len(hybrid1_left_wordlist_select.Options), 4)]...)
+			hcl_gui.data.dictionaries.AddFile(file)
 			hybrid1_left_wordlist_select.SetSelected(file)
 		}
 	})
@@ -1073,16 +1037,18 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 	})
 	// Right
 	hybrid2_right_wordlist := ""
-	hybrid2_right_wordlist_select := widget.NewSelect([]string{}, func(string){})
+	var hybrid2_right_wordlist_select *xwidget.Selector
+	hybrid2_right_wordlist_select = xwidget.NewSelector("(Select one)", func(){customselect_dictionaries(hcl_gui, hybrid2_right_wordlist_select)})
 	hybrid2_right_wordlist_select.OnChanged = func(s string){
 		_, file := filepath.Split(s)
 		hybrid2_right_wordlist_select.Selected = file
+		hybrid2_right_wordlist_select.Refresh()
 		hybrid2_right_wordlist = s
 	}
 	hybrid2_right_wordlist_button := widget.NewButton("...", func(){
-		file, err := dialog2.File().Title("Select Wordlist").Filter("Text Files", "txt", "dict").Load()
+		file, err := dialog2.File().Title("Select Wordlist").Filter("Text Files", "txt", "dict", "dic", "lst").Load()
 		if err == nil {
-			hybrid2_right_wordlist_select.Options = append([]string{file}, hybrid2_right_wordlist_select.Options[:min(len(hybrid2_right_wordlist_select.Options), 4)]...)
+			hcl_gui.data.dictionaries.AddFile(file)
 			hybrid2_right_wordlist_select.SetSelected(file)
 		}
 	})
@@ -1464,7 +1430,7 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 					),
 					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{270, 35}),
 						widget.NewVBox(
-							hash_type_fakeselector,
+							hcl_gui.hc_hash_type,
 						),
 					),
 				),
@@ -1488,8 +1454,38 @@ func launcherScreen(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector) 
 						),
 					),
 					spacer(0, 15),
-					widget.NewGroup("Reserved",
-						reserved(0, 58),
+					widget.NewGroup("FileBase",
+						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{280, 58}),
+							widget.NewButton("Open FileBase", func(){
+								var modal *widget.PopUp
+								c := widget.NewVBox(
+									fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{280, 30}),
+										widget.NewLabelWithStyle("Select which FileBase to open:", fyne.TextAlignLeading, fyne.TextStyle{}),
+									),
+									widget.NewButton("Dictionaries", func(){
+										modal.Hide()
+										customselect_dictionaries_edit(hcl_gui)
+									}),
+									widget.NewButton("Rules", func(){
+										modal.Hide()
+										customselect_rules_edit(hcl_gui)
+									}),
+									widget.NewLabel(""),
+									widget.NewLabel(""),
+									widget.NewLabel(""),
+									widget.NewButton("Close", func(){
+										modal.Hide()
+									}),
+								)
+								hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+									if key.Name == fyne.KeyEscape {
+										hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+										modal.Hide()
+									}
+								})
+								modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+							}),
+						),
 					),
 					widget.NewGroup("Devices",
 						widget.NewButton("Info", func(){

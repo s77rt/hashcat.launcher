@@ -21,7 +21,7 @@ func GetPreference_hashcat_binary_file(app fyne.App) string {
 func SetPreference_hashcat_binary_file(app fyne.App, hcl_gui *hcl_gui, value string) {
 	hcl_gui.hashcat.binary_file = value
 	app.Preferences().SetString("hashcat_binary_file", value)
-	go get_available_hash_typess(hcl_gui)
+	go get_available_hash_types(hcl_gui)
 }
 
 func GetPreference_hashcat_status_timer(app fyne.App) int {

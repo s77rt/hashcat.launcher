@@ -388,7 +388,7 @@ func newSession(hcl_gui *hcl_gui, attack_payload []string) {
 							default:
 								hwmon_id_tmp, err := strconv.ParseInt(hwmon[i], 10, 64)
 								if err == nil {
-									hwmon_id = hwmon_id_tmp
+									hwmon_id = hwmon_id_tmp - 1
 								}
 							}
 						}

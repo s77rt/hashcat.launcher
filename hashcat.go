@@ -3,18 +3,18 @@ package hashcatlauncher
 import (
 	"os"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"path/filepath"
-	"fyne.io/fyne"
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
-	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
 // Types
 type hashcat struct {
 	binary_file string
-	available_hash_types []*xwidget.SelectorOption
+	available_hash_types map[string]string
+	available_hash_types_sorted_keys []string
 	args hashcat_args
 }
 
@@ -64,9 +64,9 @@ const (
 type hashcat_hash_type int
 
 // Get Functions
-func get_available_hash_typess(hcl_gui *hcl_gui) {
+func get_available_hash_types(hcl_gui *hcl_gui) {
 	var hashmode, hashtype string
-	hcl_gui.hashcat.available_hash_types = []*xwidget.SelectorOption{}
+	hcl_gui.hashcat.available_hash_types = make(map[string]string)
 	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
 	cmd := subprocess.Subprocess{
 		subprocess.SubprocessStatusNotRunning,
@@ -83,7 +83,7 @@ func get_available_hash_typess(hcl_gui *hcl_gui) {
 				type_line := re_type.FindStringSubmatch(s)
 				if len(type_line) == 2 {
 					hashtype = type_line[1]
-					hcl_gui.hashcat.available_hash_types = append(hcl_gui.hashcat.available_hash_types, xwidget.NewSelectorOptionWithStyle(fmt.Sprintf("%s - %s", hashmode, hashtype), hashmode, fyne.TextAlignLeading, fyne.TextStyle{}, func(string){}))
+					hcl_gui.hashcat.available_hash_types[hashmode] = hashtype
 				}
 			}
 		},
@@ -91,7 +91,13 @@ func get_available_hash_typess(hcl_gui *hcl_gui) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
 		},
 		func(){},
-		func(){},
+		func() {
+			hcl_gui.hashcat.available_hash_types_sorted_keys = make([]string, 0, len(hcl_gui.hashcat.available_hash_types))
+			for k := range hcl_gui.hashcat.available_hash_types {
+				hcl_gui.hashcat.available_hash_types_sorted_keys = append(hcl_gui.hashcat.available_hash_types_sorted_keys, k)
+			}
+			sort.Sort(SortByLenThenABC(hcl_gui.hashcat.available_hash_types_sorted_keys))
+		},
 	}
 	cmd.Execute()
 }
@@ -153,10 +159,10 @@ func get_benchmark(hcl_gui *hcl_gui) string {
 }
 
 // Set Functions
-func set_hash_type(hcl_gui *hcl_gui, hash_type_fakeselector *xwidget.Selector, value string) {
+func set_hash_type(hcl_gui *hcl_gui, value string) {
 	value_int, _ := strconv.ParseInt(value, 10, 32)
 	hcl_gui.hashcat.args.hash_type = hashcat_hash_type(value_int)
-	fake_hash_type_selector_hack(hash_type_fakeselector, value)
+	hcl_gui.hc_hash_type.SetSelected(value)
 }
 
 func set_attack_mode(hcl_gui *hcl_gui, value string) {
@@ -351,7 +357,7 @@ func hashcat_init(hcl_gui *hcl_gui) {
 	hcl_gui.hc_attack_mode.SetSelected("Dictionary")
 
 	hcl_gui.hashcat.args.hash_type = -1
-	go get_available_hash_typess(hcl_gui)
+	go get_available_hash_types(hcl_gui)
 
 	hcl_gui.hc_temp_abort.SetSelected("90")
 

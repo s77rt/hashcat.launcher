@@ -2,6 +2,17 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [0.3.0] - 17/08/2020
+### Changed:
+ - Enhanced files selection for dictionaries and rules
+
+### Added:
+ - FileBase Feature
+
+### Fixed:
+ - Hardware Monitoring: Wrong hardware id
+ - Hardware Monitoring: Missing some stats
+
 ## [0.2.0] - 17/07/2020
 ### Changed:
  - hashcat min required version: v6.0.0
