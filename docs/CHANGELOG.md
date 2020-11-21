@@ -2,6 +2,14 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [0.3.1] - 21/11/2020
+### Fixed:
+ - File Dialog not working for some linux users
+
+### Changed:
+ - File Dialog
+ - Themes and Sizes
+
 ## [0.3.0] - 17/08/2020
 ### Changed:
  - Enhanced files selection for dictionaries and rules

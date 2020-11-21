@@ -307,12 +307,10 @@ func set_outfile_format(hcl_gui *hcl_gui, outfile_format string) {
 		outfile_format_int = []int{1,2}
 	case "hash[:salt]:plain:hex_plain":
 		outfile_format_int = []int{1,2,3}
-	/*
 	case "hash[:salt]:plain:crack_pos":
 		outfile_format_int = []int{1,2,4}
 	case "hash[:salt]:plain:hex_plain:crack_pos":
 		outfile_format_int = []int{1,2,3,4}
-	*/
 	}
 	hcl_gui.hashcat.args.outfile_format = outfile_format_int
 }

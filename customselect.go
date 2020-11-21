@@ -10,7 +10,6 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	"fyne.io/fyne/dialog"
-	dialog2 "github.com/sqweek/dialog"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
@@ -113,31 +112,35 @@ func customselect_dictionaries(hcl_gui *hcl_gui, selector *xwidget.Selector) {
 				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 					widget.NewHBox(
 						widget.NewButton("Add a File", func(){
-							file, err := dialog2.File().Title("Add Dictionary").Filter("Text Files", "txt", "dict", "dic", "lst").Filter("All Files", "*").Load()
-							if err == nil {
-								if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
-									customselect_dictionaries_options(modal, data, hcl_gui, selector, search.Text)
-								}
-							}
-						}),
-						widget.NewButton("Add a Folder", func(){
-							dir, err := dialog2.Directory().Title("Add Dictionaries").Browse()
-							if err == nil {
-								files_added := 0
-								found_files, err := ioutil.ReadDir(dir)
+							go func() {
+								file, err := NewFileOpen(hcl_gui)
 								if err == nil {
-									for _, file := range found_files {
-										if (!file.IsDir()) {
-											if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
-												files_added++
-											}
-										}
-									}
-									if files_added > 0 {
+									if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
 										customselect_dictionaries_options(modal, data, hcl_gui, selector, search.Text)
 									}
 								}
-							}
+							}()
+						}),
+						widget.NewButton("Add a Folder", func(){
+							go func() {
+								dir, err := NewFolderOpen(hcl_gui)
+								if err == nil {
+									files_added := 0
+									found_files, err := ioutil.ReadDir(dir)
+									if err == nil {
+										for _, file := range found_files {
+											if (!file.IsDir()) {
+												if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
+													files_added++
+												}
+											}
+										}
+										if files_added > 0 {
+											customselect_dictionaries_options(modal, data, hcl_gui, selector, search.Text)
+										}
+									}
+								}
+							}()
 						}),
 					),
 				),
@@ -224,31 +227,35 @@ func customselect_rules(hcl_gui *hcl_gui, selector *xwidget.Selector) {
 				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 					widget.NewHBox(
 						widget.NewButton("Add a File", func(){
-							file, err := dialog2.File().Title("Add Rule").Filter("Text Files", "txt", "rule").Filter("All Files", "*").Load()
-							if err == nil {
-								if file_added := hcl_gui.data.rules.AddFile(file); file_added == true {
-									customselect_rules_options(modal, data, hcl_gui, selector, search.Text)
-								}
-							}
-						}),
-						widget.NewButton("Add a Folder", func(){
-							dir, err := dialog2.Directory().Title("Add Rules").Browse()
-							if err == nil {
-								files_added := 0
-								found_files, err := ioutil.ReadDir(dir)
+							go func() {
+								file, err := NewFileOpen(hcl_gui)
 								if err == nil {
-									for _, file := range found_files {
-										if (!file.IsDir()) {
-											if file_added := hcl_gui.data.rules.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
-												files_added++
-											}
-										}
-									}
-									if files_added > 0 {
+									if file_added := hcl_gui.data.rules.AddFile(file); file_added == true {
 										customselect_rules_options(modal, data, hcl_gui, selector, search.Text)
 									}
 								}
-							}
+							}()
+						}),
+						widget.NewButton("Add a Folder", func(){
+							go func() {
+								dir, err := NewFolderOpen(hcl_gui)
+								if err == nil {
+									files_added := 0
+									found_files, err := ioutil.ReadDir(dir)
+									if err == nil {
+										for _, file := range found_files {
+											if (!file.IsDir()) {
+												if file_added := hcl_gui.data.rules.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
+													files_added++
+												}
+											}
+										}
+										if files_added > 0 {
+											customselect_rules_options(modal, data, hcl_gui, selector, search.Text)
+										}
+									}
+								}
+							}()
 						}),
 					),
 				),
@@ -337,31 +344,35 @@ func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, entry *widget.En
 				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 					widget.NewHBox(
 						widget.NewButton("Add a File", func(){
-							file, err := dialog2.File().Title("Add Dictionary").Filter("Text Files", "txt", "dict", "dic", "lst").Filter("All Files", "*").Load()
-							if err == nil {
-								if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
-									customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, entry, search.Text)
-								}
-							}
-						}),
-						widget.NewButton("Add a Folder", func(){
-							dir, err := dialog2.Directory().Title("Add Dictionaries").Browse()
-							if err == nil {
-								files_added := 0
-								found_files, err := ioutil.ReadDir(dir)
+							go func() {
+								file, err := NewFileOpen(hcl_gui)
 								if err == nil {
-									for _, file := range found_files {
-										if (!file.IsDir()) {
-											if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
-												files_added++
-											}
-										}
-									}
-									if files_added > 0 {
+									if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
 										customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, entry, search.Text)
 									}
 								}
-							}
+							}()
+						}),
+						widget.NewButton("Add a Folder", func(){
+							go func() {
+								dir, err := NewFolderOpen(hcl_gui)
+								if err == nil {
+									files_added := 0
+									found_files, err := ioutil.ReadDir(dir)
+									if err == nil {
+										for _, file := range found_files {
+											if (!file.IsDir()) {
+												if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
+													files_added++
+												}
+											}
+										}
+										if files_added > 0 {
+											customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, entry, search.Text)
+										}
+									}
+								}
+							}()
 						}),
 					),
 				),
@@ -450,31 +461,35 @@ func customselect_dictionaries_edit(hcl_gui *hcl_gui) {
 				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 					widget.NewHBox(
 						widget.NewButton("Add a File", func(){
-							file, err := dialog2.File().Title("Add Dictionary").Filter("Text Files", "txt", "dict", "dic", "lst").Filter("All Files", "*").Load()
-							if err == nil {
-								if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
-									customselect_dictionaries_edit_options(modal, data, hcl_gui, search.Text)
-								}
-							}
-						}),
-						widget.NewButton("Add a Folder", func(){
-							dir, err := dialog2.Directory().Title("Add Dictionaries").Browse()
-							if err == nil {
-								files_added := 0
-								found_files, err := ioutil.ReadDir(dir)
+							go func() {
+								file, err := NewFileOpen(hcl_gui)
 								if err == nil {
-									for _, file := range found_files {
-										if (!file.IsDir()) {
-											if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
-												files_added++
-											}
-										}
-									}
-									if files_added > 0 {
+									if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
 										customselect_dictionaries_edit_options(modal, data, hcl_gui, search.Text)
 									}
 								}
-							}
+							}()
+						}),
+						widget.NewButton("Add a Folder", func(){
+							go func() {
+								dir, err := NewFolderOpen(hcl_gui)
+								if err == nil {
+									files_added := 0
+									found_files, err := ioutil.ReadDir(dir)
+									if err == nil {
+										for _, file := range found_files {
+											if (!file.IsDir()) {
+												if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
+													files_added++
+												}
+											}
+										}
+										if files_added > 0 {
+											customselect_dictionaries_edit_options(modal, data, hcl_gui, search.Text)
+										}
+									}
+								}
+							}()
 						}),
 					),
 				),
@@ -573,31 +588,35 @@ func customselect_rules_edit(hcl_gui *hcl_gui) {
 				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 					widget.NewHBox(
 						widget.NewButton("Add a File", func(){
-							file, err := dialog2.File().Title("Add Rule").Filter("Text Files", "txt", "rule").Filter("All Files", "*").Load()
-							if err == nil {
-								if file_added := hcl_gui.data.rules.AddFile(file); file_added == true {
-									customselect_rules_edit_options(modal, data, hcl_gui, search.Text)
-								}
-							}
-						}),
-						widget.NewButton("Add a Folder", func(){
-							dir, err := dialog2.Directory().Title("Add Rules").Browse()
-							if err == nil {
-								files_added := 0
-								found_files, err := ioutil.ReadDir(dir)
+							go func() {
+								file, err := NewFileOpen(hcl_gui)
 								if err == nil {
-									for _, file := range found_files {
-										if (!file.IsDir()) {
-											if file_added := hcl_gui.data.rules.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
-												files_added++
-											}
-										}
-									}
-									if files_added > 0 {
+									if file_added := hcl_gui.data.rules.AddFile(file); file_added == true {
 										customselect_rules_edit_options(modal, data, hcl_gui, search.Text)
 									}
 								}
-							}
+							}()
+						}),
+						widget.NewButton("Add a Folder", func(){
+							go func() {
+								dir, err := NewFolderOpen(hcl_gui)
+								if err == nil {
+									files_added := 0
+									found_files, err := ioutil.ReadDir(dir)
+									if err == nil {
+										for _, file := range found_files {
+											if (!file.IsDir()) {
+												if file_added := hcl_gui.data.rules.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
+													files_added++
+												}
+											}
+										}
+										if files_added > 0 {
+											customselect_rules_edit_options(modal, data, hcl_gui, search.Text)
+										}
+									}
+								}
+							}()
 						}),
 					),
 				),

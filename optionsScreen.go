@@ -4,20 +4,20 @@ import (
 	"strconv"
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
-	dialog2 "github.com/sqweek/dialog"
 )
 
 func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 	hcl_gui.hc_binary_file_select = widget.NewSelect([]string{"Browse..."}, func(string){
-		file, err := dialog2.File().Title("Select hashcat binary file").Filter("Bin/Exe Files", "exe", "bin").Load()
-		if err == nil {
-			SetPreference_hashcat_binary_file(app, hcl_gui, file)
-			hcl_gui.hc_binary_file_select.Selected = file
+		go func() {
+			file, err := NewFileOpen(hcl_gui)
+			if err == nil {
+				SetPreference_hashcat_binary_file(app, hcl_gui, file)
+				hcl_gui.hc_binary_file_select.Selected = file
+			} else {
+				hcl_gui.hc_binary_file_select.Selected = GetPreference_hashcat_binary_file(app)
+			}
 			hcl_gui.hc_binary_file_select.Refresh()
-		} else {
-			hcl_gui.hc_binary_file_select.Selected = GetPreference_hashcat_binary_file(app)
-			hcl_gui.hc_binary_file_select.Refresh()
-		}
+		}()
 	})
 
 	hcl_gui.hc_status_timer_select = widget.NewSelect([]string{"10s", "30s", "60s", "90s", "120s", "300s", "Disabled"}, func(s string){
