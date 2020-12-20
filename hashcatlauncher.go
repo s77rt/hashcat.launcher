@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"errors"
 	"fyne.io/fyne"
+	"fyne.io/fyne/container"
 	"fyne.io/fyne/widget"
 	"fyne.io/fyne/dialog"
+	"fyne.io/fyne/theme"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xsettings"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
-const Version = "0.3.1"
+const Version = "0.4.0"
 
 const hashcat_min_version = "v6.0.0"
 
@@ -23,7 +25,10 @@ type hcl_gui struct {
 	window fyne.Window
 	Icon fyne.Resource
 	Settings *xsettings.Settings
-	tabs *widget.TabContainer
+	tabs map[string]*container.TabItem
+	tabs_container *container.AppTabs
+	tasks_content *widget.Box
+	tasks_tree *widget.Tree
 	hc_hash_file *widget.Select
 	hc_hash_type *xwidget.Selector
 	hc_dictionary_attack_conf *widget.Box
@@ -42,9 +47,13 @@ type hcl_gui struct {
 	hc_status_timer_select *widget.Select
 	hc_extra_args *widget.Entry
 	hashcat hashcat
-	sessions []*Session
-	count_all_sessions int
-	count_active_sessions int
+	next_task_id int
+	sessions map[string]*Session
+	count_sessions_running int
+	count_sessions_queued int
+	count_sessions_paused int
+	count_sessions_failed int
+	count_sessions_finished int
 	max_active_sessions_select *widget.Select
 	max_active_sessions int
 	autostart_sessions_select *widget.Select
@@ -64,14 +73,23 @@ func (hcl_gui *hcl_gui) LoadUI(app fyne.App) {
 	hcl_gui.Icon = Icon
 	hcl_gui.window = app.NewWindow("hashcat.launcher v"+Version)
 	hcl_gui.window.SetIcon(hcl_gui.Icon)
-	hcl_gui.tabs = widget.NewTabContainer(
-		widget.NewTabItem("         About         ", aboutScreen()),
-		widget.NewTabItem("Options", optionsScreen(app, hcl_gui)),
-		widget.NewTabItem("Hardware.Mon", monitorScreen(hcl_gui)),
-		widget.NewTabItem("Launcher", launcherScreen(hcl_gui)),
+
+	hcl_gui.tabs = map[string]*container.TabItem{
+		"New Task": container.NewTabItemWithIcon("New Task", theme.ContentAddIcon(), launcherScreen(app, hcl_gui)),
+		"Tasks": container.NewTabItemWithIcon(fmt.Sprintf("Tasks (%d)", len(hcl_gui.sessions)), theme.MenuIcon(), tasksScreen(hcl_gui)),
+		"Monitor": container.NewTabItemWithIcon("Monitor", theme.VisibilityIcon(), monitorScreen(hcl_gui)),
+		"Options": container.NewTabItemWithIcon("Options", theme.SettingsIcon(), optionsScreen(app, hcl_gui)),
+		"About": container.NewTabItemWithIcon("About", theme.InfoIcon(), aboutScreen()),
+	}
+	hcl_gui.tabs_container = container.NewAppTabs(
+		hcl_gui.tabs["New Task"],
+		hcl_gui.tabs["Tasks"],
+		hcl_gui.tabs["Monitor"],
+		hcl_gui.tabs["Options"],
+		hcl_gui.tabs["About"],
 	)
-	hcl_gui.tabs.SetTabLocation(widget.TabLocationLeading)
-	hcl_gui.window.SetContent(hcl_gui.tabs)
+	hcl_gui.tabs_container.SetTabLocation(container.TabLocationTop)
+	hcl_gui.window.SetContent(hcl_gui.tabs_container)
 	hcl_gui.window.SetFixedSize(true)
 	hcl_gui.window.Show()
 }
@@ -85,7 +103,7 @@ func (hcl_gui *hcl_gui) Init(app fyne.App) {
 		hcl_gui.hc_binary_file_select.Refresh()
 	} else {
 		dialog.ShowError(errors.New("Can't detect hashcat. Please specify hashcat bin/exe file"), hcl_gui.window)
-		hcl_gui.tabs.SelectTabIndex(1)
+		hcl_gui.tabs_container.SelectTab(hcl_gui.tabs["Options"])
 	}
 
 	hcl_gui.hashcat.args.status_timer = GetPreference_hashcat_status_timer(app)
@@ -109,8 +127,15 @@ func (hcl_gui *hcl_gui) Init(app fyne.App) {
 
 	hcl_gui.Settings = xsettings.NewSettings()
 
-	hcl_gui.count_all_sessions = 0
-	hcl_gui.count_active_sessions = 0
+	hcl_gui.sessions = make(map[string]*Session)
+
+	hcl_gui.count_sessions_running = 0
+	hcl_gui.count_sessions_queued = 0
+	hcl_gui.count_sessions_paused = 0
+	hcl_gui.count_sessions_failed = 0
+	hcl_gui.count_sessions_finished = 0
+
+	hcl_gui.next_task_id = GetPreference_next_task_id(app)
 
 	hashcat_init(hcl_gui)
 }

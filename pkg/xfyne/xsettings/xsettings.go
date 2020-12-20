@@ -66,6 +66,10 @@ func (s *Settings) chooseTheme(name string) {
 	s.fyneSettings.ThemeName = name
 }
 
+func (s *Settings) choosePrimaryColor(name string) {
+	s.fyneSettings.PrimaryColor = name
+}
+
 func (s *Settings) chooseScale(value string) {
 	if value == "" || strings.EqualFold(value, "auto") {
 		s.fyneSettings.Scale = fyne.SettingsScaleAuto
@@ -84,12 +88,21 @@ func (s *Settings) Theme() string {
 	return s.fyneSettings.ThemeName
 }
 
+func (s *Settings) PrimaryColor() string {
+	return s.fyneSettings.PrimaryColor
+}
+
 func (s *Settings) Scale() float32 {
 	return s.fyneSettings.Scale
 }
 
 func (s *Settings) SetTheme(name string) {
 	s.chooseTheme(name)
+	s.save()
+}
+
+func (s *Settings) SetPrimaryColor(name string) {
+	s.choosePrimaryColor(name)
 	s.save()
 }
 

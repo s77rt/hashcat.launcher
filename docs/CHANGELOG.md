@@ -2,6 +2,18 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [0.4.0] - 21/12/2020
+### Changed:
+ - Search for hashtypes by hashcat mode (name and id)
+ - Tasks Journals now hold all the info
+
+### Added:
+ - Notifications Feature
+ - Priority Feature
+ - Restore Feature
+ - Get Info about a task
+ - Skip/Bypass an attack
+
 ## [0.3.1] - 21/11/2020
 ### Fixed:
  - File Dialog not working for some linux users

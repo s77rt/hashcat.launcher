@@ -34,7 +34,7 @@ func SetPreference_hashcat_status_timer(app fyne.App, hcl_gui *hcl_gui, value in
 }
 
 func GetPreference_hashcat_extra_args(app fyne.App) string {
-	return app.Preferences().StringWithFallback("hashcat_extra_args", "--logfile-disable --restore-disable")
+	return app.Preferences().StringWithFallback("hashcat_extra_args", "--logfile-disable")
 }
 
 func SetPreference_hashcat_extra_args(app fyne.App, hcl_gui *hcl_gui, value string) {
@@ -57,4 +57,13 @@ func GetPreference_autostart_sessions(app fyne.App) bool {
 func SetPreference_autostart_sessions(app fyne.App, hcl_gui *hcl_gui, value bool) {
 	hcl_gui.autostart_sessions = value
 	app.Preferences().SetBool("autostart_sessions", value)
+}
+
+func GetPreference_next_task_id(app fyne.App) int {
+	return app.Preferences().IntWithFallback("next_task_id", 1)
+}
+
+func SetPreference_next_task_id(app fyne.App, hcl_gui *hcl_gui, value int) {
+	hcl_gui.next_task_id = value
+	app.Preferences().SetInt("next_task_id", value)
 }

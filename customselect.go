@@ -55,7 +55,7 @@ func customselect_hashtype_options(modal *widget.PopUp, data *widget.Box, hcl_gu
 	if len(keyword) >= 2 {
 		for _, key := range hcl_gui.hashcat.available_hash_types_sorted_keys {
 			option := hcl_gui.hashcat.available_hash_types[key]
-			if strings.Contains(strings.ToLower(option), strings.ToLower(keyword)) {
+			if strings.Contains(strings.ToLower(option), strings.ToLower(keyword)) || strings.Contains(strings.ToLower(key), strings.ToLower(keyword)) {
 				item := xwidget.NewSelectorOptionWithStyle(fmt.Sprintf("%s - %s", key, option), key, fyne.TextAlignLeading, fyne.TextStyle{}, func(value string){
 					hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
 					set_hash_type(hcl_gui, value)

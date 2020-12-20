@@ -2,8 +2,8 @@ package hashcatlauncher
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
+	//"math/rand"
+	//"time"
 	"strings"
 	"regexp"
 	"image/color"
@@ -21,6 +21,12 @@ var re_speed = regexp.MustCompile(`[\d\.]+\s\wH\/s`)
 var re_mode = regexp.MustCompile(`^MODE:\s(\d+)$`)
 var re_type = regexp.MustCompile(`^TYPE:\s(.+)$`)
 var re_hwmon = regexp.MustCompile(`^Hardware\.Mon\.#(\d+)\.*:\s(?:(Temp):\s*(\w+))?\s?(?:(Fan):\s*(\w+)%)?\s?(?:(Util):\s*(\w+)%)?\s?(?:(Core):\s*(\w+))?\s?(?:(Mem):\s*(\w+))?\s?(?:(Bus):\s*(\w+))?$`)
+var re_checkpoint_enabled = regexp.MustCompile(`^Checkpoint enabled\. Will quit at next restore-point update\.$`)
+var re_checkpoint_disabled = regexp.MustCompile(`^Checkpoint disabled\. Restore-point updates will no longer be monitored\.$`)
+
+var re_priority = regexp.MustCompile(`^Priority:\s(\d+)$`)
+
+var re_restore_file_info = regexp.MustCompile(`^hcl_(\d+)_(\d+)(?:\.restore)?$`)
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -44,6 +50,7 @@ func (s SortByLenThenABC) Swap(i, j int) {
 
 /////////
 
+/*
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func RandomString(length int) string {
@@ -53,6 +60,7 @@ func RandomString(length int) string {
   }
   return string(b)
 }
+*/
 
 /////////
 

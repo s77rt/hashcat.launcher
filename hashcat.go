@@ -35,6 +35,7 @@ type hashcat_args struct {
 	outfile_format []int
 	optimized_kernel bool
 	slower_candidate bool
+	disable_self_test bool
 	force bool
 	status_timer int
 	attack_payload string
@@ -296,6 +297,10 @@ func set_slower_candidate(hcl_gui *hcl_gui, check bool) {
 	hcl_gui.hashcat.args.slower_candidate = check
 }
 
+func set_disable_self_test(hcl_gui *hcl_gui, check bool) {
+	hcl_gui.hashcat.args.disable_self_test = check
+}
+
 func set_force(hcl_gui *hcl_gui, check bool) {
 	hcl_gui.hashcat.args.force = check
 }
@@ -303,6 +308,10 @@ func set_force(hcl_gui *hcl_gui, check bool) {
 func set_outfile_format(hcl_gui *hcl_gui, outfile_format string) {
 	var outfile_format_int []int
 	switch outfile_format {
+	case "hash[:salt]":
+		outfile_format_int = []int{1}
+	case "plain":
+		outfile_format_int = []int{2}
 	case "hash[:salt]:plain":
 		outfile_format_int = []int{1,2}
 	case "hash[:salt]:plain:hex_plain":

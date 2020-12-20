@@ -3,7 +3,10 @@ package hashcatlauncher
 import (
 	"strconv"
 	"fyne.io/fyne"
+	"fyne.io/fyne/container"
 	"fyne.io/fyne/widget"
+	"fyne.io/fyne/theme"
+	"fyne.io/fyne/dialog"
 )
 
 func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
@@ -49,18 +52,23 @@ func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		SetPreference_hashcat_extra_args(app, hcl_gui, s)
 	}
 
+	primarycolornames := []string{}
+	for _, c := range theme.PrimaryColorNames() {
+		primarycolornames = append(primarycolornames, c)
+	}
+
 	return widget.NewVBox(
 		widget.NewGroup("hashcat options",
 			widget.NewForm(
-				widget.NewFormItem("Binary:", hcl_gui.hc_binary_file_select),
+				widget.NewFormItem("Hashcat:", hcl_gui.hc_binary_file_select),
 				widget.NewFormItem("Status Timer:", hcl_gui.hc_status_timer_select),
 				widget.NewFormItem("Extra Args:", widget.NewHScrollContainer(hcl_gui.hc_extra_args)),
 			),
 		),
 		widget.NewGroup("hashcat.launcher options",
 			widget.NewForm(
-				widget.NewFormItem("Auto Session Start:", hcl_gui.autostart_sessions_select),
-				widget.NewFormItem("Max Active Sessions:", hcl_gui.max_active_sessions_select),
+				widget.NewFormItem("Auto Task Start:", hcl_gui.autostart_sessions_select),
+				widget.NewFormItem("Max Active Tasks:", hcl_gui.max_active_sessions_select),
 			),
 		),
 		widget.NewGroup("hashcat.launcher appearance",
@@ -75,11 +83,27 @@ func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						}
 					}),
 				),
+				widget.NewFormItem("Primary Color:", 
+					widget.NewSelect(primarycolornames, func(primarycolorname string) {
+						hcl_gui.Settings.SetPrimaryColor(primarycolorname)
+					}),
+				),
 				widget.NewFormItem("Scaling:",
 					widget.NewSelect([]string{"auto", "50%", "75%", "80%", "90%", "100%", "110%", "125%", "150%", "175%", "200%"}, func(value string) {
 						hcl_gui.Settings.SetScale(value)
 					}),
 				),
+			),
+		),
+		widget.NewGroup("hashcat.launcher stats",
+			container.NewGridWithColumns(4,
+				(func() *widget.Button {
+					b := widget.NewButton("Reset Task Id Counter", func() {
+						SetPreference_next_task_id(app, hcl_gui, 1)
+						dialog.NewInformation("Success", "Task Id Counter has been reset.", hcl_gui.window)
+					})
+					return b
+				})(),
 			),
 		),
 		widget.NewGroup("Notes",

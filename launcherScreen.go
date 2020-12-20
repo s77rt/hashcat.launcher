@@ -6,18 +6,21 @@ import (
 	"bufio"
 	"path/filepath"
 	"fmt"
+	"time"
 	"errors"
 	"strings"
 	"strconv"
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
+	"fyne.io/fyne/container"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	"fyne.io/fyne/dialog"
+	"fyne.io/fyne/theme"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
-func launcherScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
+func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 	// Basic Static Configs...
 	hashcat_img := canvas.NewImageFromResource(hcl_gui.Icon)
 	hashcat_img.SetMinSize(fyne.Size{100, 100})
@@ -47,7 +50,7 @@ func launcherScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 		hcl_gui.hc_outfile.Refresh()
 		set_outfile(hcl_gui, "")
 	}
-	outfile_format := widget.NewSelect([]string{"hash[:salt]:plain", "hash[:salt]:plain:hex_plain", "hash[:salt]:plain:crack_pos", "hash[:salt]:plain:hex_plain:crack_pos"}, func(s string) {set_outfile_format(hcl_gui, s)})
+	outfile_format := widget.NewSelect([]string{"hash[:salt]", "plain", "hash[:salt]:plain", "hash[:salt]:plain:hex_plain", "hash[:salt]:plain:crack_pos", "hash[:salt]:plain:hex_plain:crack_pos"}, func(s string) {set_outfile_format(hcl_gui, s)})
 	outfile_format.SetSelected("hash[:salt]:plain")
 
 	hcl_gui.hc_attack_mode = widget.NewSelect([]string{}, func(s string) {set_attack_mode(hcl_gui, s)})
@@ -81,8 +84,30 @@ func launcherScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 
 	optimized_kernel := widget.NewCheck("Enable optimized kernel", func(check bool){set_optimized_kernel(hcl_gui, check)})
 	slower_candidate := widget.NewCheck("Enable slower candidate generators", func(check bool){set_slower_candidate(hcl_gui, check)})
+	disable_self_test := widget.NewCheck("Disable self-test (Not Recommended)", func(check bool){set_disable_self_test(hcl_gui, check)})
 	force := widget.NewCheck("Ignore warnings (Not Recommended)", func(check bool){set_force(hcl_gui, check)})
 	optimized_kernel.SetChecked(true)
+
+	// Notifications
+	enable_notifications := false
+	enable_notifications_check := widget.NewCheck("Enable Notifications", func(check bool){
+		enable_notifications = check
+	})
+	enable_notifications_check.SetChecked(true)
+
+	// Priority
+	priority := 0
+	priority_entry := widget.NewEntry()
+	priority_entry.OnChanged = func(s string) {
+		extract_priority := re_priority.FindStringSubmatch(s)
+		if len(extract_priority) == 2 {
+			priority, _ = strconv.Atoi(extract_priority[1])
+		} else {
+			priority = 0
+		}
+		priority_entry.SetText(fmt.Sprintf("Priority: %d", priority))
+	}
+	priority_entry.SetText(fmt.Sprintf("Priority: %d", priority))
 
 	// Mode Configs start from here...
 
@@ -248,7 +273,7 @@ func launcherScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 35}),
 							widget.NewVBox(
 								widget.NewHBox(
-									widget.NewButton("+", func(){
+									widget.NewButtonWithIcon("", theme.ContentAddIcon(), func(){
 										customselect_dictionaries_dictionarylist(hcl_gui, dictionaries_list)
 									}),
 									spacer(10,0),
@@ -1173,8 +1198,135 @@ func launcherScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 	)
 	hcl_gui.hc_hybrid2_attack_conf.Hide()
 	
+	// Attack Payload Builder
+	build_attack_payload := func() []string {
+		attack_payload := []string{}
+		// Mode Related Check
+		switch hcl_gui.hashcat.args.attack_mode {
+		// Dictionary Mode
+		case hashcat_attack_mode_Dictionary:
+			// Dictionaries
+			if len(dictionaries) > 0 {
+				attack_payload = append(attack_payload, dictionaries...)
+			} else {
+				err := errors.New("You must add at least one dictionary")
+				fmt.Fprintf(os.Stderr, "%s\n", err)
+				dialog.ShowError(err, hcl_gui.window)
+				return []string{}
+			}
+			// Rules
+			if len(dictionaries_rule1) > 0 {
+				attack_payload = append(attack_payload, []string{"-r", dictionaries_rule1}...)
+			}
+			if len(dictionaries_rule2) > 0 {
+				attack_payload = append(attack_payload, []string{"-r", dictionaries_rule2}...)
+			}
+			if len(dictionaries_rule3) > 0 {
+				attack_payload = append(attack_payload, []string{"-r", dictionaries_rule3}...)
+			}
+			if len(dictionaries_rule4) > 0 {
+				attack_payload = append(attack_payload, []string{"-r", dictionaries_rule4}...)
+			}
+		case hashcat_attack_mode_Combinator:
+			// Wordlists
+			if len(combinator_left_wordlist) > 0 && len(combinator_right_wordlist) > 0 {
+				attack_payload = append(attack_payload, []string{combinator_left_wordlist, combinator_right_wordlist}...)
+			} else {
+				err := errors.New("You must add both of left and right wordlists")
+				fmt.Fprintf(os.Stderr, "%s\n", err)
+				dialog.ShowError(err, hcl_gui.window)
+				return []string{}
+			}
+			// Rules
+			if len(combinator_left_rule) > 0 {
+				attack_payload = append(attack_payload, []string{"-j", combinator_left_rule}...)
+			}
+			if len(combinator_right_rule) > 0 {
+				attack_payload = append(attack_payload, []string{"-k", combinator_right_rule}...)
+			}
+		case hashcat_attack_mode_Mask:
+			// Custom Charsets
+			if len(mask_customcharset1) > 0 {
+				attack_payload = append(attack_payload, []string{"-1", mask_customcharset1}...)
+			}
+			if len(mask_customcharset2) > 0 {
+				attack_payload = append(attack_payload, []string{"-2", mask_customcharset2}...)
+			}
+			if len(mask_customcharset3) > 0 {
+				attack_payload = append(attack_payload, []string{"-3", mask_customcharset3}...)
+			}
+			if len(mask_customcharset4) > 0 {
+				attack_payload = append(attack_payload, []string{"-4", mask_customcharset4}...)
+			}
+			// Mask
+			if len(mask) > 0 {
+				attack_payload = append(attack_payload, strings.Split(mask, " ")...)
+			} else {
+				err := errors.New("You must specify a mask")
+				fmt.Fprintf(os.Stderr, "%s\n", err)
+				dialog.ShowError(err, hcl_gui.window)
+				return []string{}
+			}
+			// Increment
+			if len(mask_increment_min) > 0 && len(mask_increment_max) > 0 {
+				attack_payload = append(attack_payload, []string{"-i", fmt.Sprintf("--increment-min=%s", mask_increment_min), fmt.Sprintf("--increment-max=%s", mask_increment_max)}...)
+			}
+		case hashcat_attack_mode_Hybrid1:
+			// Left
+			if len(hybrid1_left_wordlist) > 0 {
+				attack_payload = append(attack_payload, hybrid1_left_wordlist)
+			} else {
+				err := errors.New("You must add a wordlist")
+				fmt.Fprintf(os.Stderr, "%s\n", err)
+				dialog.ShowError(err, hcl_gui.window)
+				return []string{}
+			}
+			if len(hybrid1_left_rule) > 0 {
+				attack_payload = append(attack_payload, []string{"-j", hybrid1_left_rule}...)
+			}
+			// Right
+			if len(hybrid1_right_mask) > 0 {
+				attack_payload = append(attack_payload, strings.Split(hybrid1_right_mask, " ")...)
+			} else {
+				err := errors.New("You must specify a mask")
+				fmt.Fprintf(os.Stderr, "%s\n", err)
+				dialog.ShowError(err, hcl_gui.window)
+				return []string{}
+			}
+			if len(hybrid1_right_mask_increment_min) > 0 && len(hybrid1_right_mask_increment_max) > 0 {
+				attack_payload = append(attack_payload, []string{"-i", fmt.Sprintf("--increment-min=%s", hybrid1_right_mask_increment_min), fmt.Sprintf("--increment-max=%s", hybrid1_right_mask_increment_max)}...)
+			}
+		case hashcat_attack_mode_Hybrid2:
+			// Left
+			if len(hybrid2_left_mask) > 0 {
+				attack_payload = append(attack_payload, strings.Split(hybrid2_left_mask, " ")...)
+			} else {
+				err := errors.New("You must specify a mask")
+				fmt.Fprintf(os.Stderr, "%s\n", err)
+				dialog.ShowError(err, hcl_gui.window)
+				return []string{}
+			}
+			if len(hybrid2_left_mask_increment_min) > 0 && len(hybrid2_left_mask_increment_max) > 0 {
+				attack_payload = append(attack_payload, []string{"-i", fmt.Sprintf("--increment-min=%s", hybrid2_left_mask_increment_min), fmt.Sprintf("--increment-max=%s", hybrid2_left_mask_increment_max)}...)
+			}
+			// Right
+			if len(hybrid2_right_wordlist) > 0 {
+				attack_payload = append(attack_payload, hybrid2_right_wordlist)
+			} else {
+				err := errors.New("You must add a wordlist")
+				fmt.Fprintf(os.Stderr, "%s\n", err)
+				dialog.ShowError(err, hcl_gui.window)
+				return []string{}
+			}
+			if len(hybrid2_right_rule) > 0 {
+				attack_payload = append(attack_payload, []string{"-j", hybrid2_right_rule}...)
+			}
+		}
+		return attack_payload
+	}
+
 	// Run hashcat
-	run_hashcat_btn := widget.NewButton("Launch hashcat !", func(){
+	run_hashcat_btn := widget.NewButtonWithIcon("Create Task", theme.ContentAddIcon(), func(){
 		// Basic Configs Check
 		if len(hcl_gui.hashcat.args.hash_file) == 0 {
 			err := errors.New("You must select a hash file")
@@ -1194,138 +1346,98 @@ func launcherScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 			dialog.ShowError(err, hcl_gui.window)
 			return
 		}
-		attack_payload := func() []string {
-			attack_payload := []string{}
-			// Mode Related Check
-			switch hcl_gui.hashcat.args.attack_mode {
-			// Dictionary Mode
-			case hashcat_attack_mode_Dictionary:
-				// Dictionaries
-				if len(dictionaries) > 0 {
-					attack_payload = append(attack_payload, dictionaries...)
-				} else {
-					err := errors.New("You must add at least one dictionary")
-					fmt.Fprintf(os.Stderr, "%s\n", err)
-					dialog.ShowError(err, hcl_gui.window)
-					return []string{}
-				}
-				// Rules
-				if len(dictionaries_rule1) > 0 {
-					attack_payload = append(attack_payload, []string{"-r", dictionaries_rule1}...)
-				}
-				if len(dictionaries_rule2) > 0 {
-					attack_payload = append(attack_payload, []string{"-r", dictionaries_rule2}...)
-				}
-				if len(dictionaries_rule3) > 0 {
-					attack_payload = append(attack_payload, []string{"-r", dictionaries_rule3}...)
-				}
-				if len(dictionaries_rule4) > 0 {
-					attack_payload = append(attack_payload, []string{"-r", dictionaries_rule4}...)
-				}
-			case hashcat_attack_mode_Combinator:
-				// Wordlists
-				if len(combinator_left_wordlist) > 0 && len(combinator_right_wordlist) > 0 {
-					attack_payload = append(attack_payload, []string{combinator_left_wordlist, combinator_right_wordlist}...)
-				} else {
-					err := errors.New("You must add both of left and right wordlists")
-					fmt.Fprintf(os.Stderr, "%s\n", err)
-					dialog.ShowError(err, hcl_gui.window)
-					return []string{}
-				}
-				// Rules
-				if len(combinator_left_rule) > 0 {
-					attack_payload = append(attack_payload, []string{"-j", combinator_left_rule}...)
-				}
-				if len(combinator_right_rule) > 0 {
-					attack_payload = append(attack_payload, []string{"-k", combinator_right_rule}...)
-				}
-			case hashcat_attack_mode_Mask:
-				// Custom Charsets
-				if len(mask_customcharset1) > 0 {
-					attack_payload = append(attack_payload, []string{"-1", mask_customcharset1}...)
-				}
-				if len(mask_customcharset2) > 0 {
-					attack_payload = append(attack_payload, []string{"-2", mask_customcharset2}...)
-				}
-				if len(mask_customcharset3) > 0 {
-					attack_payload = append(attack_payload, []string{"-3", mask_customcharset3}...)
-				}
-				if len(mask_customcharset4) > 0 {
-					attack_payload = append(attack_payload, []string{"-4", mask_customcharset4}...)
-				}
-				// Mask
-				if len(mask) > 0 {
-					attack_payload = append(attack_payload, strings.Split(mask, " ")...)
-				} else {
-					err := errors.New("You must specify a mask")
-					fmt.Fprintf(os.Stderr, "%s\n", err)
-					dialog.ShowError(err, hcl_gui.window)
-					return []string{}
-				}
-				// Increment
-				if len(mask_increment_min) > 0 && len(mask_increment_max) > 0 {
-					attack_payload = append(attack_payload, []string{"-i", fmt.Sprintf("--increment-min=%s", mask_increment_min), fmt.Sprintf("--increment-max=%s", mask_increment_max)}...)
-				}
-			case hashcat_attack_mode_Hybrid1:
-				// Left
-				if len(hybrid1_left_wordlist) > 0 {
-					attack_payload = append(attack_payload, hybrid1_left_wordlist)
-				} else {
-					err := errors.New("You must add a wordlist")
-					fmt.Fprintf(os.Stderr, "%s\n", err)
-					dialog.ShowError(err, hcl_gui.window)
-					return []string{}
-				}
-				if len(hybrid1_left_rule) > 0 {
-					attack_payload = append(attack_payload, []string{"-j", hybrid1_left_rule}...)
-				}
-				// Right
-				if len(hybrid1_right_mask) > 0 {
-					attack_payload = append(attack_payload, strings.Split(hybrid1_right_mask, " ")...)
-				} else {
-					err := errors.New("You must specify a mask")
-					fmt.Fprintf(os.Stderr, "%s\n", err)
-					dialog.ShowError(err, hcl_gui.window)
-					return []string{}
-				}
-				if len(hybrid1_right_mask_increment_min) > 0 && len(hybrid1_right_mask_increment_max) > 0 {
-					attack_payload = append(attack_payload, []string{"-i", fmt.Sprintf("--increment-min=%s", hybrid1_right_mask_increment_min), fmt.Sprintf("--increment-max=%s", hybrid1_right_mask_increment_max)}...)
-				}
-			case hashcat_attack_mode_Hybrid2:
-				// Left
-				if len(hybrid2_left_mask) > 0 {
-					attack_payload = append(attack_payload, strings.Split(hybrid2_left_mask, " ")...)
-				} else {
-					err := errors.New("You must specify a mask")
-					fmt.Fprintf(os.Stderr, "%s\n", err)
-					dialog.ShowError(err, hcl_gui.window)
-					return []string{}
-				}
-				if len(hybrid2_left_mask_increment_min) > 0 && len(hybrid2_left_mask_increment_max) > 0 {
-					attack_payload = append(attack_payload, []string{"-i", fmt.Sprintf("--increment-min=%s", hybrid2_left_mask_increment_min), fmt.Sprintf("--increment-max=%s", hybrid2_left_mask_increment_max)}...)
-				}
-				// Right
-				if len(hybrid2_right_wordlist) > 0 {
-					attack_payload = append(attack_payload, hybrid2_right_wordlist)
-				} else {
-					err := errors.New("You must add a wordlist")
-					fmt.Fprintf(os.Stderr, "%s\n", err)
-					dialog.ShowError(err, hcl_gui.window)
-					return []string{}
-				}
-				if len(hybrid2_right_rule) > 0 {
-					attack_payload = append(attack_payload, []string{"-j", hybrid2_right_rule}...)
-				}
-			}
-			return attack_payload
-		}()
+		attack_payload := build_attack_payload()
 		if len(attack_payload) > 0 {
-			newSession(hcl_gui, attack_payload)
+			NewSession(app, hcl_gui, -1, "", nil, attack_payload, enable_notifications, priority)
 		}
+	})
+	run_hashcat_btn.Importance = widget.HighImportance
+
+	run_hashcat_restore_btn := widget.NewButtonWithIcon("Restore Task", theme.HistoryIcon(), func(){
+		var modal *widget.PopUp
+		c := widget.NewVBox(
+			widget.NewHBox(
+				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{660, 30}),
+					widget.NewLabelWithStyle("Select which task to restore:", fyne.TextAlignLeading, fyne.TextStyle{}),
+				),
+				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{40, 30}),
+					widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+						modal.Hide()
+					}),
+				),
+			),
+			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 400}),
+				(func() fyne.CanvasObject {
+					data := GetRestoreFiles(hcl_gui)
+
+					var restore_file *RestoreFile
+					session_name_label := widget.NewLabel("N/A")
+					time_label := widget.NewLabel("N/A")
+					task_id_label := widget.NewLabel("N/A")
+					argv_label := widget.NewLabel("N/A")
+					restore_btn := widget.NewButtonWithIcon("Restore", theme.HistoryIcon(), func() {
+						modal.Hide()
+						NewSession(app, hcl_gui, restore_file.Task_id, restore_file.Session_name, restore_file, []string{}, enable_notifications, priority)
+					})
+					restore_btn.Disable()
+					vbox := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
+						widget.NewForm(
+							widget.NewFormItem("Session Name",	container.NewScroll(session_name_label)),
+							widget.NewFormItem("Time",	container.NewScroll(time_label)),
+							widget.NewFormItem("Task ID",	container.NewScroll(task_id_label)),
+							widget.NewFormItem("Arguments",	container.NewScroll(argv_label)),
+						),
+						restore_btn,
+					)
+
+					list := widget.NewList(
+						func() int {
+							return len(data)
+						},
+						func() fyne.CanvasObject {
+							return fyne.NewContainerWithLayout(layout.NewHBoxLayout(), widget.NewIcon(theme.DocumentIcon()), widget.NewLabel("Template Object"))
+						},
+						func(id widget.ListItemID, item fyne.CanvasObject) {
+							item.(*fyne.Container).Objects[1].(*widget.Label).SetText(filepath.Base(data[id]))
+						},
+					)
+					list.OnSelected = func(id widget.ListItemID) {
+						restore_file = ReadRestoreFile(hcl_gui, data[id])
+						session_name_label.SetText(restore_file.Session_name)
+						if restore_file.Time > 0 {
+							time_label.SetText(fmt.Sprintf("%s", time.Unix(0, restore_file.Time)))
+						} else {
+							time_label.SetText("N/A")
+						}
+						if restore_file.Task_id > 0 {
+							task_id_label.SetText(fmt.Sprintf("%d", restore_file.Task_id))
+						} else {
+							task_id_label.SetText("N/A")
+						}
+						argv_label.SetText(strings.Join(restore_file.GetArguments(), " "))
+						restore_btn.Enable()
+					}
+					list.OnUnselected = func(id widget.ListItemID) {
+						session_name_label.SetText("N/A")
+						time_label.SetText("N/A")
+						task_id_label.SetText("N/A")
+						argv_label.SetText("N/A")
+						restore_btn.Disable()
+					}
+					return container.NewVSplit(list, container.NewMax(vbox))
+				})(),
+			),
+		)
+		hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+			if key.Name == fyne.KeyEscape {
+				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+				modal.Hide()
+			}
+		})
+		modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
 	})
 
 	return widget.NewVBox(
-		widget.NewLabelWithStyle("Welcome to hashcat.launcher v"+Version, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		spacer(0,5),
 		widget.NewHBox(
 			spacer(5,0),
@@ -1339,7 +1451,7 @@ func launcherScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 							widget.NewLabelWithStyle("Hash File:", fyne.TextAlignTrailing, fyne.TextStyle{}),
 						),
 					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{520, 35}),
+					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{518, 35}),
 						widget.NewVBox(
 							hcl_gui.hc_hash_file,
 						),
@@ -1593,33 +1705,39 @@ func launcherScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 				),
 			),
 			widget.NewHBox(
+				spacer(20, 0),
+				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
+					widget.NewVBox(
+						widget.NewLabelWithStyle("Format:", fyne.TextAlignTrailing, fyne.TextStyle{}),
+					),
+				),
+				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 35}),
+					widget.NewVBox(
+						outfile_format,
+					),
+				),
+			),
+			widget.NewHBox(
 				spacer(40, 0),
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{350, 95}),
+				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{350, 130}),
 					widget.NewVBox(
 						optimized_kernel,
 						slower_candidate,
+						disable_self_test,
 						force,
 					),
 				),
 				widget.NewVBox(
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{70, 35}),
-							widget.NewVBox(
-								widget.NewLabelWithStyle("Format:", fyne.TextAlignLeading, fyne.TextStyle{}),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{345, 35}),
-							widget.NewVBox(
-								outfile_format,
-							),
-						),
+					fyne.NewContainerWithLayout(layout.NewGridLayout(2),
+						enable_notifications_check,
+						priority_entry,
 					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{455, 55}),
+					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{455, 90}),
 						run_hashcat_btn,
 					),
-					spacer(0,0),
 				),
 			),
+			run_hashcat_restore_btn,
 		),
 	)
 }
