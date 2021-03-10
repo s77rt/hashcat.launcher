@@ -1,12 +1,14 @@
 package hashcatlauncher
 
 import (
+	"fmt"
 	"strconv"
-	"fyne.io/fyne"
-	"fyne.io/fyne/container"
-	"fyne.io/fyne/widget"
-	"fyne.io/fyne/theme"
-	"fyne.io/fyne/dialog"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/dialog"
 )
 
 func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
@@ -57,57 +59,93 @@ func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		primarycolornames = append(primarycolornames, c)
 	}
 
-	return widget.NewVBox(
-		widget.NewGroup("hashcat options",
-			widget.NewForm(
-				widget.NewFormItem("Hashcat:", hcl_gui.hc_binary_file_select),
-				widget.NewFormItem("Status Timer:", hcl_gui.hc_status_timer_select),
-				widget.NewFormItem("Extra Args:", widget.NewHScrollContainer(hcl_gui.hc_extra_args)),
+	return container.NewVBox(
+		widget.NewCard("Settings", "hashcat settings",
+			container.NewVBox(
+				widget.NewForm(
+					widget.NewFormItem("Hashcat:", hcl_gui.hc_binary_file_select),
+					widget.NewFormItem("Status Timer:", hcl_gui.hc_status_timer_select),
+					widget.NewFormItem("Extra Args:", hcl_gui.hc_extra_args),
+				),
+				container.NewHBox(
+					layout.NewSpacer(),
+					widget.NewLabel("Note: hashcat version must be "+hashcat_min_version+" or higher"),
+				),
 			),
 		),
-		widget.NewGroup("hashcat.launcher options",
+		widget.NewCard("Options", "hashcat.launcher Options",
 			widget.NewForm(
 				widget.NewFormItem("Auto Task Start:", hcl_gui.autostart_sessions_select),
 				widget.NewFormItem("Max Active Tasks:", hcl_gui.max_active_sessions_select),
-			),
-		),
-		widget.NewGroup("hashcat.launcher appearance",
-			widget.NewForm(
 				widget.NewFormItem("Theme:", 
-					widget.NewSelect([]string{"Light", "Dark"}, func(theme string) {
-						switch theme {
-						case "Light":
-							hcl_gui.Settings.SetTheme("light")
-						case "Dark":
-							hcl_gui.Settings.SetTheme("dark")
+					func () fyne.CanvasObject {
+						w := widget.NewSelect([]string{"Light", "Dark"}, func(theme string) {
+							switch theme {
+							case "Light":
+								hcl_gui.Settings.SetTheme("light")
+							case "Dark":
+								hcl_gui.Settings.SetTheme("dark")
+							}
+						})
+						if hcl_gui.Settings.Theme() == "light" {
+							w.SetSelected("Light")
+						} else if hcl_gui.Settings.Theme() == "dark" {
+							w.SetSelected("Dark")
 						}
-					}),
+						return w
+					}(),
 				),
 				widget.NewFormItem("Primary Color:", 
-					widget.NewSelect(primarycolornames, func(primarycolorname string) {
-						hcl_gui.Settings.SetPrimaryColor(primarycolorname)
-					}),
+					func () fyne.CanvasObject {
+						w := widget.NewSelect(primarycolornames, func(primarycolorname string) {
+							hcl_gui.Settings.SetPrimaryColor(primarycolorname)
+						})
+						w.SetSelected(hcl_gui.Settings.PrimaryColor())
+						return w
+					}(),
 				),
 				widget.NewFormItem("Scaling:",
-					widget.NewSelect([]string{"auto", "50%", "75%", "80%", "90%", "100%", "110%", "125%", "150%", "175%", "200%"}, func(value string) {
-						hcl_gui.Settings.SetScale(value)
-					}),
+					func () fyne.CanvasObject {
+						w := widget.NewSelect([]string{"auto", "50%", "80%", "100%", "130%", "180%"}, func(value string) {
+							hcl_gui.Settings.SetScale(value)
+						})
+						w.SetSelected(fmt.Sprintf("%.0f%%", hcl_gui.Settings.Scale()*100))
+						return w
+					}(),
+				),
+				widget.NewFormItem("Dialog Handler:",
+					func () fyne.CanvasObject {
+						w := widget.NewSelect([]string{"OS", "Native"}, func (s string) {
+							if s == "OS" {
+								SetPreference_dialog_handler(app, hcl_gui, Dialog_OS)
+							} else {
+								SetPreference_dialog_handler(app, hcl_gui, Dialog_Native)
+							}
+						})
+						if GetPreference_dialog_handler(app) == Dialog_OS {
+							w.SetSelected("OS")
+						} else if GetPreference_dialog_handler(app) == Dialog_Native {
+							w.SetSelected("Native")
+						}
+						return w
+					}(),
 				),
 			),
 		),
-		widget.NewGroup("hashcat.launcher stats",
+		widget.NewCard("Data", "clear data and reset stats",
 			container.NewGridWithColumns(4,
 				(func() *widget.Button {
 					b := widget.NewButton("Reset Task Id Counter", func() {
 						SetPreference_next_task_id(app, hcl_gui, 1)
-						dialog.NewInformation("Success", "Task Id Counter has been reset.", hcl_gui.window)
+						dialog.ShowInformation("Success", "Task Id Counter has been reset.", hcl_gui.window)
 					})
 					return b
 				})(),
+				widget.NewButton("Reset Monitor Stats", func() {
+					hcl_gui.monitor.Reset()
+					dialog.ShowInformation("Success", "Monitor Stats has been reset.", hcl_gui.window)
+				}),
 			),
-		),
-		widget.NewGroup("Notes",
-			widget.NewLabel("hashcat version must be "+hashcat_min_version+" or higher"),
 		),
 	)
 }

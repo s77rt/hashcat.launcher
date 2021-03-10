@@ -2,14 +2,14 @@ package hashcatlauncher
 
 import (
 	"fmt"
-	"fyne.io/fyne"
-	"fyne.io/fyne/container"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 )
 
 func tasksScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 	// Content
-	hcl_gui.tasks_content = widget.NewVBox()
+	hcl_gui.tasks_content = container.NewVBox()
 
 	// Tree
 	hcl_gui.tasks_tree = widget.NewTreeWithStrings(
@@ -26,18 +26,18 @@ func tasksScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 	hcl_gui.tasks_tree.OnSelected = func(uid string) {
 		_, ok := hcl_gui.sessions[uid]
 		if ok == true {
-			hcl_gui.tasks_content.Children = []fyne.CanvasObject{
+			hcl_gui.tasks_content.Objects = []fyne.CanvasObject{
 				hcl_gui.sessions[uid].Content,
 			}
 			hcl_gui.tasks_content.Refresh()
 		} else {
-			hcl_gui.tasks_content.Children = []fyne.CanvasObject{}
+			hcl_gui.tasks_content.Objects = []fyne.CanvasObject{}
 			hcl_gui.tasks_content.Refresh()
 		}
 	}
 
 	hcl_gui.tasks_tree.OnUnselected = func(uid string) {
-		hcl_gui.tasks_content.Children = []fyne.CanvasObject{}
+		hcl_gui.tasks_content.Objects = []fyne.CanvasObject{}
 		hcl_gui.tasks_content.Refresh()
 	}
 

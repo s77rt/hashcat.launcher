@@ -2,45 +2,38 @@ package hashcatlauncher
 
 import (
 	"fmt"
-	"fyne.io/fyne"
-	"fyne.io/fyne/widget"
-	"fyne.io/fyne/layout"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 )
 
 func monitorScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
-	return widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewGridLayout(6),
+	return container.NewVBox(
+		container.NewGridWithColumns(4,
 			monitorHardwares(hcl_gui)...,
 		),
-		spacer(0, 5),
-		widget.NewLabelWithStyle("Note: The first progress bar is for the Fan and the second is for the Util", fyne.TextAlignCenter, fyne.TextStyle{}),
-		widget.NewLabelWithStyle("IMPORTANT: Stats will reset every: 300s", fyne.TextAlignCenter, fyne.TextStyle{}),
-		widget.NewButton("Reset Stats", func() {
-			hcl_gui.monitor.Reset()
-		}),
+		container.NewHBox(
+			layout.NewSpacer(),
+			widget.NewLabel("Note: stats will reset every 300s"),
+		),
 	)
 }
 
 func monitorHardware(hcl_gui *hcl_gui, index int) fyne.CanvasObject {
-	return	widget.NewVBox(
-				widget.NewGroup(fmt.Sprintf("#%d", index+1),
-					widget.NewHBox(
-						widget.NewLabelWithStyle("Temp:", fyne.TextAlignLeading, fyne.TextStyle{}),
-						hcl_gui.monitor.hardwares[index].temp,
-					),
-					widget.NewHBox(
-						widget.NewLabelWithStyle("Core:", fyne.TextAlignLeading, fyne.TextStyle{}),
-						hcl_gui.monitor.hardwares[index].core,
-					),
-					widget.NewHBox(
-						widget.NewLabelWithStyle("Mem:", fyne.TextAlignLeading, fyne.TextStyle{}),
-						hcl_gui.monitor.hardwares[index].mem,
-					),
-					widget.NewHBox(
-						widget.NewLabelWithStyle("Bus:", fyne.TextAlignLeading, fyne.TextStyle{}),
-						hcl_gui.monitor.hardwares[index].bus,
-					),
+	return	widget.NewCard(fmt.Sprintf("Device #%d", index+1), "monitoring stats",
+				container.New(layout.NewFormLayout(),
+					widget.NewLabelWithStyle("Temp:", fyne.TextAlignLeading, fyne.TextStyle{}),
+					container.NewHScroll(hcl_gui.monitor.hardwares[index].temp),
+					widget.NewLabelWithStyle("Core:", fyne.TextAlignLeading, fyne.TextStyle{}),
+					container.NewHScroll(hcl_gui.monitor.hardwares[index].core),
+					widget.NewLabelWithStyle("Mem:", fyne.TextAlignLeading, fyne.TextStyle{}),
+					container.NewHScroll(hcl_gui.monitor.hardwares[index].mem),
+					widget.NewLabelWithStyle("Bus:", fyne.TextAlignLeading, fyne.TextStyle{}),
+					container.NewHScroll(hcl_gui.monitor.hardwares[index].bus),
+					widget.NewLabelWithStyle("Fan (%):", fyne.TextAlignLeading, fyne.TextStyle{}),
 					hcl_gui.monitor.hardwares[index].fan,
+					widget.NewLabelWithStyle("Util (%):", fyne.TextAlignLeading, fyne.TextStyle{}),
 					hcl_gui.monitor.hardwares[index].util,
 				),
 			)

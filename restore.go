@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"encoding/binary"
 	"path/filepath"
-	"fyne.io/fyne/dialog"
+	"fyne.io/fyne/v2/dialog"
 )
 
 func GetRestoreFiles(hcl_gui *hcl_gui) []string {

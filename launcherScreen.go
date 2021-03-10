@@ -10,20 +10,21 @@ import (
 	"errors"
 	"strings"
 	"strconv"
-	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/container"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/theme"
+	"net/url"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
 func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 	// Basic Static Configs...
 	hashcat_img := canvas.NewImageFromResource(hcl_gui.Icon)
-	hashcat_img.SetMinSize(fyne.Size{100, 100})
+	hashcat_img.SetMinSize(fyne.Size{50, 50})
 	
 	hcl_gui.hc_hash_file = widget.NewSelect([]string{}, func(s string) {
 		_, file := filepath.Split(s)
@@ -82,6 +83,9 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 
 	hcl_gui.hc_wordload_profiles = widget.NewSelect([]string{"Low", "Default", "High", "Nightmare"}, func(s string) {set_workload_profile(hcl_gui, s)})
 
+	remove_found_hashes := widget.NewCheck("Remove found hashes", func(check bool){set_remove_found_hashes(hcl_gui, check)})
+	disable_potfile := widget.NewCheck("Disable Pot File", func(check bool){set_disable_potfile(hcl_gui, check)})
+	ignore_usernames := widget.NewCheck("Ignore Usernames", func(check bool){set_ignore_usernames(hcl_gui, check)})
 	optimized_kernel := widget.NewCheck("Enable optimized kernel", func(check bool){set_optimized_kernel(hcl_gui, check)})
 	slower_candidate := widget.NewCheck("Enable slower candidate generators", func(check bool){set_slower_candidate(hcl_gui, check)})
 	disable_self_test := widget.NewCheck("Disable self-test (Not Recommended)", func(check bool){set_disable_self_test(hcl_gui, check)})
@@ -105,28 +109,30 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		} else {
 			priority = 0
 		}
-		priority_entry.SetText(fmt.Sprintf("Priority: %d", priority))
+		priority_entry.SetText(fmt.Sprintf("%d", priority))
 	}
-	priority_entry.SetText(fmt.Sprintf("Priority: %d", priority))
+	priority_entry.SetText(fmt.Sprintf("%d", priority))
 
 	// Mode Configs start from here...
 
 	// Dictionary Mode
 	dictionaries := []string{}
-	dictionaries_stats := widget.NewLabel("Loaded 0 files")
-	dictionaries_list := widget.NewMultiLineEntry()
-	dictionaries_list.SetPlaceHolder("Click [+] to add from the FileBase...\n-or- Paste files pathes here")
-	dictionaries_list.OnChanged = func(s string){
+	dictionaries_stats := widget.NewLabel("Selected 0 dictionaries")
+	dictionaries_entry := widget.NewMultiLineEntry()
+	dictionaries_entry.OnChanged = func(s string){
 		dictionaries = []string{}
-		valid_files := 0
 		files_list := strings.Split(strings.Replace(s, "\r\n", "\n", -1), "\n")
 		for _, file := range files_list {
-			if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
-				dictionaries = append(dictionaries, file)
-				valid_files++
+			hcl_gui.data.dictionaries.AddFile(file);
+			if file_exists := File_Exists(file); file_exists == true {
+				if !(StringArrayIncludes(dictionaries, file)) {
+					dictionaries = append(dictionaries, file)
+				}
 			}
 		}
-		dictionaries_stats.SetText(fmt.Sprintf("Loaded %d files", valid_files))
+		valid_files := len(dictionaries)
+		dictionaries_entry.Text = strings.Join(dictionaries, "\n")+"\n"
+		dictionaries_stats.SetText(fmt.Sprintf("Selected %d dictionaries", valid_files))
 	}
 	// Dictionaries Rules
 	dictionaries_rule1 := ""
@@ -153,16 +159,6 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		dictionaries_rule1_select.Refresh()
 		dictionaries_rule1 = ""
 	}
-	dictionaries_rule1_button := widget.NewButton("...", func(){
-		go func() {
-			file, err := NewFileOpen(hcl_gui)
-			if err == nil {
-				dictionaries_rule1_check.SetChecked(true)
-				hcl_gui.data.rules.AddFile(file)
-				dictionaries_rule1_select.SetSelected(file)
-			}
-		}()
-	})
 	dictionaries_rule1_select.Selected = "None"
 	// Rule 2
 	var dictionaries_rule2_select *xwidget.Selector
@@ -184,16 +180,6 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		dictionaries_rule2_select.Refresh()
 		dictionaries_rule2 = ""
 	}
-	dictionaries_rule2_button := widget.NewButton("...", func(){
-		go func() {
-			file, err := NewFileOpen(hcl_gui)
-			if err == nil {
-				dictionaries_rule2_check.SetChecked(true)
-				hcl_gui.data.rules.AddFile(file)
-				dictionaries_rule2_select.SetSelected(file)
-			}
-		}()
-	})
 	dictionaries_rule2_select.Selected = "None"
 	// Rule 3
 	var dictionaries_rule3_select *xwidget.Selector
@@ -215,16 +201,6 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		dictionaries_rule3_select.Refresh()
 		dictionaries_rule3 = ""
 	}
-	dictionaries_rule3_button := widget.NewButton("...", func(){
-		go func() {
-			file, err := NewFileOpen(hcl_gui)
-			if err == nil {
-				dictionaries_rule3_check.SetChecked(true)
-				hcl_gui.data.rules.AddFile(file)
-				dictionaries_rule3_select.SetSelected(file)
-			}
-		}()
-	})
 	dictionaries_rule3_select.Selected = "None"
 	// Rule 4
 	var dictionaries_rule4_select *xwidget.Selector
@@ -246,161 +222,71 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		dictionaries_rule4_select.Refresh()
 		dictionaries_rule4 = ""
 	}
-	dictionaries_rule4_button := widget.NewButton("...", func(){
-		go func() {
-			file, err := NewFileOpen(hcl_gui)
-			if err == nil {
-				dictionaries_rule4_check.SetChecked(true)
-				hcl_gui.data.rules.AddFile(file)
-				dictionaries_rule4_select.SetSelected(file)
-			}
-		}()
-	})
 	dictionaries_rule4_select.Selected = "None"
 
-	hcl_gui.hc_dictionary_attack_conf = widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 200}),
-			widget.NewVBox(
-				widget.NewGroup("Dictionaries",
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 103}),
-						widget.NewScrollContainer(
-							dictionaries_list,
-						),
-					),
-					spacer(0, 7),
-					widget.NewHBox(
-						spacer(7, 0),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									widget.NewButtonWithIcon("", theme.ContentAddIcon(), func(){
-										customselect_dictionaries_dictionarylist(hcl_gui, dictionaries_list)
-									}),
-									spacer(10,0),
-									widget.NewButton("Load Config", func(){
-										go func() {
-											file, err := NewFileOpen(hcl_gui)
-											if err == nil {
-												data, err := ioutil.ReadFile(file)
-												if err != nil {
-													fmt.Fprintf(os.Stderr, "can't load config: %s\n", err)
-													dialog.ShowError(err, hcl_gui.window)
-												} else {
-													dictionaries_list.SetText(string(data))
-												}
+	hcl_gui.hc_dictionary_attack_conf = container.NewVBox(
+		container.NewGridWithColumns(2,
+			widget.NewCard("", "Dictionaries",
+				container.NewGridWithRows(2,
+					widget.NewButton("Select Dictionaries", func(){
+						customselect_dictionaries_dictionarylist(hcl_gui, &dictionaries, dictionaries_entry)
+					}),
+					container.NewGridWithRows(2,
+						dictionaries_stats,
+						container.NewGridWithColumns(4,
+							widget.NewButton("Load Config", func(){
+								go func() {
+									file, err := NewFileOpen(hcl_gui)
+									if err == nil {
+										data, err := ioutil.ReadFile(file)
+										if err != nil {
+											fmt.Fprintf(os.Stderr, "can't load config: %s\n", err)
+											dialog.ShowError(err, hcl_gui.window)
+										} else {
+											dictionaries_entry.SetText(string(data))
+										}
+									}
+								}()
+							}),
+							widget.NewButton("Save Config", func(){
+								go func() {
+									file, err := NewFileSave(hcl_gui)
+									if err == nil {
+										f, err := os.Create(file)
+										if err != nil {
+											fmt.Fprintf(os.Stderr, "can't save config: %s\n", err)
+											dialog.ShowError(err, hcl_gui.window)
+										} else {
+											defer f.Close()
+											w := bufio.NewWriter(f)
+											_, err := w.WriteString(dictionaries_entry.Text)
+											if err != nil {
+												fmt.Fprintf(os.Stderr, "can't save config: %s\n", err)
+												dialog.ShowError(err, hcl_gui.window)
+											} else {
+												w.Flush()
 											}
-										}()
-									}),
-									widget.NewButton("Save Config", func(){
-										go func() {
-											file, err := NewFileSave(hcl_gui)
-											if err == nil {
-												f, err := os.Create(file)
-												if err != nil {
-													fmt.Fprintf(os.Stderr, "can't save config: %s\n", err)
-													dialog.ShowError(err, hcl_gui.window)
-												} else {
-													defer f.Close()
-													w := bufio.NewWriter(f)
-													_, err := w.WriteString(dictionaries_list.Text)
-													if err != nil {
-														fmt.Fprintf(os.Stderr, "can't save config: %s\n", err)
-														dialog.ShowError(err, hcl_gui.window)
-													} else {
-														w.Flush()
-													}
-												}
-											}
-										}()
-									}),
-									spacer(150,0),
-									widget.NewButton("Clear All", func(){dictionaries_list.SetText("")}),
-								),
-							),
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 35}),
-						widget.NewScrollContainer(
-							widget.NewHBox(
-								spacer(5, 0),
-								dictionaries_stats,
-							),
+										}
+									}
+								}()
+							}),
+							layout.NewSpacer(),
+							widget.NewButton("Clear All", func(){dictionaries_entry.SetText("")}),
 						),
 					),
 				),
 			),
-		),
-		spacer(0, 5),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 140}),
-			widget.NewVBox(
-				widget.NewGroup("Rules",
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
-							widget.NewVBox(
-								dictionaries_rule1_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{415, 35}),
-							widget.NewVBox(
-								dictionaries_rule1_select,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								dictionaries_rule1_button,
-							),
-						),
-					),
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
-							widget.NewVBox(
-								dictionaries_rule2_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{415, 35}),
-							widget.NewVBox(
-								dictionaries_rule2_select,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								dictionaries_rule2_button,
-							),
-						),
-					),
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
-							widget.NewVBox(
-								dictionaries_rule3_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{415, 35}),
-							widget.NewVBox(
-								dictionaries_rule3_select,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								dictionaries_rule3_button,
-							),
-						),
-					),
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
-							widget.NewVBox(
-								dictionaries_rule4_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{415, 35}),
-							widget.NewVBox(
-								dictionaries_rule4_select,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								dictionaries_rule4_button,
-							),
-						),
+			widget.NewCard("", "Rules",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						dictionaries_rule1_check,
+						dictionaries_rule1_select,
+						dictionaries_rule2_check,
+						dictionaries_rule2_select,
+						dictionaries_rule3_check,
+						dictionaries_rule3_select,
+						dictionaries_rule4_check,
+						dictionaries_rule4_select,
 					),
 				),
 			),
@@ -419,15 +305,6 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		combinator_left_wordlist_select.Refresh()
 		combinator_left_wordlist = s
 	}
-	combinator_left_wordlist_button := widget.NewButton("...", func(){
-		go func() {
-			file, err := NewFileOpen(hcl_gui)
-			if err == nil {
-				hcl_gui.data.dictionaries.AddFile(file)
-				combinator_left_wordlist_select.SetSelected(file)
-			}
-		}()
-	})
 	combinator_left_rule := ""
 	combinator_left_rule_entry := widget.NewEntry()
 	combinator_left_rule_entry.SetText("c")
@@ -454,15 +331,6 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		combinator_right_wordlist_select.Refresh()
 		combinator_right_wordlist = s
 	}
-	combinator_right_wordlist_button := widget.NewButton("...", func(){
-		go func() {
-			file, err := NewFileOpen(hcl_gui)
-			if err == nil {
-				hcl_gui.data.dictionaries.AddFile(file)
-				combinator_right_wordlist_select.SetSelected(file)
-			}
-		}()
-	})
 	combinator_right_rule := ""
 	combinator_right_rule_entry := widget.NewEntry()
 	combinator_right_rule_entry.SetText("$!")
@@ -480,79 +348,25 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		}
 	})
 
-	hcl_gui.hc_combinator_attack_conf = widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 200}),
-			widget.NewVBox(
-				widget.NewGroup("Wordlists",
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{130, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(10, 0),
-									widget.NewLabelWithStyle("Left Wordlist:", fyne.TextAlignLeading, fyne.TextStyle{}),
-								),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{360, 35}),
-							widget.NewVBox(
-								combinator_left_wordlist_select,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								combinator_left_wordlist_button,
-							),
-						),
-					),
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{130, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(10, 0),
-									widget.NewLabelWithStyle("Right Wordlist:", fyne.TextAlignLeading, fyne.TextStyle{}),
-								),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{360, 35}),
-							widget.NewVBox(
-								combinator_right_wordlist_select,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								combinator_right_wordlist_button,
-							),
-						),
+	hcl_gui.hc_combinator_attack_conf = container.NewVBox(
+		container.NewGridWithColumns(2,
+			widget.NewCard("", "Wordlists",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Left Wordlist:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						combinator_left_wordlist_select,
+						widget.NewLabelWithStyle("Right Wordlist:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						combinator_right_wordlist_select,
 					),
 				),
-				spacer(0, 3),
-				widget.NewGroup("Rules",
-					widget.NewHBox(
-						spacer(10, 0),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{130, 35}),
-							widget.NewVBox(
-								combinator_left_rule_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{350, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(combinator_left_rule_entry),
-							),
-						),
-					),
-					spacer(0, 5),
-					widget.NewHBox(
-						spacer(10, 0),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{130, 35}),
-							widget.NewVBox(
-								combinator_right_rule_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{350, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(combinator_right_rule_entry),
-							),
-						),
+			),
+			widget.NewCard("", "Rules",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						combinator_left_rule_check,
+						combinator_left_rule_entry,
+						combinator_right_rule_check,
+						combinator_right_rule_entry,
 					),
 				),
 			),
@@ -562,20 +376,17 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 
 	// Mask Mode
 	mask := ""
-	mask_length := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
+	mask_length := widget.NewLabelWithStyle("0", fyne.TextAlignLeading, fyne.TextStyle{})
 	mask_entry := widget.NewEntry()
 	mask_entry.SetPlaceHolder("?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a")
 	mask_entry.OnChanged = func(s string) {
 		if mask_length.Text == "[F]" {
 			mask = ""
 			mask_entry.SetText("")
-			mask_length.SetText("")
+			mask_length.SetText("0")
 		} else {
-			if l := get_mask_length(s); l > 0 {
-				mask_length.SetText(fmt.Sprintf("[%d]", l))
-			} else {
-				mask_length.SetText("")
-			}
+			l := get_mask_length(s);
+			mask_length.SetText(fmt.Sprintf("%d", l))
 			mask = s
 		}
 	}
@@ -681,124 +492,51 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		}
 	})
 
-	hcl_gui.hc_mask_attack_conf = widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 200}),
-			widget.NewVBox(
-				widget.NewGroup("Mask",
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{100, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(10, 0),
-									widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
-									mask_length,
-								),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{390, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(mask_entry),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								widget.NewButton("...", func(){
-									go func() {
-										file, err := NewFileOpen(hcl_gui)
-										if err == nil {
-											mask_entry.SetText("[hcmask file]")
-											mask_length.SetText("[F]")
-											mask = file
-										}
-									}()
-								}),
-							),
-						),
+	hcl_gui.hc_mask_attack_conf = container.NewVBox(
+		container.NewGridWithColumns(2,
+			widget.NewCard("", "Mask",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						mask_entry,
 					),
-					spacer(0, 3),
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(15, 0),
-									mask_increment_check,
-								),
-							),
+					container.NewGridWithColumns(3,
+						container.NewHBox(
+							widget.NewLabelWithStyle("Length:", fyne.TextAlignLeading, fyne.TextStyle{}),
+							mask_length,
 						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								mask_increment_min_entry,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{50, 35}),
-							widget.NewVBox(
-								widget.NewLabelWithStyle("-", fyne.TextAlignCenter, fyne.TextStyle{}),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								mask_increment_max_entry,
-							),
-						),
+						layout.NewSpacer(),
+						widget.NewButtonWithIcon("Load .hcmask file", theme.FolderOpenIcon(), func(){
+							go func() {
+								file, err := NewFileOpen(hcl_gui)
+								if err == nil {
+									mask_entry.SetText("[hcmask file]")
+									mask_length.SetText("[F]")
+									mask = file
+								}
+							}()
+						}),
+					),
+					container.NewHBox(
+						mask_increment_check,
+						mask_increment_min_entry,
+						widget.NewLabelWithStyle("-", fyne.TextAlignCenter, fyne.TextStyle{}),
+						mask_increment_max_entry,
 					),
 				),
-				widget.NewGroup("Custom charsets",
-					widget.NewHBox(
-						spacer(10, 0),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{180, 35}),
-							widget.NewVBox(
-								mask_customcharset1_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{325, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(mask_customcharset1_entry),
-							),
-						),
+			),
+			widget.NewCard("", "Custom charsets",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						mask_customcharset1_check,
+						mask_customcharset1_entry,
+						mask_customcharset2_check,
+						mask_customcharset2_entry,
+						mask_customcharset3_check,
+						mask_customcharset3_entry,
+						mask_customcharset4_check,
+						mask_customcharset4_entry,
 					),
-					spacer(0, 5),
-					widget.NewHBox(
-						spacer(10, 0),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{180, 35}),
-							widget.NewVBox(
-								mask_customcharset2_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{325, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(mask_customcharset2_entry),
-							),
-						),
-					),
-					spacer(0, 5),
-					widget.NewHBox(
-						spacer(10, 0),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{180, 35}),
-							widget.NewVBox(
-								mask_customcharset3_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{325, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(mask_customcharset3_entry),
-							),
-						),
-					),
-					spacer(0, 5),
-					widget.NewHBox(
-						spacer(10, 0),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{180, 35}),
-							widget.NewVBox(
-								mask_customcharset4_check,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{325, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(mask_customcharset4_entry),
-							),
-						),
-					),
-					spacer(0, 5),
 				),
 			),
 		),
@@ -816,15 +554,6 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		hybrid1_left_wordlist_select.Refresh()
 		hybrid1_left_wordlist = s
 	}
-	hybrid1_left_wordlist_button := widget.NewButton("...", func(){
-		go func() {
-			file, err := NewFileOpen(hcl_gui)
-			if err == nil {
-				hcl_gui.data.dictionaries.AddFile(file)
-				hybrid1_left_wordlist_select.SetSelected(file)
-			}
-		}()
-	})
 	hybrid1_left_rule := ""
 	hybrid1_left_rule_entry := widget.NewEntry()
 	hybrid1_left_rule_entry.SetText("^e^h^t")
@@ -843,20 +572,17 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 	})
 	// Right
 	hybrid1_right_mask := ""
-	hybrid1_right_mask_length := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
+	hybrid1_right_mask_length := widget.NewLabelWithStyle("0", fyne.TextAlignLeading, fyne.TextStyle{})
 	hybrid1_right_mask_entry := widget.NewEntry()
 	hybrid1_right_mask_entry.SetPlaceHolder("?d?d?d?d")
 	hybrid1_right_mask_entry.OnChanged = func(s string) {
 		if hybrid1_right_mask_length.Text == "[F]" {
 			hybrid1_right_mask = ""
 			hybrid1_right_mask_entry.SetText("")
-			hybrid1_right_mask_length.SetText("")
+			hybrid1_right_mask_length.SetText("0")
 		} else {
-			if l := get_mask_length(s); l > 0 {
-				hybrid1_right_mask_length.SetText(fmt.Sprintf("[%d]", l))
-			} else {
-				hybrid1_right_mask_length.SetText("")
-			}
+			l := get_mask_length(s);
+			hybrid1_right_mask_length.SetText(fmt.Sprintf("%d", l))
 			hybrid1_right_mask = s
 		}
 	}
@@ -898,103 +624,46 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		}
 	})
 
-	hcl_gui.hc_hybrid1_attack_conf = widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 200}),
-			widget.NewVBox(
-				widget.NewGroup("Left",
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{130, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(10, 0),
-									widget.NewLabelWithStyle("Wordlist:", fyne.TextAlignLeading, fyne.TextStyle{}),
-								),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{360, 35}),
-							widget.NewVBox(
-								hybrid1_left_wordlist_select,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								hybrid1_left_wordlist_button,
-							),
-						),
-					),
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{130, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(10, 0),
-									hybrid1_left_rule_check,
-								),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{360, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(hybrid1_left_rule_entry),
-							),
-						),
+	hcl_gui.hc_hybrid1_attack_conf = container.NewVBox(
+		container.NewGridWithColumns(2,
+			widget.NewCard("", "Left",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Wordlist:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						hybrid1_left_wordlist_select,
+						hybrid1_left_rule_check,
+						hybrid1_left_rule_entry,
 					),
 				),
-				spacer(0, 3),
-				widget.NewGroup("Right",
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{100, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(10, 0),
-									widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
-									hybrid1_right_mask_length,
-								),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{390, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(hybrid1_right_mask_entry),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								widget.NewButton("...", func(){
-									go func() {
-										file, err := NewFileOpen(hcl_gui)
-										if err == nil {
-											hybrid1_right_mask_entry.SetText("[hcmask file]")
-											hybrid1_right_mask_length.SetText("[F]")
-											hybrid1_right_mask = file
-										}
-									}()
-								}),
-							),
-						),
+			),
+			widget.NewCard("", "Right",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						hybrid1_right_mask_entry,
 					),
-					spacer(0, 3),
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(15, 0),
-									hybrid1_right_mask_increment_check,
-								),
-							),
+					container.NewGridWithColumns(3,
+						container.NewHBox(
+							widget.NewLabelWithStyle("Length:", fyne.TextAlignLeading, fyne.TextStyle{}),
+							hybrid1_right_mask_length,
 						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								hybrid1_right_mask_increment_min_entry,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{50, 35}),
-							widget.NewVBox(
-								widget.NewLabelWithStyle("-", fyne.TextAlignCenter, fyne.TextStyle{}),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								hybrid1_right_mask_increment_max_entry,
-							),
-						),
+						layout.NewSpacer(),
+						widget.NewButtonWithIcon("Load .hcmask file", theme.FolderOpenIcon(), func(){
+							go func() {
+								file, err := NewFileOpen(hcl_gui)
+								if err == nil {
+									hybrid1_right_mask_entry.SetText("[hcmask file]")
+									hybrid1_right_mask_length.SetText("[F]")
+									hybrid1_right_mask = file
+								}
+							}()
+						}),
+					),
+					container.NewHBox(
+						hybrid1_right_mask_increment_check,
+						hybrid1_right_mask_increment_min_entry,
+						widget.NewLabelWithStyle("-", fyne.TextAlignCenter, fyne.TextStyle{}),
+						hybrid1_right_mask_increment_max_entry,
 					),
 				),
 			),
@@ -1005,20 +674,17 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 	// Hybrid2 Mode
 	// Left
 	hybrid2_left_mask := ""
-	hybrid2_left_mask_length := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
+	hybrid2_left_mask_length := widget.NewLabelWithStyle("0", fyne.TextAlignLeading, fyne.TextStyle{})
 	hybrid2_left_mask_entry := widget.NewEntry()
 	hybrid2_left_mask_entry.SetPlaceHolder("?u?l?l?l?l?l?l?l")
 	hybrid2_left_mask_entry.OnChanged = func(s string) {
 		if hybrid2_left_mask_length.Text == "[F]" {
 			hybrid2_left_mask = ""
 			hybrid2_left_mask_entry.SetText("")
-			hybrid2_left_mask_length.SetText("")
+			hybrid2_left_mask_length.SetText("0")
 		} else {
-			if l := get_mask_length(s); l > 0 {
-				hybrid2_left_mask_length.SetText(fmt.Sprintf("[%d]", l))
-			} else {
-				hybrid2_left_mask_length.SetText("")
-			}
+			l := get_mask_length(s);
+			hybrid2_left_mask_length.SetText(fmt.Sprintf("%d", l))
 			hybrid2_left_mask = s
 		}
 	}
@@ -1069,15 +735,6 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		hybrid2_right_wordlist_select.Refresh()
 		hybrid2_right_wordlist = s
 	}
-	hybrid2_right_wordlist_button := widget.NewButton("...", func(){
-		go func() {
-			file, err := NewFileOpen(hcl_gui)
-			if err == nil {
-				hcl_gui.data.dictionaries.AddFile(file)
-				hybrid2_right_wordlist_select.SetSelected(file)
-			}
-		}()
-	})
 	hybrid2_right_rule := ""
 	hybrid2_right_rule_entry := widget.NewEntry()
 	hybrid2_right_rule_entry.SetText("$1 $2 $3 $!")
@@ -1095,102 +752,46 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		}
 	})
 
-	hcl_gui.hc_hybrid2_attack_conf = widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{550, 200}),
-			widget.NewVBox(
-				widget.NewGroup("Left",
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{100, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(10, 0),
-									widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
-									hybrid2_left_mask_length,
-								),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{390, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(hybrid2_left_mask_entry),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								widget.NewButton("...", func(){
-									go func() {
-										file, err := NewFileOpen(hcl_gui)
-										if err == nil {
-											hybrid2_left_mask_entry.SetText("[hcmask file]")
-											hybrid2_left_mask_length.SetText("[F]")
-											hybrid2_left_mask = file
-										}
-									}()
-								}),
-							),
-						),
+	hcl_gui.hc_hybrid2_attack_conf = container.NewVBox(
+		container.NewGridWithColumns(2,
+			widget.NewCard("", "Left",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						hybrid2_left_mask_entry,
 					),
-					spacer(0, 3),
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(15, 0),
-									hybrid2_left_mask_increment_check,
-								),
-							),
+					container.NewGridWithColumns(3,
+						container.NewHBox(
+							widget.NewLabelWithStyle("Length:", fyne.TextAlignLeading, fyne.TextStyle{}),
+							hybrid2_left_mask_length,
 						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								hybrid2_left_mask_increment_min_entry,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{50, 35}),
-							widget.NewVBox(
-								widget.NewLabelWithStyle("-", fyne.TextAlignCenter, fyne.TextStyle{}),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								hybrid2_left_mask_increment_max_entry,
-							),
-						),
+						layout.NewSpacer(),
+						widget.NewButtonWithIcon("Load .hcmask file", theme.FolderOpenIcon(), func(){
+							go func() {
+								file, err := NewFileOpen(hcl_gui)
+								if err == nil {
+									hybrid2_left_mask_entry.SetText("[hcmask file]")
+									hybrid2_left_mask_length.SetText("[F]")
+									hybrid2_left_mask = file
+								}
+							}()
+						}),
+					),
+					container.NewHBox(
+						hybrid2_left_mask_increment_check,
+						hybrid2_left_mask_increment_min_entry,
+						widget.NewLabelWithStyle("-", fyne.TextAlignCenter, fyne.TextStyle{}),
+						hybrid2_left_mask_increment_max_entry,
 					),
 				),
-				widget.NewGroup("Right",
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{130, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(10, 0),
-									widget.NewLabelWithStyle("Wordlist:", fyne.TextAlignLeading, fyne.TextStyle{}),
-								),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{360, 35}),
-							widget.NewVBox(
-								hybrid2_right_wordlist_select,
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-							widget.NewVBox(
-								hybrid2_right_wordlist_button,
-							),
-						),
-					),
-					widget.NewHBox(
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{130, 35}),
-							widget.NewVBox(
-								widget.NewHBox(
-									spacer(10, 0),
-									hybrid2_right_rule_check,
-								),
-							),
-						),
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{360, 35}),
-							widget.NewVBox(
-								widget.NewHScrollContainer(hybrid2_right_rule_entry),
-							),
-						),
+			),
+			widget.NewCard("", "Right",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Wordlist:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						hybrid2_right_wordlist_select,
+						hybrid2_right_rule_check,
+						hybrid2_right_rule_entry,
 					),
 				),
 			),
@@ -1272,6 +873,19 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 				attack_payload = append(attack_payload, []string{"-i", fmt.Sprintf("--increment-min=%s", mask_increment_min), fmt.Sprintf("--increment-max=%s", mask_increment_max)}...)
 			}
 		case hashcat_attack_mode_Hybrid1:
+			// Custom Charsets
+			if len(mask_customcharset1) > 0 {
+				attack_payload = append(attack_payload, []string{"-1", mask_customcharset1}...)
+			}
+			if len(mask_customcharset2) > 0 {
+				attack_payload = append(attack_payload, []string{"-2", mask_customcharset2}...)
+			}
+			if len(mask_customcharset3) > 0 {
+				attack_payload = append(attack_payload, []string{"-3", mask_customcharset3}...)
+			}
+			if len(mask_customcharset4) > 0 {
+				attack_payload = append(attack_payload, []string{"-4", mask_customcharset4}...)
+			}
 			// Left
 			if len(hybrid1_left_wordlist) > 0 {
 				attack_payload = append(attack_payload, hybrid1_left_wordlist)
@@ -1297,6 +911,19 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 				attack_payload = append(attack_payload, []string{"-i", fmt.Sprintf("--increment-min=%s", hybrid1_right_mask_increment_min), fmt.Sprintf("--increment-max=%s", hybrid1_right_mask_increment_max)}...)
 			}
 		case hashcat_attack_mode_Hybrid2:
+			// Custom Charsets
+			if len(mask_customcharset1) > 0 {
+				attack_payload = append(attack_payload, []string{"-1", mask_customcharset1}...)
+			}
+			if len(mask_customcharset2) > 0 {
+				attack_payload = append(attack_payload, []string{"-2", mask_customcharset2}...)
+			}
+			if len(mask_customcharset3) > 0 {
+				attack_payload = append(attack_payload, []string{"-3", mask_customcharset3}...)
+			}
+			if len(mask_customcharset4) > 0 {
+				attack_payload = append(attack_payload, []string{"-4", mask_customcharset4}...)
+			}
 			// Left
 			if len(hybrid2_left_mask) > 0 {
 				attack_payload = append(attack_payload, strings.Split(hybrid2_left_mask, " ")...)
@@ -1355,39 +982,45 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 
 	run_hashcat_restore_btn := widget.NewButtonWithIcon("Restore Task", theme.HistoryIcon(), func(){
 		var modal *widget.PopUp
-		c := widget.NewVBox(
-			widget.NewHBox(
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{660, 30}),
-					widget.NewLabelWithStyle("Select which task to restore:", fyne.TextAlignLeading, fyne.TextStyle{}),
-				),
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{40, 30}),
-					widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-						modal.Hide()
-					}),
-				),
+		c := container.NewVBox(
+			container.NewHBox(
+				widget.NewLabelWithStyle("Restore Task", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+				layout.NewSpacer(),
+				widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
+					dialog.ShowInformation("Help", "Select which task to restore", hcl_gui.window)
+				}),
+				widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+					hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+					modal.Hide()
+				}),
 			),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 400}),
+			container.New(layout.NewGridWrapLayout(fyne.Size{800, 600}),
 				(func() fyne.CanvasObject {
 					data := GetRestoreFiles(hcl_gui)
-
 					var restore_file *RestoreFile
 					session_name_label := widget.NewLabel("N/A")
 					time_label := widget.NewLabel("N/A")
 					task_id_label := widget.NewLabel("N/A")
 					argv_label := widget.NewLabel("N/A")
 					restore_btn := widget.NewButtonWithIcon("Restore", theme.HistoryIcon(), func() {
+						hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
 						modal.Hide()
 						NewSession(app, hcl_gui, restore_file.Task_id, restore_file.Session_name, restore_file, []string{}, enable_notifications, priority)
 					})
 					restore_btn.Disable()
-					vbox := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
-						widget.NewForm(
-							widget.NewFormItem("Session Name",	container.NewScroll(session_name_label)),
-							widget.NewFormItem("Time",	container.NewScroll(time_label)),
-							widget.NewFormItem("Task ID",	container.NewScroll(task_id_label)),
-							widget.NewFormItem("Arguments",	container.NewScroll(argv_label)),
+					vbox := container.NewPadded(
+						container.NewVBox(
+							widget.NewLabelWithStyle("Session Name", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+							container.NewHScroll(session_name_label),
+							widget.NewLabelWithStyle("Time", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+							container.NewHScroll(time_label),
+							widget.NewLabelWithStyle("Task ID", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+							container.NewHScroll(task_id_label),
+							widget.NewLabelWithStyle("Arguments", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+							container.NewScroll(argv_label),
+							widget.NewLabelWithStyle("Actions", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+							restore_btn,
 						),
-						restore_btn,
 					)
 
 					list := widget.NewList(
@@ -1395,7 +1028,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 							return len(data)
 						},
 						func() fyne.CanvasObject {
-							return fyne.NewContainerWithLayout(layout.NewHBoxLayout(), widget.NewIcon(theme.DocumentIcon()), widget.NewLabel("Template Object"))
+							return container.New(layout.NewHBoxLayout(), widget.NewIcon(theme.DocumentIcon()), widget.NewLabel("Template Object"))
 						},
 						func(id widget.ListItemID, item fyne.CanvasObject) {
 							item.(*fyne.Container).Objects[1].(*widget.Label).SetText(filepath.Base(data[id]))
@@ -1414,7 +1047,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						} else {
 							task_id_label.SetText("N/A")
 						}
-						argv_label.SetText(strings.Join(restore_file.GetArguments(), " "))
+						argv_label.SetText(strings.Join(restore_file.GetArguments(), "\n"))
 						restore_btn.Enable()
 					}
 					list.OnUnselected = func(id widget.ListItemID) {
@@ -1424,7 +1057,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						argv_label.SetText("N/A")
 						restore_btn.Disable()
 					}
-					return container.NewVSplit(list, container.NewMax(vbox))
+					return container.NewHSplit(container.NewMax(list), container.NewMax(vbox))
 				})(),
 			),
 		)
@@ -1435,212 +1068,188 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 			}
 		})
 		modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+		modal.Show()
 	})
 
-	return widget.NewVBox(
-		spacer(0,5),
-		widget.NewHBox(
-			spacer(5,0),
-			fyne.NewContainerWithLayout(layout.NewCenterLayout(),
-				hashcat_img,
+	return container.NewVBox(
+		container.NewPadded(
+			container.NewGridWithColumns(2,
+				container.NewMax(
+					banner(),
+					container.NewHBox(
+						hashcat_img,
+					),
+				),
+				container.NewGridWithColumns(2,
+					container.NewGridWithColumns(2,
+						widget.NewButtonWithIcon("Help", theme.QuestionIcon(), func() {
+							dialog.ShowInformation(
+								"Help",
+								strings.Join(
+									[]string{
+										"The usage is pretty simple;",
+										"1. Select Hash File => This is the file that contains your hashes",
+										"2. Select Hash Type => The hashing algorithm",
+										"3. Configure Attack => The attack mode",
+										"4. Create Task",
+										"That's all!",
+										"",
+										"Got a question? Ask the community on forum.hashkiller.io",
+										"Something is wrong or missing? Report on our github repo (see \"About\" tab)",
+									},
+									"\n",
+								),
+								hcl_gui.window,
+							)
+						}),
+						run_hashcat_restore_btn,
+					),
+					run_hashcat_btn,
+				),
 			),
-			widget.NewVBox(
-				widget.NewHBox(
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{80, 35}),
-						widget.NewVBox(
-							widget.NewLabelWithStyle("Hash File:", fyne.TextAlignTrailing, fyne.TextStyle{}),
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{518, 35}),
-						widget.NewVBox(
-							hcl_gui.hc_hash_file,
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{100, 35}),
-						widget.NewVBox(
-							widget.NewButton("Clipboard", func(){
-								data := hcl_gui.window.Clipboard().Content()
-								if len(data) > 0 {
-									pwd, _ := os.Getwd()
-									file := filepath.Join(pwd, "clipboard.txt")
-									f, err := os.Create(file)
+		),
+		widget.NewCard("Target", "choose target hash and type",
+			container.NewGridWithColumns(2,
+				container.NewGridWithRows(2,
+					container.NewGridWithColumns(4,
+						widget.NewLabelWithStyle("Hash File:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+						layout.NewSpacer(),
+						widget.NewButtonWithIcon("Clipboard", theme.ContentPasteIcon(), func(){
+							data := hcl_gui.window.Clipboard().Content()
+							if len(data) > 0 {
+								pwd, _ := os.Getwd()
+								file := filepath.Join(pwd, "clipboard.txt")
+								f, err := os.Create(file)
+								if err != nil {
+									fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
+									dialog.ShowError(err, hcl_gui.window)
+								} else {
+									defer f.Close()
+									w := bufio.NewWriter(f)
+									_, err := w.WriteString(data)
 									if err != nil {
 										fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
 										dialog.ShowError(err, hcl_gui.window)
 									} else {
-										defer f.Close()
-										w := bufio.NewWriter(f)
-										_, err := w.WriteString(data)
-										if err != nil {
-											fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
-											dialog.ShowError(err, hcl_gui.window)
-										} else {
-											w.Flush()
-											hcl_gui.hc_hash_file.Options = append([]string{file}, hcl_gui.hc_hash_file.Options[:min(len(hcl_gui.hc_hash_file.Options), 4)]...)
-											hcl_gui.hc_hash_file.SetSelected(file)
-										}
-									}
-								} else {
-									err := errors.New("clipboard is empty")
-									fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
-									dialog.ShowError(err, hcl_gui.window)
-								}
-							}),
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-						widget.NewVBox(
-							widget.NewButton("...", func(){
-								go func() {
-									file, err := NewFileOpen(hcl_gui)
-									if err == nil {
+										w.Flush()
 										hcl_gui.hc_hash_file.Options = append([]string{file}, hcl_gui.hc_hash_file.Options[:min(len(hcl_gui.hc_hash_file.Options), 4)]...)
 										hcl_gui.hc_hash_file.SetSelected(file)
 									}
-								}()
-							}),
-						),
+								}
+							} else {
+								err := errors.New("clipboard is empty")
+								fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
+								dialog.ShowError(err, hcl_gui.window)
+							}
+						}),
+						widget.NewButtonWithIcon("Browse", theme.FolderOpenIcon(), func(){
+							go func() {
+								file, err := NewFileOpen(hcl_gui)
+								if err == nil {
+									hcl_gui.hc_hash_file.Options = append([]string{file}, hcl_gui.hc_hash_file.Options[:min(len(hcl_gui.hc_hash_file.Options), 4)]...)
+									hcl_gui.hc_hash_file.SetSelected(file)
+								}
+							}()
+						}),
 					),
+					hcl_gui.hc_hash_file,
 				),
-				widget.NewHBox(
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{80, 35}),
-						widget.NewVBox(
-							widget.NewLabelWithStyle("Separator:", fyne.TextAlignTrailing, fyne.TextStyle{}),
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{50, 35}),
-						widget.NewVBox(
-							hcl_gui.hc_separator,
-						),
-					),
-					spacer(10,0),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{220, 35}),
-						widget.NewVBox(
-							widget.NewCheck("Remove found hashes", func(check bool){set_remove_found_hashes(hcl_gui, check)}),
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{170, 35}),
-						widget.NewVBox(
-							widget.NewCheck("Disable Pot File", func(check bool){set_disable_potfile(hcl_gui, check)}),
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{190, 35}),
-						widget.NewVBox(
-							widget.NewCheck("Ignore Usernames", func(check bool){set_ignore_usernames(hcl_gui, check)}),
-						),
-					),
-				),
-				widget.NewHBox(
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{80, 35}),
-						widget.NewVBox(
-							widget.NewLabelWithStyle("Mode:", fyne.TextAlignTrailing, fyne.TextStyle{}),
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{220, 35}),
-						widget.NewVBox(
-							hcl_gui.hc_attack_mode,
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{100, 35}),
-						widget.NewVBox(
-							widget.NewLabelWithStyle("Hash Type:", fyne.TextAlignTrailing, fyne.TextStyle{}),
-						),
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{330, 35}),
-						widget.NewVBox(
-							hcl_gui.hc_hash_type,
-						),
-					),
+				container.NewGridWithRows(2,
+					widget.NewLabelWithStyle("Hash Type:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+					hcl_gui.hc_hash_type,
 				),
 			),
 		),
-		widget.NewHBox(
-			hcl_gui.hc_dictionary_attack_conf,
-			hcl_gui.hc_combinator_attack_conf,
-			hcl_gui.hc_mask_attack_conf,
-			hcl_gui.hc_hybrid1_attack_conf,
-			hcl_gui.hc_hybrid2_attack_conf,
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 400}),
-				widget.NewVBox(
-					widget.NewGroup("Monitor",
-						widget.NewVBox(
-							hcl_gui.hc_disable_monitor,
-							fyne.NewContainerWithLayout(layout.NewGridLayout(2),
-								widget.NewLabelWithStyle("Temp Abort (°C):", fyne.TextAlignLeading, fyne.TextStyle{}),
-								hcl_gui.hc_temp_abort,
-							),
-						),
+		widget.NewCard("Attack", "configure attack",
+			container.NewVBox(
+				container.New(layout.NewFormLayout(),
+					widget.NewLabelWithStyle("Mode:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+					hcl_gui.hc_attack_mode,
+				),
+				hcl_gui.hc_dictionary_attack_conf,
+				hcl_gui.hc_combinator_attack_conf,
+				hcl_gui.hc_mask_attack_conf,
+				hcl_gui.hc_hybrid1_attack_conf,
+				hcl_gui.hc_hybrid2_attack_conf,
+			),
+		),
+		container.NewGridWithColumns(2,
+			widget.NewCard("Options", "hashcat options",
+				container.NewVBox(
+					container.NewGridWithRows(4,
+						optimized_kernel,
+						slower_candidate,
+						remove_found_hashes,
+						disable_potfile,
+						ignore_usernames,
+						disable_self_test,
+						force,
 					),
-					spacer(0, 7),
-					widget.NewGroup("FileBase",
-						fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 58}),
-							widget.NewButton("Open FileBase", func(){
-								var modal *widget.PopUp
-								c := widget.NewVBox(
-									fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 30}),
-										widget.NewLabelWithStyle("Select which FileBase to open:", fyne.TextAlignLeading, fyne.TextStyle{}),
-									),
-									widget.NewButton("Dictionaries", func(){
-										modal.Hide()
-										customselect_dictionaries_edit(hcl_gui)
-									}),
-									widget.NewButton("Rules", func(){
-										modal.Hide()
-										customselect_rules_edit(hcl_gui)
-									}),
-									widget.NewLabel(""),
-									widget.NewLabel(""),
-									widget.NewLabel(""),
-									widget.NewButton("Close", func(){
-										modal.Hide()
-									}),
-								)
-								hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
-									if key.Name == fyne.KeyEscape {
-										hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
-										modal.Hide()
-									}
-								})
-								modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
-							}),
-						),
-					),
-					widget.NewGroup("Devices",
-						widget.NewButton("Info", func(){
-							var modal *widget.PopUp
-							close_btn := widget.NewButton("Close", func(){modal.Hide()})
-							close_btn.Disable()
-							info_box := widget.NewMultiLineEntry()
-							info := "Obtaining info..."
-							info_box.SetText(info)
-							info_box.OnChanged = func(string) {
-								info_box.SetText(info)
-							}
-							c := widget.NewVBox(
-								close_btn,
-								fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{600, 500}),
-									widget.NewScrollContainer(
-										info_box,
-									),
-								),
-							)
-							modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
-							go func() {
-								info = get_devices_info(hcl_gui)
-								info_box.SetText(info)
-								close_btn.Enable()
-							}()
-						}),
-						fyne.NewContainerWithLayout(layout.NewGridLayout(2),
-							widget.NewVBox(
+				),
+			),
+			container.NewGridWithColumns(2,
+				widget.NewCard("Devices", "choose which devices to use",
+					container.NewVBox(
+						container.NewGridWithColumns(2,
+							container.NewVBox(
 								widget.NewLabelWithStyle("Devices:", fyne.TextAlignLeading, fyne.TextStyle{}),
 								hcl_gui.hc_devices_types,
 							),
-							widget.NewVBox(
+							container.NewVBox(
 								widget.NewLabelWithStyle("Workload Profile:", fyne.TextAlignLeading, fyne.TextStyle{}),
 								hcl_gui.hc_wordload_profiles,
 							),
 						),
+						widget.NewButton("Info", func(){
+							var modal *widget.PopUp
+							var info_box *widget.TextGrid
+							var copy_btn *widget.Button
+							var close_btn *widget.Button
+							info_box = widget.NewTextGrid()
+							info := "Obtaining info..."
+							info_box.SetText(info)
+							copy_btn = widget.NewButton("Copy", func(){
+								hcl_gui.window.Clipboard().SetContent(info_box.Text())
+								copy_btn.SetText("Copied!")
+							})
+							copy_btn.Disable()
+							close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+								hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+								modal.Hide()
+							})
+							close_btn.Disable()
+							c := container.NewVBox(
+								container.NewHBox(
+									widget.NewLabelWithStyle("Info", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+									layout.NewSpacer(),
+									close_btn,
+								),
+								container.NewPadded(
+									container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
+										container.NewScroll(
+											info_box,
+										),
+									),
+								),
+								container.NewHBox(
+									copy_btn,
+								),
+							)
+							hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+								if key.Name == fyne.KeyEscape {
+									hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+									modal.Hide()
+								}
+							})
+							modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+							modal.Show()
+							go func() {
+								info = get_devices_info(hcl_gui)
+								info_box.SetText(info)
+								copy_btn.Enable()
+								close_btn.Enable()
+							}()
+						}),
 						widget.NewButton("Benchmark", func(){
 							if hcl_gui.hashcat.args.hash_type == -1 {
 								err := errors.New("You must select a hash type")
@@ -1649,49 +1258,76 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 								return
 							}
 							var modal *widget.PopUp
-							close_btn := widget.NewButton("Close", func(){modal.Hide()})
+							var benchmark_box *widget.TextGrid
+							var copy_btn *widget.Button
+							var close_btn *widget.Button
+							copy_btn = widget.NewButton("Copy", func(){
+								hcl_gui.window.Clipboard().SetContent(benchmark_box.Text())
+								copy_btn.SetText("Copied!")
+							})
+							copy_btn.Disable()
+							close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+								hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+								modal.Hide()
+							})
 							close_btn.Disable()
-							benchmark_box := widget.NewMultiLineEntry()
+							benchmark_box = widget.NewTextGrid()
 							benchmark := "Benchmarking..."
 							benchmark_box.SetText(benchmark)
-							benchmark_box.OnChanged = func(string) {
-								benchmark_box.SetText(benchmark)
-							}
-							c := widget.NewVBox(
-								close_btn,
-								fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{600, 500}),
-									widget.NewScrollContainer(
-										benchmark_box,
+							c := container.NewVBox(
+								container.NewHBox(
+									widget.NewLabelWithStyle("Benchmark", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+									layout.NewSpacer(),
+									close_btn,
+								),
+								container.NewPadded(
+									container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
+										container.NewScroll(
+											benchmark_box,
+										),
 									),
 								),
+								container.NewHBox(
+									copy_btn,
+								),
 							)
+							hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+								if key.Name == fyne.KeyEscape {
+									hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+									modal.Hide()
+								}
+							})
 							modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+							modal.Show()
 							go func() {
 								benchmark = get_benchmark(hcl_gui)
 								benchmark_box.SetText(benchmark)
+								copy_btn.Enable()
 								close_btn.Enable()
 							}()
 						}),
 					),
 				),
+				widget.NewCard("Monitor", "monitoring options",
+					container.NewVBox(
+						hcl_gui.hc_disable_monitor,
+						container.New(layout.NewFormLayout(),
+							widget.NewLabelWithStyle("Temp Abort (°C):", fyne.TextAlignLeading, fyne.TextStyle{}),
+							hcl_gui.hc_temp_abort,
+						),
+					),
+				),
 			),
 		),
-		widget.NewGroup("Run",
-			widget.NewHBox(
-				spacer(20, 0),
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
-					widget.NewVBox(
-						outfile,
-					),
-				),
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 35}),
-					widget.NewVBox(
-						hcl_gui.hc_outfile,
-					),
-				),
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{30, 35}),
-					widget.NewVBox(
-						widget.NewButton("...", func(){
+		container.NewGridWithColumns(2,
+			widget.NewCard("Output", "output file and format",
+				container.NewVBox(
+					container.NewGridWithColumns(2,
+						container.New(layout.NewFormLayout(),
+							outfile,
+							hcl_gui.hc_outfile,
+						),
+						widget.NewButtonWithIcon("Set Output File", theme.DocumentSaveIcon(), func(){
 							go func() {
 								file, err := NewFileSave(hcl_gui)
 								if err == nil {
@@ -1702,42 +1338,30 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 							}()
 						}),
 					),
-				),
-			),
-			widget.NewHBox(
-				spacer(20, 0),
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{90, 35}),
-					widget.NewVBox(
-						widget.NewLabelWithStyle("Format:", fyne.TextAlignTrailing, fyne.TextStyle{}),
-					),
-				),
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 35}),
-					widget.NewVBox(
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Format:", fyne.TextAlignLeading, fyne.TextStyle{}),
 						outfile_format,
 					),
 				),
 			),
-			widget.NewHBox(
-				spacer(40, 0),
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{350, 130}),
-					widget.NewVBox(
-						optimized_kernel,
-						slower_candidate,
-						disable_self_test,
-						force,
-					),
-				),
-				widget.NewVBox(
-					fyne.NewContainerWithLayout(layout.NewGridLayout(2),
-						enable_notifications_check,
+			widget.NewCard("Features", "task options and features",
+				container.NewVBox(
+					enable_notifications_check,
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Priority:", fyne.TextAlignLeading, fyne.TextStyle{}),
 						priority_entry,
-					),
-					fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{455, 90}),
-						run_hashcat_btn,
 					),
 				),
 			),
-			run_hashcat_restore_btn,
+		),
+		layout.NewSpacer(),
+		container.NewHBox(
+			layout.NewSpacer(),
+			func () fyne.CanvasObject {
+				contribute_url, _ := url.Parse("https://github.com/s77rt/hashcat.launcher/issues/new/")
+				w := widget.NewHyperlinkWithStyle("Report a bug / Request a feature", contribute_url, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+				return w
+			}(),
 		),
 	)
 }

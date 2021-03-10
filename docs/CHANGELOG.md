@@ -2,6 +2,10 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [0.5.0] - 10/03/2021
+### Changed:
+ - UI Design
+
 ## [0.4.0] - 21/12/2020
 ### Changed:
  - Search for hashtypes by hashcat mode (name and id)

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"strconv"
 	"path/filepath"
-	"fyne.io/fyne"
-	"fyne.io/fyne/app"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
 )
 
 // Settings gives access to user interfaces to control Fyne settings
@@ -72,7 +72,7 @@ func (s *Settings) choosePrimaryColor(name string) {
 
 func (s *Settings) chooseScale(value string) {
 	if value == "" || strings.EqualFold(value, "auto") {
-		s.fyneSettings.Scale = fyne.SettingsScaleAuto
+		s.fyneSettings.Scale = 1
 		return
 	}
 

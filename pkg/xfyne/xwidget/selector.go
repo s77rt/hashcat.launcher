@@ -1,12 +1,11 @@
 package xwidget
 
 import (
-	"image/color"
-	"fyne.io/fyne"
-	"fyne.io/fyne/widget"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/theme"
-	"fyne.io/fyne/driver/desktop"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/driver/desktop"
 )
 
 // Selector
@@ -40,7 +39,11 @@ func (s *Selector) SetSelected(string string) {
 
 // SelectorOption
 type SelectorOption struct {
-	widget.Label
+	widget.BaseWidget
+
+	Text      string
+	Alignment fyne.TextAlign
+	TextStyle fyne.TextStyle
 
 	Value string
 
@@ -76,30 +79,56 @@ func (so *SelectorOption) TappedSecondary(*fyne.PointEvent) {
 
 func (so *SelectorOption) MouseIn(*desktop.MouseEvent) {
 	so.hovered = true
-	canvas.Refresh(so)
+	so.Refresh()
 }
 
 func (so *SelectorOption) MouseOut() {
 	so.hovered = false
-	canvas.Refresh(so)
+	so.Refresh()
 }
 
 func (so *SelectorOption) MouseMoved(*desktop.MouseEvent) {
 }
 
 func (so *SelectorOption) CreateRenderer() fyne.WidgetRenderer {
-	return &hoverLabelRenderer{so.Label.CreateRenderer(), so}
-}
-
-type hoverLabelRenderer struct {
-	fyne.WidgetRenderer
-	label *SelectorOption
-}
-
-func (h *hoverLabelRenderer) BackgroundColor() color.Color {
-	if h.label.hovered {
-		return theme.HoverColor()
+	so.ExtendBaseWidget(so)
+	label := widget.NewLabelWithStyle(so.Text, so.Alignment, so.TextStyle)
+	background := canvas.NewRectangle(theme.BackgroundColor())
+	return &SelectorOptionRenderer{
+		so,
+		background,
+		label,
 	}
+}
 
-	return theme.BackgroundColor()
+type SelectorOptionRenderer struct {
+	selectoroption *SelectorOption
+	background *canvas.Rectangle
+	label *widget.Label
+}
+
+func (h *SelectorOptionRenderer) Layout(size fyne.Size) {
+	h.background.Resize(size)
+}
+
+func (h *SelectorOptionRenderer) Objects() []fyne.CanvasObject {
+	return []fyne.CanvasObject{h.background, h.label}
+}
+
+func (h *SelectorOptionRenderer) MinSize() (size fyne.Size) {
+	size = h.label.MinSize()
+	return
+}
+
+func (h *SelectorOptionRenderer) Refresh() {
+	h.label.Refresh()
+	if h.selectoroption.hovered {
+		h.background.FillColor = theme.HoverColor()
+	} else {
+		h.background.FillColor = theme.BackgroundColor()
+	}
+	h.background.Refresh()
+}
+
+func (h *SelectorOptionRenderer) Destroy() {
 }

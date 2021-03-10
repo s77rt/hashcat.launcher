@@ -2,12 +2,12 @@ package hashcatlauncher
 
 import (
 	"time"
-	"fyne.io/fyne"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/widget"
 )
 
 type hcl_gui_monitor struct {
-	hardwares [18]monitor_hardware
+	hardwares [12]monitor_hardware
 }
 
 type monitor_hardware struct {

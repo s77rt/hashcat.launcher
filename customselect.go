@@ -6,19 +6,21 @@ import (
 	filepath_mod "path/filepath"
 	"strings"
 	"strconv"
-	"fyne.io/fyne"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
-	"fyne.io/fyne/dialog"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/dialog"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
 // HashType Custom Select:
 func customselect_hashtype(hcl_gui *hcl_gui) {
 	var modal *widget.PopUp
-	data := widget.NewVBox()
-	data.Children = []fyne.CanvasObject{widget.NewLabel("Results will appear here...")}
-	results_box := 	widget.NewScrollContainer(data)
+	data := container.NewVBox()
+	data.Objects = []fyne.CanvasObject{widget.NewLabel("Results will appear here...")}
+	results_box := 	container.NewScroll(data)
 	search := widget.NewEntry()
 	search.SetPlaceHolder("Type to search")
 	search.OnChanged = func(keyword string){
@@ -27,17 +29,20 @@ func customselect_hashtype(hcl_gui *hcl_gui) {
 			customselect_hashtype_options(modal, data, hcl_gui, keyword)
 		}()
 	}
-	c := widget.NewVBox(
-		widget.NewHBox(
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{485, 40}),
-				widget.NewHScrollContainer(search),
-			),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{15, 15}),
-				widget.NewButton("X", func(){hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){});modal.Hide()}),
-				widget.NewButton("?", func(){dialog.ShowInformation("Help", "Type at least (2) two chars to search for hash types.\nIf nothing appears make sure that you have set the hashcat binary file correctly.", hcl_gui.window)}),
-			),
+	c := container.NewVBox(
+		container.NewHBox(
+			widget.NewLabelWithStyle("Hash Type", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			layout.NewSpacer(),
+			widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
+				dialog.ShowInformation("Help", "Type at least (2) two chars to search for hash types.\nIf nothing appears make sure that you have set the hashcat bin/exe file correctly.", hcl_gui.window)
+			}),
+			widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+				modal.Hide()
+			}),
 		),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{500, 600}),
+		search,
+		container.New(layout.NewGridWrapLayout(fyne.Size{500, 600}),
 			results_box,
 		),
 	)
@@ -48,9 +53,10 @@ func customselect_hashtype(hcl_gui *hcl_gui) {
 		}
 	})
 	modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+	modal.Show()
 }
 
-func customselect_hashtype_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui, keyword string) {
+func customselect_hashtype_options(modal *widget.PopUp, data *fyne.Container, hcl_gui *hcl_gui, keyword string) {
 	var children []fyne.CanvasObject
 	if len(keyword) >= 2 {
 		for _, key := range hcl_gui.hashcat.available_hash_types_sorted_keys {
@@ -61,7 +67,7 @@ func customselect_hashtype_options(modal *widget.PopUp, data *widget.Box, hcl_gu
 					set_hash_type(hcl_gui, value)
 					modal.Hide()
 				})
-				children = append(children, item)
+				children = append(children, container.NewHScroll(item))
 			}
 		}
 	}
@@ -74,17 +80,17 @@ func customselect_hashtype_options(modal *widget.PopUp, data *widget.Box, hcl_gu
 		}
 		children = append(children, widget.NewLabelWithStyle(error_msg, fyne.TextAlignCenter, fyne.TextStyle{}))
 	}
-	data.Children = children
+	data.Objects = children
 	data.Refresh()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Dictionaries Custom Select:
+// Dictionaries Custom Select: (for modes excluding dictionary mode)
 func customselect_dictionaries(hcl_gui *hcl_gui, selector *xwidget.Selector) {
 	var modal *widget.PopUp
-	data := widget.NewVBox()
-	results_box := 	widget.NewScrollContainer(data)
+	data := container.NewVBox()
+	results_box := 	container.NewScroll(data)
 	search := widget.NewEntry()
 	search.SetPlaceHolder("Type to search")
 	search.OnChanged = func(keyword string){
@@ -93,29 +99,33 @@ func customselect_dictionaries(hcl_gui *hcl_gui, selector *xwidget.Selector) {
 			customselect_dictionaries_options(modal, data, hcl_gui, selector, keyword)
 		}()
 	}
-	c := widget.NewVBox(
-		widget.NewHBox(
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{685, 40}),
-				widget.NewHScrollContainer(search),
-			),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{15, 15}),
-				widget.NewButton("X", func(){hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){});modal.Hide()}),
-				widget.NewButton("?", func(){dialog.ShowInformation("Help", "Select a file, you can use the search box to filter the results.", hcl_gui.window)}),
-			),
+	c := container.NewVBox(
+		container.NewHBox(
+			widget.NewLabelWithStyle("Dictionaries", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			layout.NewSpacer(),
+			widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
+				dialog.ShowInformation("Help", "Select a file, you can use the search box to filter the results", hcl_gui.window)
+			}),
+			widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+				modal.Hide()
+			}),
 		),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 600}),
+		search,
+		container.New(layout.NewGridWrapLayout(fyne.Size{700, 600}),
 			results_box,
 		),
-		widget.NewVBox(
-			fyne.NewContainerWithLayout(layout.NewGridLayout(3),
+		container.NewVBox(
+			container.New(layout.NewGridLayout(3),
 				widget.NewLabelWithStyle("Left Click: Select", fyne.TextAlignLeading, fyne.TextStyle{}),
-				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
-					widget.NewHBox(
+				container.New(layout.NewCenterLayout(),
+					container.NewHBox(
 						widget.NewButton("Add a File", func(){
 							go func() {
 								file, err := NewFileOpen(hcl_gui)
 								if err == nil {
-									if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
+									hcl_gui.data.dictionaries.AddFile(file);
+									if file_exists := File_Exists(file); file_exists == true {
 										customselect_dictionaries_options(modal, data, hcl_gui, selector, search.Text)
 									}
 								}
@@ -156,12 +166,13 @@ func customselect_dictionaries(hcl_gui *hcl_gui, selector *xwidget.Selector) {
 	})
 	modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
 	customselect_dictionaries_options(modal, data, hcl_gui, selector, "")
+	modal.Show()
 }
 
-func customselect_dictionaries_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui, selector *xwidget.Selector, keyword string) {
+func customselect_dictionaries_options(modal *widget.PopUp, data *fyne.Container, hcl_gui *hcl_gui, selector *xwidget.Selector, keyword string) {
 	var children []fyne.CanvasObject
-	headings := widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewGridLayout(2),
+	headings := container.NewVBox(
+		container.New(layout.NewGridLayout(2),
 			widget.NewLabelWithStyle("Filename", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widget.NewLabelWithStyle(fmt.Sprintf("%-37s", "Size"), fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
 		),
@@ -171,8 +182,13 @@ func customselect_dictionaries_options(modal *widget.PopUp, data *widget.Box, hc
 		filename := file.Name
 		filepath := file.Path
 		filesize := file.SizeHR
-		offset := strconv.Itoa(73 - len(filename))
-		option := fmt.Sprintf("%s %"+offset+"s", filename, filesize)
+		offset := 73 - len(filename)
+		if offset < 27 {
+			filename = filename[:len(filename)+offset-27]+"..."
+			offset = 73 - len(filename)
+		}
+		offset_str := strconv.Itoa(offset)
+		option := fmt.Sprintf("%s %"+offset_str+"s", filename, filesize)
 		if strings.Contains(strings.ToLower(filepath), strings.ToLower(keyword)) {
 			item := xwidget.NewSelectorOptionWithStyle(option, filepath, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true}, func(value string){
 				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
@@ -191,15 +207,15 @@ func customselect_dictionaries_options(modal *widget.PopUp, data *widget.Box, hc
 		}
 		children = append(children, widget.NewLabelWithStyle(error_msg, fyne.TextAlignCenter, fyne.TextStyle{}))
 	}
-	data.Children = children
+	data.Objects = children
 	data.Refresh()
 }
 
 // Rules Custom Select:
 func customselect_rules(hcl_gui *hcl_gui, selector *xwidget.Selector) {
 	var modal *widget.PopUp
-	data := widget.NewVBox()
-	results_box := 	widget.NewScrollContainer(data)
+	data := container.NewVBox()
+	results_box := 	container.NewScroll(data)
 	search := widget.NewEntry()
 	search.SetPlaceHolder("Type to search")
 	search.OnChanged = func(keyword string){
@@ -208,24 +224,27 @@ func customselect_rules(hcl_gui *hcl_gui, selector *xwidget.Selector) {
 			customselect_rules_options(modal, data, hcl_gui, selector, keyword)
 		}()
 	}
-	c := widget.NewVBox(
-		widget.NewHBox(
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{685, 40}),
-				widget.NewHScrollContainer(search),
-			),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{15, 15}),
-				widget.NewButton("X", func(){hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){});modal.Hide()}),
-				widget.NewButton("?", func(){dialog.ShowInformation("Help", "Select a file, you can use the search box to filter the results.", hcl_gui.window)}),
-			),
+	c := container.NewVBox(
+		container.NewHBox(
+			widget.NewLabelWithStyle("Rules", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			layout.NewSpacer(),
+			widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
+				dialog.ShowInformation("Help", "Select a file, you can use the search box to filter the results", hcl_gui.window)
+			}),
+			widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+				modal.Hide()
+			}),
 		),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 600}),
+		search,
+		container.New(layout.NewGridWrapLayout(fyne.Size{700, 600}),
 			results_box,
 		),
-		widget.NewVBox(
-			fyne.NewContainerWithLayout(layout.NewGridLayout(3),
+		container.NewVBox(
+			container.New(layout.NewGridLayout(3),
 				widget.NewLabelWithStyle("Left Click: Select", fyne.TextAlignLeading, fyne.TextStyle{}),
-				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
-					widget.NewHBox(
+				container.New(layout.NewCenterLayout(),
+					container.NewHBox(
 						widget.NewButton("Add a File", func(){
 							go func() {
 								file, err := NewFileOpen(hcl_gui)
@@ -271,12 +290,13 @@ func customselect_rules(hcl_gui *hcl_gui, selector *xwidget.Selector) {
 	})
 	modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
 	customselect_rules_options(modal, data, hcl_gui, selector, "")
+	modal.Show()
 }
 
-func customselect_rules_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui, selector *xwidget.Selector, keyword string) {
+func customselect_rules_options(modal *widget.PopUp, data *fyne.Container, hcl_gui *hcl_gui, selector *xwidget.Selector, keyword string) {
 	var children []fyne.CanvasObject
-	headings := widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewGridLayout(2),
+	headings := container.NewVBox(
+		container.New(layout.NewGridLayout(2),
 			widget.NewLabelWithStyle("Filename", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widget.NewLabelWithStyle(fmt.Sprintf("%-37s", "Size"), fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
 		),
@@ -286,8 +306,13 @@ func customselect_rules_options(modal *widget.PopUp, data *widget.Box, hcl_gui *
 		filename := file.Name
 		filepath := file.Path
 		filesize := file.SizeHR
-		offset := strconv.Itoa(73 - len(filename))
-		option := fmt.Sprintf("%s %"+offset+"s", filename, filesize)
+		offset := 73 - len(filename)
+		if offset < 27 {
+			filename = filename[:len(filename)+offset-27]+"..."
+			offset = 73 - len(filename)
+		}
+		offset_str := strconv.Itoa(offset)
+		option := fmt.Sprintf("%s %"+offset_str+"s", filename, filesize)
 		if strings.Contains(strings.ToLower(filepath), strings.ToLower(keyword)) {
 			item := xwidget.NewSelectorOptionWithStyle(option, filepath, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true}, func(value string){
 				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
@@ -306,77 +331,186 @@ func customselect_rules_options(modal *widget.PopUp, data *widget.Box, hcl_gui *
 		}
 		children = append(children, widget.NewLabelWithStyle(error_msg, fyne.TextAlignCenter, fyne.TextStyle{}))
 	}
-	data.Children = children
+	data.Objects = children
 	data.Refresh()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Dictionaries DictionaryList Custom Select: (The one for the [~] button)
-func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, entry *widget.Entry) {
+// Dictionaries DictionaryList Custom Select: (for dictionary mode)
+func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, dictionaries *[]string, entry *widget.Entry) {
 	var modal *widget.PopUp
-	data := widget.NewVBox()
-	results_box := 	widget.NewScrollContainer(data)
+	data := container.NewVBox()
+	var table *widget.Table
+	results_box := 	container.NewScroll(data)
 	search := widget.NewEntry()
 	search.SetPlaceHolder("Type to search")
 	search.OnChanged = func(keyword string){
 		results_box.Offset = fyne.NewPos(0,0)
 		go func(){
-			customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, entry, keyword)
+			customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, table, dictionaries, entry, keyword)
 		}()
 	}
-	c := widget.NewVBox(
-		widget.NewHBox(
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{685, 40}),
-				widget.NewHScrollContainer(search),
-			),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{15, 15}),
-				widget.NewButton("X", func(){hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){});modal.Hide()}),
-				widget.NewButton("?", func(){dialog.ShowInformation("Help", "Select a file, you can use the search box to filter the results.", hcl_gui.window)}),
-			),
+	c := container.NewVBox(
+		container.NewHBox(
+			widget.NewLabelWithStyle("Dictionaries Selection", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			layout.NewSpacer(),
+			widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
+				dialog.ShowInformation("Help", "In the left you can see your dictionaries collection those are the dictionaries that can be selected, you can also add new dictionaries to the collection.\nIn the right there is a listing of your selected dictionaries, those are the ones that will be used in the attack.", hcl_gui.window)
+			}),
+			widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+				modal.Hide()
+			}),
 		),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 600}),
-			results_box,
-		),
-		widget.NewVBox(
-			fyne.NewContainerWithLayout(layout.NewGridLayout(3),
-				widget.NewLabelWithStyle("Left Click: Select", fyne.TextAlignLeading, fyne.TextStyle{}),
-				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
-					widget.NewHBox(
-						widget.NewButton("Add a File", func(){
-							go func() {
-								file, err := NewFileOpen(hcl_gui)
-								if err == nil {
-									if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
-										customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, entry, search.Text)
-									}
-								}
-							}()
-						}),
-						widget.NewButton("Add a Folder", func(){
-							go func() {
-								dir, err := NewFolderOpen(hcl_gui)
-								if err == nil {
-									files_added := 0
-									found_files, err := ioutil.ReadDir(dir)
-									if err == nil {
-										for _, file := range found_files {
-											if (!file.IsDir()) {
-												if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
-													files_added++
+		container.NewHSplit(
+			container.NewVBox(
+				container.NewPadded(
+					search,
+				),
+				container.New(layout.NewGridWrapLayout(fyne.Size{500, 600}),
+					results_box,
+				),
+				container.NewVBox(
+					container.New(layout.NewGridLayout(2),
+						widget.NewLabelWithStyle("Left Click to Select", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.New(layout.NewCenterLayout(),
+							container.NewHBox(
+								widget.NewButton("Add a File", func(){
+									go func() {
+										file, err := NewFileOpen(hcl_gui)
+										if err == nil {
+											hcl_gui.data.dictionaries.AddFile(file);
+											if file_exists := File_Exists(file); file_exists == true {
+												customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, table, dictionaries, entry, search.Text)
+											}
+										}
+									}()
+								}),
+								widget.NewButton("Add a Folder", func(){
+									go func() {
+										dir, err := NewFolderOpen(hcl_gui)
+										if err == nil {
+											files_added := 0
+											found_files, err := ioutil.ReadDir(dir)
+											if err == nil {
+												for _, file := range found_files {
+													if (!file.IsDir()) {
+														if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
+															files_added++
+														}
+													}
+												}
+												if files_added > 0 {
+													customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, table, dictionaries, entry, search.Text)
 												}
 											}
 										}
-										if files_added > 0 {
-											customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, entry, search.Text)
+									}()
+								}),
+							),
+						),
+					),
+				),
+			),
+			container.NewVBox(
+				container.New(layout.NewGridWrapLayout(fyne.Size{0, 45}),
+					widget.NewLabelWithStyle("Selected Dictionaries:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+				),
+				container.New(layout.NewGridWrapLayout(fyne.Size{700, 600}),
+					func () fyne.CanvasObject {
+						table = widget.NewTable(
+							func() (int, int) { return 1, 2 },
+							func() fyne.CanvasObject {
+								return container.NewHBox(
+									widget.NewLabel("Filename label"),
+									container.NewGridWithColumns(3,
+										widget.NewButtonWithIcon("", theme.MoveUpIcon(), func(){}),
+										widget.NewButtonWithIcon("", theme.MoveDownIcon(), func(){}),
+										widget.NewButtonWithIcon("", theme.DeleteIcon(), func(){}),
+									),
+								)
+							},
+							func(id widget.TableCellID, cell fyne.CanvasObject) {
+								label := cell.(*fyne.Container).Objects[0].(*widget.Label)
+								buttons := cell.(*fyne.Container).Objects[1].(*fyne.Container)
+								label.Show()
+								buttons.Hide()
+								if id.Row == 0 {
+									switch id.Col {
+									case 0:
+										label.TextStyle.Bold = true
+										label.SetText("Dictionary")
+									case 1:
+										label.TextStyle.Bold = true
+										label.SetText("Actions")
+									}
+								} else {
+									files_list := strings.Split(strings.Replace(entry.Text, "\r\n", "\n", -1), "\n")
+									if len(files_list) > id.Row - 1 {
+										fileindex := id.Row - 1
+										filename := files_list[fileindex]
+										switch id.Col {
+										case 0:
+											_, filename_short := filepath_mod.Split(filename)
+											offset := 73 - len(filename_short)
+											if offset < 27 {
+												filename_short = filename_short[:len(filename_short)+offset-27]+"..."
+												offset = 73 - len(filename_short)
+											}
+											label.SetText(filename_short)
+										case 1:
+											label.Hide()
+											buttons.Show()
+											// Move Up Button
+											buttons.Objects[0].(*widget.Button).OnTapped = func() {
+												if fileindex == 0 {
+													return
+												}
+												files_list := append(files_list[:fileindex-1], append([]string{files_list[fileindex], files_list[fileindex-1]}, files_list[fileindex:]...)...)
+												entry.SetText(strings.Join(files_list, "\n")+"\n")
+												valid_files := len(*dictionaries)
+												table.Length = func() (int, int) { return valid_files+1, 2 }
+												table.Refresh()
+											}
+											// Move Down Button
+											buttons.Objects[1].(*widget.Button).OnTapped = func() {
+												if fileindex == len(files_list) - 1 {
+													return
+												}
+												files_list := append(files_list[:fileindex], append([]string{files_list[fileindex+1], files_list[fileindex]}, files_list[fileindex+1:]...)...)
+												entry.SetText(strings.Join(files_list, "\n")+"\n")
+												valid_files := len(*dictionaries)
+												table.Length = func() (int, int) { return valid_files+1, 2 }
+												table.Refresh()
+											}
+											// Delete Button
+											buttons.Objects[2].(*widget.Button).OnTapped = func() {
+												files_list := append(files_list[:fileindex], files_list[fileindex+1:]...)
+												entry.SetText(strings.Join(files_list, "\n")+"\n")
+												valid_files := len(*dictionaries)
+												table.Length = func() (int, int) { return valid_files+1, 2 }
+												table.Refresh()
+											}
 										}
 									}
 								}
-							}()
-						}),
-					),
+							})
+						valid_files := len(*dictionaries)
+						table.Length = func() (int, int) { return valid_files+1, 2 }
+						table.SetColumnWidth(0, 500)
+						table.SetColumnWidth(1, 150)
+						return table
+					}(),
 				),
-				widget.NewLabelWithStyle("Right Click: Nothing", fyne.TextAlignTrailing, fyne.TextStyle{}),
+				container.NewVBox(
+					widget.NewButton("Clear All", func() {
+						entry.SetText("")
+						valid_files := len(*dictionaries)
+						table.Length = func() (int, int) { return valid_files+1, 2 }
+						table.Refresh()
+					}),
+				),
 			),
 		),
 	)
@@ -387,13 +521,14 @@ func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, entry *widget.En
 		}
 	})
 	modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
-	customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, entry, "")
+	customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, table, dictionaries, entry, "")
+	modal.Show()
 }
 
-func customselect_dictionaries_dictionarylist_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui, entry *widget.Entry, keyword string) {
+func customselect_dictionaries_dictionarylist_options(modal *widget.PopUp, data *fyne.Container, hcl_gui *hcl_gui, table *widget.Table, dictionaries *[]string, entry *widget.Entry, keyword string) {
 	var children []fyne.CanvasObject
-	headings := widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewGridLayout(2),
+	headings := container.NewVBox(
+		container.New(layout.NewGridLayout(2),
 			widget.NewLabelWithStyle("Filename", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widget.NewLabelWithStyle(fmt.Sprintf("%-37s", "Size"), fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
 		),
@@ -403,13 +538,20 @@ func customselect_dictionaries_dictionarylist_options(modal *widget.PopUp, data 
 		filename := file.Name
 		filepath := file.Path
 		filesize := file.SizeHR
-		offset := strconv.Itoa(73 - len(filename))
-		option := fmt.Sprintf("%s %"+offset+"s", filename, filesize)
+		offset := 73 - len(filename)
+		if offset < 27 {
+			filename = filename[:len(filename)+offset-27]+"..."
+			offset = 73 - len(filename)
+		}
+		offset_str := strconv.Itoa(offset)
+		option := fmt.Sprintf("%s %"+offset_str+"s", filename, filesize)
 		if strings.Contains(strings.ToLower(filepath), strings.ToLower(keyword)) {
 			item := xwidget.NewSelectorOptionWithStyle(option, filepath, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true}, func(value string){
 				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
 				entry.SetText(entry.Text+filepath+"\n")
-				modal.Hide()
+				valid_files := len(*dictionaries)
+				table.Length = func() (int, int) { return valid_files+1, 2 }
+				table.Refresh()
 			})
 			children = append(children, item)
 		}
@@ -423,7 +565,7 @@ func customselect_dictionaries_dictionarylist_options(modal *widget.PopUp, data 
 		}
 		children = append(children, widget.NewLabelWithStyle(error_msg, fyne.TextAlignCenter, fyne.TextStyle{}))
 	}
-	data.Children = children
+	data.Objects = children
 	data.Refresh()
 }
 
@@ -432,8 +574,8 @@ func customselect_dictionaries_dictionarylist_options(modal *widget.PopUp, data 
 // Dictionaries Edit Custom Select: (The one for the open filebase feature)
 func customselect_dictionaries_edit(hcl_gui *hcl_gui) {
 	var modal *widget.PopUp
-	data := widget.NewVBox()
-	results_box := 	widget.NewScrollContainer(data)
+	data := container.NewVBox()
+	results_box := 	container.NewScroll(data)
 	search := widget.NewEntry()
 	search.SetPlaceHolder("Type to search")
 	search.OnChanged = func(keyword string){
@@ -442,29 +584,33 @@ func customselect_dictionaries_edit(hcl_gui *hcl_gui) {
 			customselect_dictionaries_edit_options(modal, data, hcl_gui, keyword)
 		}()
 	}
-	c := widget.NewVBox(
-		widget.NewHBox(
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{685, 40}),
-				widget.NewHScrollContainer(search),
-			),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{15, 15}),
-				widget.NewButton("X", func(){hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){});modal.Hide()}),
-				widget.NewButton("?", func(){dialog.ShowInformation("Help", "View/Remove a file, you can use the search box to filter the results.", hcl_gui.window)}),
-			),
+	c := container.NewVBox(
+		container.NewHBox(
+			widget.NewLabelWithStyle("Dictionaries", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			layout.NewSpacer(),
+			widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
+				dialog.ShowInformation("Help", "View/Remove a file, you can use the search box to filter the results", hcl_gui.window)
+			}),
+			widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+				modal.Hide()
+			}),
 		),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 600}),
+		search,
+		container.New(layout.NewGridWrapLayout(fyne.Size{700, 600}),
 			results_box,
 		),
-		widget.NewVBox(
-			fyne.NewContainerWithLayout(layout.NewGridLayout(3),
+		container.NewVBox(
+			container.New(layout.NewGridLayout(3),
 				widget.NewLabelWithStyle("Left Click: View FileInfo", fyne.TextAlignLeading, fyne.TextStyle{}),
-				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
-					widget.NewHBox(
+				container.New(layout.NewCenterLayout(),
+					container.NewHBox(
 						widget.NewButton("Add a File", func(){
 							go func() {
 								file, err := NewFileOpen(hcl_gui)
 								if err == nil {
-									if file_added := hcl_gui.data.dictionaries.AddFile(file); file_added == true {
+									hcl_gui.data.dictionaries.AddFile(file);
+									if file_exists := File_Exists(file); file_exists == true {
 										customselect_dictionaries_edit_options(modal, data, hcl_gui, search.Text)
 									}
 								}
@@ -491,6 +637,10 @@ func customselect_dictionaries_edit(hcl_gui *hcl_gui) {
 								}
 							}()
 						}),
+						widget.NewButton("Clear", func() {
+							hcl_gui.data.dictionaries.Clear()
+							customselect_dictionaries_edit_options(modal, data, hcl_gui, "")
+						}),
 					),
 				),
 				widget.NewLabelWithStyle("Right Click: Remove File", fyne.TextAlignTrailing, fyne.TextStyle{}),
@@ -505,12 +655,13 @@ func customselect_dictionaries_edit(hcl_gui *hcl_gui) {
 	})
 	modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
 	customselect_dictionaries_edit_options(modal, data, hcl_gui, "")
+	modal.Show()
 }
 
-func customselect_dictionaries_edit_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui,keyword string) {
+func customselect_dictionaries_edit_options(modal *widget.PopUp, data *fyne.Container, hcl_gui *hcl_gui,keyword string) {
 	var children []fyne.CanvasObject
-	headings := widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewGridLayout(2),
+	headings := container.NewVBox(
+		container.New(layout.NewGridLayout(2),
 			widget.NewLabelWithStyle("Filename", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widget.NewLabelWithStyle(fmt.Sprintf("%-37s", "Size"), fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
 		),
@@ -520,12 +671,17 @@ func customselect_dictionaries_edit_options(modal *widget.PopUp, data *widget.Bo
 		filename := file.Name
 		filepath := file.Path
 		filesize := file.SizeHR
-		offset := strconv.Itoa(73 - len(filename))
-		option := fmt.Sprintf("%s %"+offset+"s", filename, filesize)
+		offset := 73 - len(filename)
+		if offset < 27 {
+			filename = filename[:len(filename)+offset-27]+"..."
+			offset = 73 - len(filename)
+		}
+		offset_str := strconv.Itoa(offset)
+		option := fmt.Sprintf("%s %"+offset_str+"s", filename, filesize)
 		if strings.Contains(strings.ToLower(filepath), strings.ToLower(keyword)) {
 			item := xwidget.NewSelectorOptionWithStyle(option, filepath, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true}, func(value string){
 				dialog.ShowCustom("FileInfo", "OK", 
-					fyne.NewContainerWithLayout(layout.NewFormLayout(),
+					container.New(layout.NewFormLayout(),
 						widget.NewLabelWithStyle("Filename:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 						widget.NewLabelWithStyle(filename, fyne.TextAlignLeading, fyne.TextStyle{}),
 						widget.NewLabelWithStyle("Filepath:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
@@ -552,15 +708,15 @@ func customselect_dictionaries_edit_options(modal *widget.PopUp, data *widget.Bo
 		}
 		children = append(children, widget.NewLabelWithStyle(error_msg, fyne.TextAlignCenter, fyne.TextStyle{}))
 	}
-	data.Children = children
+	data.Objects = children
 	data.Refresh()
 }
 
 // Dictionaries Edit Custom Select: (The one for the open filebase feature)
 func customselect_rules_edit(hcl_gui *hcl_gui) {
 	var modal *widget.PopUp
-	data := widget.NewVBox()
-	results_box := 	widget.NewScrollContainer(data)
+	data := container.NewVBox()
+	results_box := 	container.NewScroll(data)
 	search := widget.NewEntry()
 	search.SetPlaceHolder("Type to search")
 	search.OnChanged = func(keyword string){
@@ -569,24 +725,27 @@ func customselect_rules_edit(hcl_gui *hcl_gui) {
 			customselect_rules_edit_options(modal, data, hcl_gui, keyword)
 		}()
 	}
-	c := widget.NewVBox(
-		widget.NewHBox(
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{685, 40}),
-				widget.NewHScrollContainer(search),
-			),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{15, 15}),
-				widget.NewButton("X", func(){hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){});modal.Hide()}),
-				widget.NewButton("?", func(){dialog.ShowInformation("Help", "View/Remove a file, you can use the search box to filter the results.", hcl_gui.window)}),
-			),
+	c := container.NewVBox(
+		container.NewHBox(
+			widget.NewLabelWithStyle("Rules", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			layout.NewSpacer(),
+			widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
+				dialog.ShowInformation("Help", "View/Remove a file, you can use the search box to filter the results", hcl_gui.window)
+			}),
+			widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+				modal.Hide()
+			}),
 		),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{700, 600}),
+		search,
+		container.New(layout.NewGridWrapLayout(fyne.Size{700, 600}),
 			results_box,
 		),
-		widget.NewVBox(
-			fyne.NewContainerWithLayout(layout.NewGridLayout(3),
+		container.NewVBox(
+			container.New(layout.NewGridLayout(3),
 				widget.NewLabelWithStyle("Left Click: View FileInfo", fyne.TextAlignLeading, fyne.TextStyle{}),
-				fyne.NewContainerWithLayout(layout.NewCenterLayout(),
-					widget.NewHBox(
+				container.New(layout.NewCenterLayout(),
+					container.NewHBox(
 						widget.NewButton("Add a File", func(){
 							go func() {
 								file, err := NewFileOpen(hcl_gui)
@@ -632,12 +791,13 @@ func customselect_rules_edit(hcl_gui *hcl_gui) {
 	})
 	modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
 	customselect_rules_edit_options(modal, data, hcl_gui, "")
+	modal.Show()
 }
 
-func customselect_rules_edit_options(modal *widget.PopUp, data *widget.Box, hcl_gui *hcl_gui,keyword string) {
+func customselect_rules_edit_options(modal *widget.PopUp, data *fyne.Container, hcl_gui *hcl_gui,keyword string) {
 	var children []fyne.CanvasObject
-	headings := widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewGridLayout(2),
+	headings := container.NewVBox(
+		container.New(layout.NewGridLayout(2),
 			widget.NewLabelWithStyle("Filename", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widget.NewLabelWithStyle(fmt.Sprintf("%-37s", "Size"), fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
 		),
@@ -647,12 +807,17 @@ func customselect_rules_edit_options(modal *widget.PopUp, data *widget.Box, hcl_
 		filename := file.Name
 		filepath := file.Path
 		filesize := file.SizeHR
-		offset := strconv.Itoa(73 - len(filename))
-		option := fmt.Sprintf("%s %"+offset+"s", filename, filesize)
+		offset := 73 - len(filename)
+		if offset < 27 {
+			filename = filename[:len(filename)+offset-27]+"..."
+			offset = 73 - len(filename)
+		}
+		offset_str := strconv.Itoa(offset)
+		option := fmt.Sprintf("%s %"+offset_str+"s", filename, filesize)
 		if strings.Contains(strings.ToLower(filepath), strings.ToLower(keyword)) {
 			item := xwidget.NewSelectorOptionWithStyle(option, filepath, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true}, func(value string){
 				dialog.ShowCustom("FileInfo", "OK", 
-					fyne.NewContainerWithLayout(layout.NewFormLayout(),
+					container.New(layout.NewFormLayout(),
 						widget.NewLabelWithStyle("Filename:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 						widget.NewLabelWithStyle(filename, fyne.TextAlignLeading, fyne.TextStyle{}),
 						widget.NewLabelWithStyle("Filepath:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
@@ -679,6 +844,6 @@ func customselect_rules_edit_options(modal *widget.PopUp, data *widget.Box, hcl_
 		}
 		children = append(children, widget.NewLabelWithStyle(error_msg, fyne.TextAlignCenter, fyne.TextStyle{}))
 	}
-	data.Children = children
+	data.Objects = children
 	data.Refresh()
 }

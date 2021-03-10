@@ -4,16 +4,16 @@ import (
 	"os"
 	"fmt"
 	"errors"
-	"fyne.io/fyne"
-	"fyne.io/fyne/container"
-	"fyne.io/fyne/widget"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/theme"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xsettings"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
-const Version = "0.4.0"
+const Version = "0.5.0"
 
 const hashcat_min_version = "v6.0.0"
 
@@ -25,17 +25,18 @@ type hcl_gui struct {
 	window fyne.Window
 	Icon fyne.Resource
 	Settings *xsettings.Settings
+	dialog_handler string
 	tabs map[string]*container.TabItem
 	tabs_container *container.AppTabs
-	tasks_content *widget.Box
+	tasks_content *fyne.Container
 	tasks_tree *widget.Tree
 	hc_hash_file *widget.Select
 	hc_hash_type *xwidget.Selector
-	hc_dictionary_attack_conf *widget.Box
-	hc_combinator_attack_conf *widget.Box
-	hc_mask_attack_conf *widget.Box
-	hc_hybrid1_attack_conf *widget.Box
-	hc_hybrid2_attack_conf *widget.Box
+	hc_dictionary_attack_conf *fyne.Container
+	hc_combinator_attack_conf *fyne.Container
+	hc_mask_attack_conf *fyne.Container
+	hc_hybrid1_attack_conf *fyne.Container
+	hc_hybrid2_attack_conf *fyne.Container
 	hc_attack_mode *widget.Select
 	hc_separator *widget.Entry
 	hc_disable_monitor *widget.Check
@@ -67,6 +68,24 @@ type hcl_data struct {
 	rules FileList
 }
 
+func (hcl_gui *hcl_gui) Pre(app fyne.App) {
+	fmt.Println("Welcome to hashcat.launcher v"+Version)
+
+	hcl_gui.dialog_handler = GetPreference_dialog_handler(app)
+
+	hcl_gui.Settings = xsettings.NewSettings()
+
+	hcl_gui.sessions = make(map[string]*Session)
+
+	hcl_gui.count_sessions_running = 0
+	hcl_gui.count_sessions_queued = 0
+	hcl_gui.count_sessions_paused = 0
+	hcl_gui.count_sessions_failed = 0
+	hcl_gui.count_sessions_finished = 0
+
+	hcl_gui.next_task_id = GetPreference_next_task_id(app)
+}
+
 func (hcl_gui *hcl_gui) LoadUI(app fyne.App) {
 	hcl_gui.monitor.Init()
 
@@ -90,13 +109,10 @@ func (hcl_gui *hcl_gui) LoadUI(app fyne.App) {
 	)
 	hcl_gui.tabs_container.SetTabLocation(container.TabLocationTop)
 	hcl_gui.window.SetContent(hcl_gui.tabs_container)
-	hcl_gui.window.SetFixedSize(true)
 	hcl_gui.window.Show()
 }
 
-func (hcl_gui *hcl_gui) Init(app fyne.App) {
-	fmt.Println("Welcome to hashcat.launcher v"+Version)
-
+func (hcl_gui *hcl_gui) Post(app fyne.App) {
 	hcl_gui.hashcat.binary_file = GetPreference_hashcat_binary_file(app)
 	if _, err := os.Stat(hcl_gui.hashcat.binary_file); err == nil {
 		hcl_gui.hc_binary_file_select.Selected = hcl_gui.hashcat.binary_file
@@ -124,18 +140,6 @@ func (hcl_gui *hcl_gui) Init(app fyne.App) {
 	} else {
 		hcl_gui.autostart_sessions_select.SetSelected("Disable")
 	}
-
-	hcl_gui.Settings = xsettings.NewSettings()
-
-	hcl_gui.sessions = make(map[string]*Session)
-
-	hcl_gui.count_sessions_running = 0
-	hcl_gui.count_sessions_queued = 0
-	hcl_gui.count_sessions_paused = 0
-	hcl_gui.count_sessions_failed = 0
-	hcl_gui.count_sessions_finished = 0
-
-	hcl_gui.next_task_id = GetPreference_next_task_id(app)
 
 	hashcat_init(hcl_gui)
 }

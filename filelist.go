@@ -24,7 +24,7 @@ func (FileList *FileList) AddFile(filepath string) bool {
 	}
 	for _, file := range FileList.Files {
 		if (file.Path == filepath) {
-			return true
+			return false
 		}
 	}
 	new_file := &FileListItem{
@@ -50,4 +50,9 @@ func (FileList *FileList) RemoveFile(filepath string) bool {
 	} else {
 		return false
 	}
+}
+
+func (FileList *FileList) Clear() bool {
+	FileList.Files = []FileListItem{}
+	return true
 }

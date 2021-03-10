@@ -11,12 +11,12 @@ import (
 	"errors"
 	"path/filepath"
 	"runtime"
-	"fyne.io/fyne"
-	"fyne.io/fyne/container"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/theme"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
 )
 
@@ -26,7 +26,7 @@ type Session struct {
 	Arguments []string
 	Status SessionStatus
 	Process subprocess.Subprocess
-	Journal *widget.Label
+	Journal *widget.TextGrid
 	Content fyne.CanvasObject
 	Notifications_Enabled bool
 	Priority int
@@ -50,7 +50,7 @@ func (a SessionIdSorter) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
 
 func (session *Session) UpdateJournal(new_msg string) {
-	session.Journal.SetText(fmt.Sprintf("%s %s\n%s", time.Now().Format("2006-01-02 15:04:05"), new_msg, session.Journal.Text))
+	session.Journal.SetText(fmt.Sprintf("%s %s\n%s", time.Now().Format("2006-01-02 15:04:05"), new_msg, session.Journal.Text()))
 }
 
 func (session *Session) Start() {
@@ -158,13 +158,15 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 	session.Id = session_id
 	session.Nickname = fmt.Sprintf("T#%d", task_id)
 	session.Status = SessionStatusQueued
-	session.Journal = widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Monospace:true})
+	session.Journal = widget.NewTextGrid()
 	session.Notifications_Enabled = enable_notifications
 	session.Priority = priority
 
 	multiple_devices := false
 	started := false
 	terminated := false
+
+	latest_update := widget.NewLabelWithStyle(fmt.Sprintf("Latest update: %s", time.Now().Format("2006-01-02 15:04:05")), fyne.TextAlignLeading, fyne.TextStyle{})
 
 	status := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
 	speed := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
@@ -175,11 +177,11 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 	progress := widget.NewProgressBar()
 	progress.Min = 0
 	progress.Max = 100
-	progress_text := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
+	progress_text := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
 	recovered := widget.NewProgressBar()
 	recovered.Min = 0
 	recovered.Max = 100
-	recovered_text := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
+	recovered_text := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
 	guess_queue := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
 	guess_base := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
 	guess_mod := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
@@ -193,25 +195,32 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 			dialog.ShowError(errors.New("Max Active Sessions Reached!"), hcl_gui.window)
 		}
 	})
-	info := widget.NewButtonWithIcon("Info", theme.InfoIcon(), func(){
+	view_arguments := widget.NewButton("View Arguments", func(){
 		var modal *widget.PopUp
-		c := widget.NewVBox(
-			widget.NewHBox(
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{560, 30}),
-					widget.NewLabel("Info"),
-				),
-				fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{40, 30}),
-					widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-						modal.Hide()
-					}),
-				),
+		view_arguments_data := strings.Join(session.Arguments, "\n")
+		var copy_btn *widget.Button
+		copy_btn = widget.NewButton("Copy", func(){
+			hcl_gui.window.Clipboard().SetContent(view_arguments_data)
+			copy_btn.SetText("Copied!")
+		})
+		c := container.NewVBox(
+			container.NewHBox(
+				widget.NewLabelWithStyle("Arguments", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+				layout.NewSpacer(),
+				widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+					hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+					modal.Hide()
+				}),
 			),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{600, 300}),
+			fyne.NewContainerWithLayout(layout.NewGridWrapLayout(fyne.Size{600, 300}),
 				container.NewMax(
 					container.NewScroll(
-						widget.NewLabel(strings.Join(session.Arguments, "\n")),
+						widget.NewLabel(view_arguments_data),
 					),
 				),
+			),
+			container.NewHBox(
+				copy_btn,
 			),
 		)
 		hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
@@ -221,7 +230,9 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 			}
 		})
 		modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+		modal.Show()
 	})
+	view_arguments.Importance = widget.LowImportance
 	refresh := widget.NewButtonWithIcon("Refresh", theme.ViewRefreshIcon(), func(){
 		session.Refresh()
 	})
@@ -257,7 +268,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 		session.Skip()
 	})
 	skip.Disable()
-	stop := widget.NewButtonWithIcon("Stop", theme.CheckButtonIcon(), func(){
+	stop := widget.NewButtonWithIcon("Stop", theme.MediaStopIcon(), func(){
 		if started {
 			session.Quit()
 		}
@@ -377,6 +388,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 		nil,
 		func(s string) {
 			fmt.Fprintf(os.Stdout, "%s\n", s)
+			latest_update.SetText(fmt.Sprintf("Latest update: %s", time.Now().Format("2006-01-02 15:04:05")))
 			info_line := re_info.FindStringSubmatch(s)
 			if len(info_line) == 1 {
 				session.UpdateJournal(info_line[0])
@@ -539,6 +551,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 		},
 		func(s string) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
+			latest_update.SetText(fmt.Sprintf("Latest update: %s", time.Now().Format("2006-01-02 15:04:05")))
 			if len(s) > 0 {
 				status.SetText("An error occurred")
 				session.SetStatus(app, hcl_gui, SessionStatusFailed)
@@ -580,148 +593,112 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 			go AutoStart(hcl_gui)
 		},
 	}
-	session.Content = widget.NewVBox(
-		widget.NewGroup("Main",
-			container.NewGridWithColumns(2,
-				(func() *widget.Check {
-					c := widget.NewCheck("Enable Notifications", func(check bool){
-						session.Notifications_Enabled = check
-					})
-					c.SetChecked(session.Notifications_Enabled)
-					return c
-				})(),
-				(func() *widget.Entry {
-					e := widget.NewEntry()
-					e.OnChanged = func(s string) {
-						extract_priority := re_priority.FindStringSubmatch(s)
-						if len(extract_priority) == 2 {
-							session.Priority, _ = strconv.Atoi(extract_priority[1])
-						} else {
-							session.Priority = 0
-						}
-						e.SetText(fmt.Sprintf("Priority: %d", session.Priority))
-					}
-					e.SetText(fmt.Sprintf("Priority: %d", session.Priority))
-					return e
-				})(),
+	session.Content = container.NewVBox(
+		widget.NewCard("Control", "task control",
+			container.NewGridWithColumns(3,
+				refresh,
+				start,
+				pause,
+				resume,
+				checkpoint,
+				skip,
+				stop,
+				terminate,
+				terminate_n_close,
 			),
 		),
-		widget.NewGroup("Control",
-			widget.NewVBox(
-				fyne.NewContainerWithLayout(layout.NewGridLayout(4),
-					start,
-					refresh,
-					pause,
-					resume,
-				),
-				fyne.NewContainerWithLayout(layout.NewGridLayout(3),
-					info,
-					checkpoint,
-					skip,
-				),
-				fyne.NewContainerWithLayout(layout.NewGridLayout(3),
-					stop,
-					terminate,
-					terminate_n_close,
-				),
-			),
-		),
-		widget.NewGroup("Stats",
-			fyne.NewContainerWithLayout(layout.NewGridLayout(2),
-				widget.NewVBox(
-					widget.NewLabelWithStyle("Status:", fyne.TextAlignLeading, fyne.TextStyle{}),
-					widget.NewScrollContainer(status),
-				),
-				widget.NewVBox(
-					widget.NewLabelWithStyle("Speed:", fyne.TextAlignLeading, fyne.TextStyle{}),
-					widget.NewScrollContainer(speed),
-				),
-				widget.NewVBox(
-					widget.NewLabelWithStyle("Hash Type:", fyne.TextAlignLeading, fyne.TextStyle{}),
-					widget.NewScrollContainer(hash_type),
-				),
-				widget.NewVBox(
-					widget.NewLabelWithStyle("Hash Target:", fyne.TextAlignLeading, fyne.TextStyle{}),
-					widget.NewScrollContainer(hash_target),
-				),
-				widget.NewVBox(
-					widget.NewLabelWithStyle("Time Started:", fyne.TextAlignLeading, fyne.TextStyle{}),
-					widget.NewScrollContainer(time_started),
-				),
-				widget.NewVBox(
-					widget.NewLabelWithStyle("Time Estimated:", fyne.TextAlignLeading, fyne.TextStyle{}),
-					widget.NewScrollContainer(time_estimated),
-				),
-				widget.NewVBox(
-					widget.NewScrollContainer(
-						widget.NewHBox(
-							widget.NewLabelWithStyle("Progress:", fyne.TextAlignLeading, fyne.TextStyle{}),
-							progress_text,
-						),
+		container.NewGridWithColumns(2,
+			widget.NewCard("Stats", "basic statistics",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Status:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(status),
+						widget.NewLabelWithStyle("Speed:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(speed),
+						widget.NewLabelWithStyle("Hash Type:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(hash_type),
+						widget.NewLabelWithStyle("Hash Target:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(hash_target),
+						widget.NewLabelWithStyle("Time Started:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(time_started),
+						widget.NewLabelWithStyle("Time Estimated:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(time_estimated),
 					),
+				),
+			),
+			widget.NewCard("Attack Details", "task attack",
+				container.NewVBox(
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Guess Queue:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(guess_queue),
+						widget.NewLabelWithStyle("Guess Base:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(guess_base),
+						widget.NewLabelWithStyle("Guess Mod:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(guess_mod),
+						widget.NewLabelWithStyle("Guess Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(guess_mask),
+						widget.NewLabelWithStyle("Guess Charset:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						container.NewHScroll(guess_charset),
+						widget.NewLabelWithStyle("Arguments:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						view_arguments,
+					),
+				),
+			),
+		),
+		widget.NewCard("Progress", "task progress",
+			container.NewGridWithColumns(2,
+				container.New(layout.NewFormLayout(),
+					widget.NewLabelWithStyle("Progress:", fyne.TextAlignLeading, fyne.TextStyle{}),
+					container.NewHScroll(progress_text),
+					widget.NewLabelWithStyle("Progress (%):", fyne.TextAlignLeading, fyne.TextStyle{}),
 					progress,
 				),
-				widget.NewVBox(
-					widget.NewScrollContainer(
-						widget.NewHBox(
-							widget.NewLabelWithStyle("Recovered:", fyne.TextAlignLeading, fyne.TextStyle{}),
-							recovered_text,
-						),
-					),
+				container.New(layout.NewFormLayout(),
+					widget.NewLabelWithStyle("Recovered:", fyne.TextAlignLeading, fyne.TextStyle{}),
+					container.NewHScroll(recovered_text),
+					widget.NewLabelWithStyle("Recovered (%):", fyne.TextAlignLeading, fyne.TextStyle{}),
 					recovered,
 				),
 			),
 		),
-		widget.NewGroup("Attack Details",
-			widget.NewVBox(
-				widget.NewScrollContainer(
-					widget.NewHBox(
-						widget.NewLabelWithStyle("Guess Queue:", fyne.TextAlignLeading, fyne.TextStyle{}),
-						guess_queue,
+		container.NewGridWithColumns(2,
+			widget.NewCard("Features", "task options and features",
+				container.NewVBox(
+					(func() *widget.Check {
+						c := widget.NewCheck("Enable Notifications", func(check bool){
+							session.Notifications_Enabled = check
+						})
+						c.SetChecked(session.Notifications_Enabled)
+						return c
+					})(),
+					container.New(layout.NewFormLayout(),
+						widget.NewLabelWithStyle("Priority:", fyne.TextAlignLeading, fyne.TextStyle{}),
+						(func() *widget.Entry {
+							e := widget.NewEntry()
+							e.OnChanged = func(s string) {
+								extract_priority := re_priority.FindStringSubmatch(s)
+								if len(extract_priority) == 2 {
+									session.Priority, _ = strconv.Atoi(extract_priority[1])
+								} else {
+									session.Priority = 0
+								}
+								e.SetText(fmt.Sprintf("%d", session.Priority))
+							}
+							e.SetText(fmt.Sprintf("%d", session.Priority))
+							return e
+						})(),
 					),
 				),
 			),
-			fyne.NewContainerWithLayout(layout.NewGridLayout(2),
-				widget.NewVBox(
-					widget.NewScrollContainer(
-						widget.NewHBox(
-							widget.NewLabelWithStyle("Guess Base:", fyne.TextAlignLeading, fyne.TextStyle{}),
-							guess_base,
-						),
-					),
-				),
-				widget.NewVBox(
-					widget.NewScrollContainer(
-						widget.NewHBox(
-							widget.NewLabelWithStyle("Guess Mod:", fyne.TextAlignLeading, fyne.TextStyle{}),
-							guess_mod,
-						),
-					),
-				),
-			),
-			widget.NewVBox(
-				widget.NewScrollContainer(
-					widget.NewHBox(
-						widget.NewLabelWithStyle("Guess Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
-						guess_mask,
-					),
-				),
-			),
-			widget.NewVBox(
-				widget.NewScrollContainer(
-					widget.NewHBox(
-						widget.NewLabelWithStyle("Guess Charset:", fyne.TextAlignLeading, fyne.TextStyle{}),
-						guess_charset,
-					),
-				),
-			),
-		),
-		widget.NewGroup("Journal",
-			container.NewMax(
+			widget.NewCard("Journal", "latest events",
 				container.NewScroll(
 					session.Journal,
 				),
 			),
+		),
+		container.NewHBox(
+			layout.NewSpacer(),
+			latest_update,
 		),
 	)
 	hcl_gui.sessions[session.Id] = session

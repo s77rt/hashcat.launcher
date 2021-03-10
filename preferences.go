@@ -4,8 +4,17 @@ import (
 	"os"
 	"runtime"
 	"path/filepath"
-	"fyne.io/fyne"
+	"fyne.io/fyne/v2"
 )
+
+func GetPreference_dialog_handler(app fyne.App) string {
+	return app.Preferences().StringWithFallback("dialog_handler", Dialog_OS)
+}
+
+func SetPreference_dialog_handler(app fyne.App, hcl_gui *hcl_gui, value string) {
+	hcl_gui.dialog_handler = value
+	app.Preferences().SetString("dialog_handler", value)
+}
 
 func GetPreference_hashcat_binary_file(app fyne.App) string {
 	var fallback string

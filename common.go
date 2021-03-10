@@ -1,14 +1,10 @@
 package hashcatlauncher
 
 import (
+	"os"
 	"fmt"
-	//"math/rand"
-	//"time"
 	"strings"
 	"regexp"
-	"image/color"
-	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
 )
 
 const ansi = "[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))"
@@ -24,7 +20,7 @@ var re_hwmon = regexp.MustCompile(`^Hardware\.Mon\.#(\d+)\.*:\s(?:(Temp):\s*(\w+
 var re_checkpoint_enabled = regexp.MustCompile(`^Checkpoint enabled\. Will quit at next restore-point update\.$`)
 var re_checkpoint_disabled = regexp.MustCompile(`^Checkpoint disabled\. Restore-point updates will no longer be monitored\.$`)
 
-var re_priority = regexp.MustCompile(`^Priority:\s(\d+)$`)
+var re_priority = regexp.MustCompile(`^(\d+)$`)
 
 var re_restore_file_info = regexp.MustCompile(`^hcl_(\d+)_(\d+)(?:\.restore)?$`)
 
@@ -47,20 +43,6 @@ func (s SortByLenThenABC) Less(i, j int) bool {
 func (s SortByLenThenABC) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
-
-/////////
-
-/*
-var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
-
-func RandomString(length int) string {
-  b := make([]byte, length)
-  for i := range b {
-	b[i] = charset[seededRand.Intn(len(charset))]
-  }
-  return string(b)
-}
-*/
 
 /////////
 
@@ -90,6 +72,13 @@ func min(a int, b int) int {
 
 /////////
 
+func File_Exists(file string) bool {
+	_, err := os.Stat(file);
+	return err == nil
+}
+
+/////////
+
 func ByteCountIEC(b int64) string {
 	const unit = 1024
 	if b < unit {
@@ -103,19 +92,3 @@ func ByteCountIEC(b int64) string {
 	return fmt.Sprintf("%.1f %ciB",
 		float64(b)/float64(div), "KMGTPE"[exp])
 }
-
-/////////
-
-func spacer(w int, h int) fyne.CanvasObject {
-	rect := canvas.NewRectangle(&color.RGBA{0, 0, 0, 0})
-	rect.SetMinSize(fyne.Size{w, h})
-	return rect
-}
-
-/*
-func reserved(w int, h int) fyne.CanvasObject {
-	rect := canvas.NewRectangle(&color.RGBA{12, 5, 77, 0xff})
-	rect.SetMinSize(fyne.Size{w, h})
-	return rect
-}
-*/
