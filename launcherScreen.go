@@ -994,10 +994,13 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 					modal.Hide()
 				}),
 			),
-			container.New(layout.NewGridWrapLayout(fyne.Size{800, 600}),
+			container.New(layout.NewGridWrapLayout(fyne.Size{900, 700}),
 				(func() fyne.CanvasObject {
-					data := GetRestoreFiles(hcl_gui)
+					var data []string
 					var restore_file *RestoreFile
+					var list *widget.List
+					var selected_id widget.ListItemID
+					data = GetRestoreFiles(hcl_gui)
 					session_name_label := widget.NewLabel("N/A")
 					time_label := widget.NewLabel("N/A")
 					task_id_label := widget.NewLabel("N/A")
@@ -1008,22 +1011,47 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						NewSession(app, hcl_gui, restore_file.Task_id, restore_file.Session_name, restore_file, []string{}, enable_notifications, priority)
 					})
 					restore_btn.Disable()
-					vbox := container.NewPadded(
-						container.NewVBox(
-							widget.NewLabelWithStyle("Session Name", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-							container.NewHScroll(session_name_label),
-							widget.NewLabelWithStyle("Time", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-							container.NewHScroll(time_label),
-							widget.NewLabelWithStyle("Task ID", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-							container.NewHScroll(task_id_label),
-							widget.NewLabelWithStyle("Arguments", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+					delete_btn := widget.NewButtonWithIcon("Delete", theme.DeleteIcon(), func() {
+						dialog.ShowConfirm(
+							"Delete Restore File?",
+							"Are you sure you want to delete the selected restore file?",
+							func (confirm bool) {
+								if confirm {
+									list.Unselect(selected_id)
+									restore_file.Delete()
+									data = GetRestoreFiles(hcl_gui)
+									list.Refresh()
+								}
+							},
+							hcl_gui.window,
+						)
+					})
+					delete_btn.Disable()
+					vbox := container.NewVBox(
+						container.NewGridWithRows(2,
+							container.NewVBox(
+								widget.NewLabelWithStyle("Session Name", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+								container.NewHScroll(session_name_label),
+								widget.NewLabelWithStyle("Time", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+								container.NewHScroll(time_label),
+								widget.NewLabelWithStyle("Task ID", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+								container.NewHScroll(task_id_label),
+								widget.NewLabelWithStyle("Arguments", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+							),
 							container.NewScroll(argv_label),
-							widget.NewLabelWithStyle("Actions", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-							restore_btn,
+						),
+						container.NewPadded(
+							container.NewVBox(
+								widget.NewLabelWithStyle("Actions", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+								restore_btn,
+								container.NewHBox(
+									layout.NewSpacer(),
+									delete_btn,
+								),
+							),
 						),
 					)
-
-					list := widget.NewList(
+					list = widget.NewList(
 						func() int {
 							return len(data)
 						},
@@ -1035,6 +1063,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						},
 					)
 					list.OnSelected = func(id widget.ListItemID) {
+						selected_id = id
 						restore_file = ReadRestoreFile(hcl_gui, data[id])
 						session_name_label.SetText(restore_file.Session_name)
 						if restore_file.Time > 0 {
@@ -1049,6 +1078,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						}
 						argv_label.SetText(strings.Join(restore_file.GetArguments(), "\n"))
 						restore_btn.Enable()
+						delete_btn.Enable()
 					}
 					list.OnUnselected = func(id widget.ListItemID) {
 						session_name_label.SetText("N/A")
@@ -1056,6 +1086,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						task_id_label.SetText("N/A")
 						argv_label.SetText("N/A")
 						restore_btn.Disable()
+						delete_btn.Disable()
 					}
 					return container.NewHSplit(container.NewMax(list), container.NewMax(vbox))
 				})(),

@@ -1,6 +1,7 @@
 package hashcatlauncher
 
 import (
+	"os"
 	"strings"
 	"strconv"
 	"io/ioutil"
@@ -35,6 +36,8 @@ type RestoreFile struct {
 	Session_name string
 	Time int64
 	Task_id int
+
+	Path string
 }
 
 func ReadRestoreFile(hcl_gui *hcl_gui, path string) *RestoreFile {
@@ -61,10 +64,15 @@ func ReadRestoreFile(hcl_gui *hcl_gui, path string) *RestoreFile {
 			restore_file.Time = -1
 			restore_file.Task_id = -1
 		}
+		restore_file.Path = path
 	}
 	return restore_file
 }
 
 func (restore_file *RestoreFile) GetArguments() []string {
 	return strings.Split(strings.Replace(restore_file.Argv, "\r\n", "\n", -1), "\n")[1:]
+}
+
+func (restore_file *RestoreFile) Delete() error {
+	return os.Remove(restore_file.Path)
 }

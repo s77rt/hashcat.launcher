@@ -2,6 +2,14 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [0.5.x]
+### Added:
+ - User confirmation before resetting stats
+ - Delete restore files feature
+
+### Fixed:
+ - Arguments list in the restore modal was only read line by line
+
 ## [0.5.0] - 10/03/2021
 ### Changed:
  - UI Design

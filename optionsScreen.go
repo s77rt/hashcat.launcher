@@ -134,16 +134,31 @@ func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		),
 		widget.NewCard("Data", "clear data and reset stats",
 			container.NewGridWithColumns(4,
-				(func() *widget.Button {
-					b := widget.NewButton("Reset Task Id Counter", func() {
-						SetPreference_next_task_id(app, hcl_gui, 1)
-						dialog.ShowInformation("Success", "Task Id Counter has been reset.", hcl_gui.window)
-					})
-					return b
-				})(),
+				widget.NewButton("Reset Task Id Counter", func() {
+					dialog.ShowConfirm(
+						"Reset Task Id Counter?",
+						"Are you sure you want to reset task id counter?",
+						func (confirm bool) {
+							if confirm {
+								SetPreference_next_task_id(app, hcl_gui, 1)
+								dialog.ShowInformation("Success", "Task Id Counter has been reset.", hcl_gui.window)
+							}
+						},
+						hcl_gui.window,
+					)
+				}),
 				widget.NewButton("Reset Monitor Stats", func() {
-					hcl_gui.monitor.Reset()
-					dialog.ShowInformation("Success", "Monitor Stats has been reset.", hcl_gui.window)
+					dialog.ShowConfirm(
+						"Reset Monitor Stats?",
+						"Are you sure you want to reset monitor stats?",
+						func (confirm bool) {
+							if confirm {
+								hcl_gui.monitor.Reset()
+								dialog.ShowInformation("Success", "Monitor Stats has been reset.", hcl_gui.window)
+							}
+						},
+						hcl_gui.window,
+					)
 				}),
 			),
 		),
