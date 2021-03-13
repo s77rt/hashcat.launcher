@@ -2,7 +2,7 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
-## [0.5.x]
+## [0.5.1] 13/03/2021
 ### Added:
  - User confirmation before resetting stats
  - Delete restore files feature
