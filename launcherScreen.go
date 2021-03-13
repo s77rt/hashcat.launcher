@@ -33,7 +33,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		set_hash_file(hcl_gui, s)
 	})
 
-	outfile := widget.NewCheck("Output:", func(bool){})
+	outfile := widget.NewCheck("Output", func(bool){})
 	outfile.SetChecked(true)
 	hcl_gui.hc_outfile = widget.NewSelect([]string{}, func(s string) {
 		outfile.SetChecked(true)
@@ -500,7 +500,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
 						mask_entry,
 					),
-					container.NewGridWithColumns(3,
+					container.NewHBox(
 						container.NewHBox(
 							widget.NewLabelWithStyle("Length:", fyne.TextAlignLeading, fyne.TextStyle{}),
 							mask_length,
@@ -642,7 +642,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
 						hybrid1_right_mask_entry,
 					),
-					container.NewGridWithColumns(3,
+					container.NewHBox(
 						container.NewHBox(
 							widget.NewLabelWithStyle("Length:", fyne.TextAlignLeading, fyne.TextStyle{}),
 							hybrid1_right_mask_length,
@@ -760,7 +760,7 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 						widget.NewLabelWithStyle("Mask:", fyne.TextAlignLeading, fyne.TextStyle{}),
 						hybrid2_left_mask_entry,
 					),
-					container.NewGridWithColumns(3,
+					container.NewHBox(
 						container.NewHBox(
 							widget.NewLabelWithStyle("Length:", fyne.TextAlignLeading, fyne.TextStyle{}),
 							hybrid2_left_mask_length,
@@ -1102,9 +1102,273 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 		modal.Show()
 	})
 
-	return container.NewVBox(
+	steps_tabs := map[string]*container.TabItem{
+		"Target, Output and Attack": container.NewTabItem(
+			"Target, Output and Attack",
+			container.NewVBox(
+				container.NewGridWithColumns(2,
+					widget.NewCard("Target", "choose target hash file and type",
+						container.NewVBox(
+							container.NewGridWithColumns(4,
+								widget.NewLabelWithStyle("Hash File:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+								layout.NewSpacer(),
+								widget.NewButtonWithIcon("Clipboard", theme.ContentPasteIcon(), func(){
+									data := hcl_gui.window.Clipboard().Content()
+									if len(data) > 0 {
+										pwd, _ := os.Getwd()
+										file := filepath.Join(pwd, "clipboard.txt")
+										f, err := os.Create(file)
+										if err != nil {
+											fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
+											dialog.ShowError(err, hcl_gui.window)
+										} else {
+											defer f.Close()
+											w := bufio.NewWriter(f)
+											_, err := w.WriteString(data)
+											if err != nil {
+												fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
+												dialog.ShowError(err, hcl_gui.window)
+											} else {
+												w.Flush()
+												hcl_gui.hc_hash_file.Options = append([]string{file}, hcl_gui.hc_hash_file.Options[:min(len(hcl_gui.hc_hash_file.Options), 4)]...)
+												hcl_gui.hc_hash_file.SetSelected(file)
+											}
+										}
+									} else {
+										err := errors.New("clipboard is empty")
+										fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
+										dialog.ShowError(err, hcl_gui.window)
+									}
+								}),
+								widget.NewButtonWithIcon("Browse", theme.FolderOpenIcon(), func(){
+									go func() {
+										file, err := NewFileOpen(hcl_gui)
+										if err == nil {
+											hcl_gui.hc_hash_file.Options = append([]string{file}, hcl_gui.hc_hash_file.Options[:min(len(hcl_gui.hc_hash_file.Options), 4)]...)
+											hcl_gui.hc_hash_file.SetSelected(file)
+										}
+									}()
+								}),
+							),
+							hcl_gui.hc_hash_file,
+							widget.NewLabelWithStyle("Hash Type:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+							hcl_gui.hc_hash_type,
+						),
+					),
+					widget.NewCard("Output", "set output file and format",
+						container.NewVBox(
+							container.NewGridWithColumns(4,
+								widget.NewLabelWithStyle("Output File:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+								layout.NewSpacer(),
+								outfile,
+								widget.NewButtonWithIcon("Set", theme.DocumentSaveIcon(), func(){
+									go func() {
+										file, err := NewFileSave(hcl_gui)
+										if err == nil {
+											outfile.SetChecked(true)
+											hcl_gui.hc_outfile.Options = append([]string{file}, hcl_gui.hc_outfile.Options[:min(len(hcl_gui.hc_outfile.Options), 4)]...)
+											hcl_gui.hc_outfile.SetSelected(file)
+										}
+									}()
+								}),
+							),
+							hcl_gui.hc_outfile,
+							widget.NewLabelWithStyle("Output Format:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+							outfile_format,
+						),
+					),
+				),
+				widget.NewCard("Attack", "configure attack",
+					container.NewBorder(
+						container.New(layout.NewFormLayout(),
+							widget.NewLabelWithStyle("Mode:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+							hcl_gui.hc_attack_mode,
+						),
+						nil,
+						nil,
+						nil,
+						hcl_gui.hc_dictionary_attack_conf,
+						hcl_gui.hc_combinator_attack_conf,
+						hcl_gui.hc_mask_attack_conf,
+						hcl_gui.hc_hybrid1_attack_conf,
+						hcl_gui.hc_hybrid2_attack_conf,
+					),
+				),
+			),
+		),
+		"Options, Devices and Monitor": container.NewTabItem(
+			"Options, Devices and Monitor",
+			container.NewVBox(
+				widget.NewCard("Options", "hashcat options",
+					container.NewVBox(
+						container.NewGridWithRows(4,
+							optimized_kernel,
+							slower_candidate,
+							remove_found_hashes,
+							disable_potfile,
+							ignore_usernames,
+							disable_self_test,
+							force,
+						),
+					),
+				),
+				container.NewGridWithColumns(2,
+					widget.NewCard("Devices", "choose which devices to use",
+						container.NewVBox(
+							container.NewGridWithColumns(2,
+								container.NewVBox(
+									widget.NewLabelWithStyle("Devices:", fyne.TextAlignLeading, fyne.TextStyle{}),
+									hcl_gui.hc_devices_types,
+								),
+								container.NewVBox(
+									widget.NewLabelWithStyle("Workload Profile:", fyne.TextAlignLeading, fyne.TextStyle{}),
+									hcl_gui.hc_wordload_profiles,
+								),
+							),
+							widget.NewButton("Info", func(){
+								var modal *widget.PopUp
+								var info_box *widget.TextGrid
+								var copy_btn *widget.Button
+								var close_btn *widget.Button
+								info_box = widget.NewTextGrid()
+								info := "Obtaining info..."
+								info_box.SetText(info)
+								copy_btn = widget.NewButton("Copy", func(){
+									hcl_gui.window.Clipboard().SetContent(info_box.Text())
+									copy_btn.SetText("Copied!")
+								})
+								copy_btn.Disable()
+								close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+									hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+									modal.Hide()
+								})
+								close_btn.Disable()
+								c := container.NewVBox(
+									container.NewHBox(
+										widget.NewLabelWithStyle("Info", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+										layout.NewSpacer(),
+										close_btn,
+									),
+									container.NewPadded(
+										container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
+											container.NewScroll(
+												info_box,
+											),
+										),
+									),
+									container.NewHBox(
+										copy_btn,
+									),
+								)
+								hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+									if key.Name == fyne.KeyEscape {
+										hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+										modal.Hide()
+									}
+								})
+								modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+								modal.Show()
+								go func() {
+									info = get_devices_info(hcl_gui)
+									info_box.SetText(info)
+									copy_btn.Enable()
+									close_btn.Enable()
+								}()
+							}),
+							widget.NewButton("Benchmark", func(){
+								if hcl_gui.hashcat.args.hash_type == -1 {
+									err := errors.New("You must select a hash type")
+									fmt.Fprintf(os.Stderr, "%s\n", err)
+									dialog.ShowError(err, hcl_gui.window)
+									return
+								}
+								var modal *widget.PopUp
+								var benchmark_box *widget.TextGrid
+								var copy_btn *widget.Button
+								var close_btn *widget.Button
+								copy_btn = widget.NewButton("Copy", func(){
+									hcl_gui.window.Clipboard().SetContent(benchmark_box.Text())
+									copy_btn.SetText("Copied!")
+								})
+								copy_btn.Disable()
+								close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+									hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+									modal.Hide()
+								})
+								close_btn.Disable()
+								benchmark_box = widget.NewTextGrid()
+								benchmark := "Benchmarking..."
+								benchmark_box.SetText(benchmark)
+								c := container.NewVBox(
+									container.NewHBox(
+										widget.NewLabelWithStyle("Benchmark", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+										layout.NewSpacer(),
+										close_btn,
+									),
+									container.NewPadded(
+										container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
+											container.NewScroll(
+												benchmark_box,
+											),
+										),
+									),
+									container.NewHBox(
+										copy_btn,
+									),
+								)
+								hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+									if key.Name == fyne.KeyEscape {
+										hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+										modal.Hide()
+									}
+								})
+								modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+								modal.Show()
+								go func() {
+									benchmark = get_benchmark(hcl_gui)
+									benchmark_box.SetText(benchmark)
+									copy_btn.Enable()
+									close_btn.Enable()
+								}()
+							}),
+						),
+					),
+					widget.NewCard("Monitor", "monitoring options",
+						container.NewVBox(
+							hcl_gui.hc_disable_monitor,
+							container.New(layout.NewFormLayout(),
+								widget.NewLabelWithStyle("Temp Abort (°C):", fyne.TextAlignLeading, fyne.TextStyle{}),
+								hcl_gui.hc_temp_abort,
+							),
+						),
+					),
+				),
+			),
+		),
+		"Features": container.NewTabItem("Features",
+			container.NewVBox(
+				widget.NewCard("Features", "task options and features",
+					container.NewVBox(
+						enable_notifications_check,
+						container.New(layout.NewFormLayout(),
+							widget.NewLabelWithStyle("Priority:", fyne.TextAlignLeading, fyne.TextStyle{}),
+							priority_entry,
+						),
+					),
+				),
+			),
+		),
+	}
+	steps_tabs_container := container.NewAppTabs(
+		steps_tabs["Target, Output and Attack"],
+		steps_tabs["Options, Devices and Monitor"],
+		steps_tabs["Features"],
+	)
+	steps_tabs_container.SetTabLocation(container.TabLocationTop)
+
+	return container.NewBorder(
 		container.NewPadded(
-			container.NewGridWithColumns(2,
+			container.NewVBox(
 				container.NewMax(
 					banner(),
 					container.NewHBox(
@@ -1139,253 +1403,6 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 				),
 			),
 		),
-		widget.NewCard("Target", "choose target hash and type",
-			container.NewGridWithColumns(2,
-				container.NewGridWithRows(2,
-					container.NewGridWithColumns(4,
-						widget.NewLabelWithStyle("Hash File:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-						layout.NewSpacer(),
-						widget.NewButtonWithIcon("Clipboard", theme.ContentPasteIcon(), func(){
-							data := hcl_gui.window.Clipboard().Content()
-							if len(data) > 0 {
-								pwd, _ := os.Getwd()
-								file := filepath.Join(pwd, "clipboard.txt")
-								f, err := os.Create(file)
-								if err != nil {
-									fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
-									dialog.ShowError(err, hcl_gui.window)
-								} else {
-									defer f.Close()
-									w := bufio.NewWriter(f)
-									_, err := w.WriteString(data)
-									if err != nil {
-										fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
-										dialog.ShowError(err, hcl_gui.window)
-									} else {
-										w.Flush()
-										hcl_gui.hc_hash_file.Options = append([]string{file}, hcl_gui.hc_hash_file.Options[:min(len(hcl_gui.hc_hash_file.Options), 4)]...)
-										hcl_gui.hc_hash_file.SetSelected(file)
-									}
-								}
-							} else {
-								err := errors.New("clipboard is empty")
-								fmt.Fprintf(os.Stderr, "clipboard: %s\n", err)
-								dialog.ShowError(err, hcl_gui.window)
-							}
-						}),
-						widget.NewButtonWithIcon("Browse", theme.FolderOpenIcon(), func(){
-							go func() {
-								file, err := NewFileOpen(hcl_gui)
-								if err == nil {
-									hcl_gui.hc_hash_file.Options = append([]string{file}, hcl_gui.hc_hash_file.Options[:min(len(hcl_gui.hc_hash_file.Options), 4)]...)
-									hcl_gui.hc_hash_file.SetSelected(file)
-								}
-							}()
-						}),
-					),
-					hcl_gui.hc_hash_file,
-				),
-				container.NewGridWithRows(2,
-					widget.NewLabelWithStyle("Hash Type:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-					hcl_gui.hc_hash_type,
-				),
-			),
-		),
-		widget.NewCard("Attack", "configure attack",
-			container.NewVBox(
-				container.New(layout.NewFormLayout(),
-					widget.NewLabelWithStyle("Mode:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-					hcl_gui.hc_attack_mode,
-				),
-				hcl_gui.hc_dictionary_attack_conf,
-				hcl_gui.hc_combinator_attack_conf,
-				hcl_gui.hc_mask_attack_conf,
-				hcl_gui.hc_hybrid1_attack_conf,
-				hcl_gui.hc_hybrid2_attack_conf,
-			),
-		),
-		container.NewGridWithColumns(2,
-			widget.NewCard("Options", "hashcat options",
-				container.NewVBox(
-					container.NewGridWithRows(4,
-						optimized_kernel,
-						slower_candidate,
-						remove_found_hashes,
-						disable_potfile,
-						ignore_usernames,
-						disable_self_test,
-						force,
-					),
-				),
-			),
-			container.NewGridWithColumns(2,
-				widget.NewCard("Devices", "choose which devices to use",
-					container.NewVBox(
-						container.NewGridWithColumns(2,
-							container.NewVBox(
-								widget.NewLabelWithStyle("Devices:", fyne.TextAlignLeading, fyne.TextStyle{}),
-								hcl_gui.hc_devices_types,
-							),
-							container.NewVBox(
-								widget.NewLabelWithStyle("Workload Profile:", fyne.TextAlignLeading, fyne.TextStyle{}),
-								hcl_gui.hc_wordload_profiles,
-							),
-						),
-						widget.NewButton("Info", func(){
-							var modal *widget.PopUp
-							var info_box *widget.TextGrid
-							var copy_btn *widget.Button
-							var close_btn *widget.Button
-							info_box = widget.NewTextGrid()
-							info := "Obtaining info..."
-							info_box.SetText(info)
-							copy_btn = widget.NewButton("Copy", func(){
-								hcl_gui.window.Clipboard().SetContent(info_box.Text())
-								copy_btn.SetText("Copied!")
-							})
-							copy_btn.Disable()
-							close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-								hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
-								modal.Hide()
-							})
-							close_btn.Disable()
-							c := container.NewVBox(
-								container.NewHBox(
-									widget.NewLabelWithStyle("Info", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-									layout.NewSpacer(),
-									close_btn,
-								),
-								container.NewPadded(
-									container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
-										container.NewScroll(
-											info_box,
-										),
-									),
-								),
-								container.NewHBox(
-									copy_btn,
-								),
-							)
-							hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
-								if key.Name == fyne.KeyEscape {
-									hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
-									modal.Hide()
-								}
-							})
-							modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
-							modal.Show()
-							go func() {
-								info = get_devices_info(hcl_gui)
-								info_box.SetText(info)
-								copy_btn.Enable()
-								close_btn.Enable()
-							}()
-						}),
-						widget.NewButton("Benchmark", func(){
-							if hcl_gui.hashcat.args.hash_type == -1 {
-								err := errors.New("You must select a hash type")
-								fmt.Fprintf(os.Stderr, "%s\n", err)
-								dialog.ShowError(err, hcl_gui.window)
-								return
-							}
-							var modal *widget.PopUp
-							var benchmark_box *widget.TextGrid
-							var copy_btn *widget.Button
-							var close_btn *widget.Button
-							copy_btn = widget.NewButton("Copy", func(){
-								hcl_gui.window.Clipboard().SetContent(benchmark_box.Text())
-								copy_btn.SetText("Copied!")
-							})
-							copy_btn.Disable()
-							close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-								hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
-								modal.Hide()
-							})
-							close_btn.Disable()
-							benchmark_box = widget.NewTextGrid()
-							benchmark := "Benchmarking..."
-							benchmark_box.SetText(benchmark)
-							c := container.NewVBox(
-								container.NewHBox(
-									widget.NewLabelWithStyle("Benchmark", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-									layout.NewSpacer(),
-									close_btn,
-								),
-								container.NewPadded(
-									container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
-										container.NewScroll(
-											benchmark_box,
-										),
-									),
-								),
-								container.NewHBox(
-									copy_btn,
-								),
-							)
-							hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
-								if key.Name == fyne.KeyEscape {
-									hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
-									modal.Hide()
-								}
-							})
-							modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
-							modal.Show()
-							go func() {
-								benchmark = get_benchmark(hcl_gui)
-								benchmark_box.SetText(benchmark)
-								copy_btn.Enable()
-								close_btn.Enable()
-							}()
-						}),
-					),
-				),
-				widget.NewCard("Monitor", "monitoring options",
-					container.NewVBox(
-						hcl_gui.hc_disable_monitor,
-						container.New(layout.NewFormLayout(),
-							widget.NewLabelWithStyle("Temp Abort (°C):", fyne.TextAlignLeading, fyne.TextStyle{}),
-							hcl_gui.hc_temp_abort,
-						),
-					),
-				),
-			),
-		),
-		container.NewGridWithColumns(2,
-			widget.NewCard("Output", "output file and format",
-				container.NewVBox(
-					container.NewGridWithColumns(2,
-						container.New(layout.NewFormLayout(),
-							outfile,
-							hcl_gui.hc_outfile,
-						),
-						widget.NewButtonWithIcon("Set Output File", theme.DocumentSaveIcon(), func(){
-							go func() {
-								file, err := NewFileSave(hcl_gui)
-								if err == nil {
-									outfile.SetChecked(true)
-									hcl_gui.hc_outfile.Options = append([]string{file}, hcl_gui.hc_outfile.Options[:min(len(hcl_gui.hc_outfile.Options), 4)]...)
-									hcl_gui.hc_outfile.SetSelected(file)
-								}
-							}()
-						}),
-					),
-					container.New(layout.NewFormLayout(),
-						widget.NewLabelWithStyle("Format:", fyne.TextAlignLeading, fyne.TextStyle{}),
-						outfile_format,
-					),
-				),
-			),
-			widget.NewCard("Features", "task options and features",
-				container.NewVBox(
-					enable_notifications_check,
-					container.New(layout.NewFormLayout(),
-						widget.NewLabelWithStyle("Priority:", fyne.TextAlignLeading, fyne.TextStyle{}),
-						priority_entry,
-					),
-				),
-			),
-		),
-		layout.NewSpacer(),
 		container.NewHBox(
 			layout.NewSpacer(),
 			func () fyne.CanvasObject {
@@ -1394,5 +1411,8 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 				return w
 			}(),
 		),
+		nil,
+		nil,
+		steps_tabs_container,
 	)
 }

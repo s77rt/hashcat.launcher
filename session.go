@@ -593,21 +593,10 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 			go AutoStart(hcl_gui)
 		},
 	}
-	session.Content = container.NewVBox(
-		widget.NewCard("Control", "task control",
-			container.NewGridWithColumns(3,
-				refresh,
-				start,
-				pause,
-				resume,
-				checkpoint,
-				skip,
-				stop,
-				terminate,
-				terminate_n_close,
-			),
-		),
-		container.NewGridWithColumns(2,
+
+	info_tabs := map[string]*container.TabItem{
+		"Stats": container.NewTabItem(
+			"Stats",
 			widget.NewCard("Stats", "basic statistics",
 				container.NewVBox(
 					container.New(layout.NewFormLayout(),
@@ -626,6 +615,9 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 					),
 				),
 			),
+		),
+		"Attack Details": container.NewTabItem(
+			"Attack Details",
 			widget.NewCard("Attack Details", "task attack",
 				container.NewVBox(
 					container.New(layout.NewFormLayout(),
@@ -645,15 +637,14 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 				),
 			),
 		),
-		widget.NewCard("Progress", "task progress",
-			container.NewGridWithColumns(2,
+		"Progress": container.NewTabItem(
+			"Progress",
+			widget.NewCard("Progress", "task progress",
 				container.New(layout.NewFormLayout(),
 					widget.NewLabelWithStyle("Progress:", fyne.TextAlignLeading, fyne.TextStyle{}),
 					container.NewHScroll(progress_text),
 					widget.NewLabelWithStyle("Progress (%):", fyne.TextAlignLeading, fyne.TextStyle{}),
 					progress,
-				),
-				container.New(layout.NewFormLayout(),
 					widget.NewLabelWithStyle("Recovered:", fyne.TextAlignLeading, fyne.TextStyle{}),
 					container.NewHScroll(recovered_text),
 					widget.NewLabelWithStyle("Recovered (%):", fyne.TextAlignLeading, fyne.TextStyle{}),
@@ -661,7 +652,8 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 				),
 			),
 		),
-		container.NewGridWithColumns(2,
+		"Features": container.NewTabItem(
+			"Features",
 			widget.NewCard("Features", "task options and features",
 				container.NewVBox(
 					(func() *widget.Check {
@@ -690,16 +682,46 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 					),
 				),
 			),
+		),
+		"Journal": container.NewTabItem(
+			"Journal",
 			widget.NewCard("Journal", "latest events",
 				container.NewScroll(
 					session.Journal,
 				),
 			),
 		),
+	}
+	info_tabs_container := container.NewAppTabs(
+		info_tabs["Stats"],
+		info_tabs["Attack Details"],
+		info_tabs["Progress"],
+		info_tabs["Features"],
+		info_tabs["Journal"],
+	)
+	info_tabs_container.SetTabLocation(container.TabLocationBottom)
+
+	session.Content = container.NewBorder(
+		widget.NewCard("Control", "task control",
+			container.NewGridWithColumns(3,
+				refresh,
+				start,
+				pause,
+				resume,
+				checkpoint,
+				skip,
+				stop,
+				terminate,
+				terminate_n_close,
+			),
+		),
 		container.NewHBox(
 			layout.NewSpacer(),
 			latest_update,
 		),
+		nil,
+		nil,
+		info_tabs_container,
 	)
 	hcl_gui.sessions[session.Id] = session
 	CalculateSessionsStatusStats(hcl_gui)

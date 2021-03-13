@@ -97,14 +97,14 @@ func (hcl_gui *hcl_gui) LoadUI(app fyne.App) {
 		"New Task": container.NewTabItemWithIcon("New Task", theme.ContentAddIcon(), launcherScreen(app, hcl_gui)),
 		"Tasks": container.NewTabItemWithIcon(fmt.Sprintf("Tasks (%d)", len(hcl_gui.sessions)), theme.MenuIcon(), tasksScreen(hcl_gui)),
 		"Monitor": container.NewTabItemWithIcon("Monitor", theme.VisibilityIcon(), monitorScreen(hcl_gui)),
-		"Options": container.NewTabItemWithIcon("Options", theme.SettingsIcon(), optionsScreen(app, hcl_gui)),
+		"Settings": container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), optionsScreen(app, hcl_gui)),
 		"About": container.NewTabItemWithIcon("About", theme.InfoIcon(), aboutScreen()),
 	}
 	hcl_gui.tabs_container = container.NewAppTabs(
 		hcl_gui.tabs["New Task"],
 		hcl_gui.tabs["Tasks"],
 		hcl_gui.tabs["Monitor"],
-		hcl_gui.tabs["Options"],
+		hcl_gui.tabs["Settings"],
 		hcl_gui.tabs["About"],
 	)
 	hcl_gui.tabs_container.SetTabLocation(container.TabLocationTop)
@@ -119,7 +119,7 @@ func (hcl_gui *hcl_gui) Post(app fyne.App) {
 		hcl_gui.hc_binary_file_select.Refresh()
 	} else {
 		dialog.ShowError(errors.New("Can't detect hashcat. Please specify hashcat bin/exe file"), hcl_gui.window)
-		hcl_gui.tabs_container.SelectTab(hcl_gui.tabs["Options"])
+		hcl_gui.tabs_container.SelectTab(hcl_gui.tabs["Settings"])
 	}
 
 	hcl_gui.hashcat.args.status_timer = GetPreference_hashcat_status_timer(app)

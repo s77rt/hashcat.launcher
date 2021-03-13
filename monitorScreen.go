@@ -9,13 +9,16 @@ import (
 )
 
 func monitorScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
-	return container.NewVBox(
-		container.NewGridWithColumns(4,
-			monitorHardwares(hcl_gui)...,
-		),
+	return container.NewBorder(
+		nil,
 		container.NewHBox(
 			layout.NewSpacer(),
 			widget.NewLabel("Note: stats will reset every 300s"),
+		),
+		nil,
+		nil,
+		container.NewGridWithColumns(6,
+			monitorHardwares(hcl_gui)...,
 		),
 	)
 }

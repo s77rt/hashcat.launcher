@@ -106,7 +106,7 @@ func optionsScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 				),
 				widget.NewFormItem("Scaling:",
 					func () fyne.CanvasObject {
-						w := widget.NewSelect([]string{"auto", "50%", "80%", "100%", "130%", "180%"}, func(value string) {
+						w := widget.NewSelect([]string{"auto", "50%", "70%", "75%", "80%", "85%", "90%", "95%", "100%", "130%", "180%"}, func(value string) {
 							hcl_gui.Settings.SetScale(value)
 						})
 						w.SetSelected(fmt.Sprintf("%.0f%%", hcl_gui.Settings.Scale()*100))

@@ -356,7 +356,7 @@ func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, dictionaries *[]
 			widget.NewLabelWithStyle("Dictionaries Selection", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			layout.NewSpacer(),
 			widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
-				dialog.ShowInformation("Help", "In the left you can see your dictionaries collection those are the dictionaries that can be selected, you can also add new dictionaries to the collection.\nIn the right there is a listing of your selected dictionaries, those are the ones that will be used in the attack.", hcl_gui.window)
+				dialog.ShowInformation("Help", "In the left you can see your dictionaries collection:\nthose are the dictionaries that can be selected.\n(you can also add new dictionaries to the collection)\n\nIn the right there is a listing of your selected dictionaries:\nthose are the ones that will be used in the attack.", hcl_gui.window)
 			}),
 			widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
 				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
@@ -417,7 +417,7 @@ func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, dictionaries *[]
 				container.New(layout.NewGridWrapLayout(fyne.Size{0, 45}),
 					widget.NewLabelWithStyle("Selected Dictionaries:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 				),
-				container.New(layout.NewGridWrapLayout(fyne.Size{700, 600}),
+				container.New(layout.NewGridWrapLayout(fyne.Size{500, 600}),
 					func () fyne.CanvasObject {
 						table = widget.NewTable(
 							func() (int, int) { return 1, 2 },
@@ -453,10 +453,10 @@ func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, dictionaries *[]
 										switch id.Col {
 										case 0:
 											_, filename_short := filepath_mod.Split(filename)
-											offset := 73 - len(filename_short)
-											if offset < 27 {
-												filename_short = filename_short[:len(filename_short)+offset-27]+"..."
-												offset = 73 - len(filename_short)
+											offset := 51 - len(filename_short)
+											if offset < 19 {
+												filename_short = filename_short[:len(filename_short)+offset-19]+"..."
+												offset = 51 - len(filename_short)
 											}
 											label.SetText(filename_short)
 										case 1:
@@ -498,8 +498,8 @@ func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, dictionaries *[]
 							})
 						valid_files := len(*dictionaries)
 						table.Length = func() (int, int) { return valid_files+1, 2 }
-						table.SetColumnWidth(0, 500)
-						table.SetColumnWidth(1, 150)
+						table.SetColumnWidth(0, 350)
+						table.SetColumnWidth(1, 100)
 						return table
 					}(),
 				),
@@ -538,10 +538,10 @@ func customselect_dictionaries_dictionarylist_options(modal *widget.PopUp, data 
 		filename := file.Name
 		filepath := file.Path
 		filesize := file.SizeHR
-		offset := 73 - len(filename)
-		if offset < 27 {
-			filename = filename[:len(filename)+offset-27]+"..."
-			offset = 73 - len(filename)
+		offset := 51 - len(filename)
+		if offset < 19 {
+			filename = filename[:len(filename)+offset-19]+"..."
+			offset = 51 - len(filename)
 		}
 		offset_str := strconv.Itoa(offset)
 		option := fmt.Sprintf("%s %"+offset_str+"s", filename, filesize)
