@@ -69,7 +69,7 @@ type hcl_data struct {
 }
 
 func (hcl_gui *hcl_gui) Pre(app fyne.App) {
-	fmt.Println("Welcome to hashcat.launcher v"+Version)
+	fmt.Println("Welcome to hashcat.launcher "+Version)
 
 	hcl_gui.dialog_handler = GetPreference_dialog_handler(app)
 
@@ -90,7 +90,7 @@ func (hcl_gui *hcl_gui) LoadUI(app fyne.App) {
 	hcl_gui.monitor.Init()
 
 	hcl_gui.Icon = Icon
-	hcl_gui.window = app.NewWindow("hashcat.launcher v"+Version)
+	hcl_gui.window = app.NewWindow("hashcat.launcher "+Version)
 	hcl_gui.window.SetIcon(hcl_gui.Icon)
 
 	hcl_gui.tabs = map[string]*container.TabItem{
