@@ -344,6 +344,20 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 				args = append(args, fmt.Sprintf("--hwmon-temp-abort=%d", hcl_gui.hashcat.args.temp_abort))
 			}
 
+			if len(hcl_gui.hashcat.args.markov_hcstat2) > 0 {
+				args = append(args, []string{"--markov-hcstat2", hcl_gui.hashcat.args.markov_hcstat2}...)
+			}
+
+			if hcl_gui.hashcat.args.markov_disable {
+				args = append(args, "--markov-disable")
+			}
+
+			if hcl_gui.hashcat.args.markov_classic {
+				args = append(args, "--markov-classic")
+			}
+
+			args = append(args, fmt.Sprintf("--markov-threshold=%d", hcl_gui.hashcat.args.markov_threshold))
+
 			args = append(args, fmt.Sprintf("-w%d", hcl_gui.hashcat.args.workload_profile))
 
 			args = append(args, fmt.Sprintf("-m%d", hcl_gui.hashcat.args.hash_type))

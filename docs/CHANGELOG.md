@@ -2,6 +2,10 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [UNDEFINED] MM/DD/YYYY
+### Added:
+ - Markov options (#31)
+
 ## [0.5.1] 13/03/2021
 ### Added:
  - User confirmation before resetting stats

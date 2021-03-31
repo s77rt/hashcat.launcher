@@ -92,6 +92,47 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 	force := widget.NewCheck("Ignore warnings (Not Recommended)", func(check bool){set_force(hcl_gui, check)})
 	optimized_kernel.SetChecked(true)
 
+	// Markov
+	var markov_hcstat2 *widget.Select
+	markov_hcstat2 = widget.NewSelect([]string{"Default", "Browse..."}, func(s string) {
+		if s == "Browse..." {
+			go func() {
+				file, err := NewFileOpen(hcl_gui)
+				if err == nil {
+					set_markov_hcstat2(hcl_gui, file)
+					_, filename := filepath.Split(file)
+					markov_hcstat2.Selected = filename
+				} else {
+					set_markov_hcstat2(hcl_gui, "")
+					markov_hcstat2.Selected = "Default"
+				}
+				markov_hcstat2.Refresh()
+			}()
+		} else if s == "Default" {
+			set_markov_hcstat2(hcl_gui, "")
+		}
+	})
+	markov_hcstat2.SetSelected("Default")
+
+	markov_disable := widget.NewCheck("Disable markov-chains, emulates classic brute-force", func(check bool) {
+		set_markov_disable(hcl_gui, check)
+	})
+
+	markov_classic := widget.NewCheck("Enable classic markov-chains, no per-position", func(check bool) {
+		set_markov_classic(hcl_gui, check)
+	})
+
+	markov_threshold := widget.NewEntry()
+	markov_threshold.OnChanged = func(s string) {
+		i, err := strconv.Atoi(s)
+		if err == nil {
+			set_markov_threshold(hcl_gui, i)
+		} else {
+			markov_threshold.Text = "0"
+		}
+	}
+	markov_threshold.SetText("0")
+
 	// Notifications
 	enable_notifications := false
 	enable_notifications_check := widget.NewCheck("Enable Notifications", func(check bool){
@@ -1358,10 +1399,28 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 				),
 			),
 		),
+		"Markov": container.NewTabItem(
+			"Markov",
+			container.NewVBox(
+				widget.NewCard("Markov", "Markov options",
+					container.NewVBox(
+						container.New(layout.NewFormLayout(),
+							widget.NewLabelWithStyle("hcstat2 file to use:", fyne.TextAlignLeading, fyne.TextStyle{}),
+							markov_hcstat2,
+							widget.NewLabelWithStyle("Threshold X when to stop accepting new markov-chains:", fyne.TextAlignLeading, fyne.TextStyle{}),
+							markov_threshold,
+						),
+						markov_disable,
+						markov_classic,
+					),
+				),
+			),
+		),
 	}
 	steps_tabs_container := container.NewAppTabs(
 		steps_tabs["Target, Output and Attack"],
 		steps_tabs["Options, Devices and Monitor"],
+		steps_tabs["Markov"],
 		steps_tabs["Features"],
 	)
 	steps_tabs_container.SetTabLocation(container.TabLocationTop)

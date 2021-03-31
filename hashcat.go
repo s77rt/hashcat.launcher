@@ -39,6 +39,10 @@ type hashcat_args struct {
 	force bool
 	status_timer int
 	attack_payload string
+	markov_hcstat2 string
+	markov_disable bool
+	markov_classic bool
+	markov_threshold int
 }
 
 type hashcat_workload_profile int
@@ -322,6 +326,23 @@ func set_outfile_format(hcl_gui *hcl_gui, outfile_format string) {
 		outfile_format_int = []int{1,2,3,4}
 	}
 	hcl_gui.hashcat.args.outfile_format = outfile_format_int
+}
+
+// Markov
+func set_markov_hcstat2(hcl_gui *hcl_gui, markov_hcstat2 string) {
+	hcl_gui.hashcat.args.markov_hcstat2 = markov_hcstat2
+}
+
+func set_markov_disable(hcl_gui *hcl_gui, check bool) {
+	hcl_gui.hashcat.args.markov_disable = check
+}
+
+func set_markov_classic(hcl_gui *hcl_gui, check bool) {
+	hcl_gui.hashcat.args.markov_classic = check
+}
+
+func set_markov_threshold(hcl_gui *hcl_gui, markov_threshold int) {
+	hcl_gui.hashcat.args.markov_threshold = markov_threshold
 }
 
 // Others

@@ -13,7 +13,7 @@ import (
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
 
-const Version = "0.5.1"
+var Version = "undefined"
 
 const hashcat_min_version = "v6.0.0"
 
