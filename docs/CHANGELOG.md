@@ -5,6 +5,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 ## [undefined] mm/dd/yyyy
 ### Added:
  - Markov options (#31)
+ - Two buttons to add & select dictionaries in one click
 
 ### Fixed:
  - A versioning typo

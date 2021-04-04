@@ -371,44 +371,43 @@ func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, dictionaries *[]
 				container.New(layout.NewGridWrapLayout(fyne.Size{500, 600}),
 					results_box,
 				),
-				container.NewVBox(
+				container.NewPadded(
 					container.New(layout.NewGridLayout(2),
 						widget.NewLabelWithStyle("Left Click to Select", fyne.TextAlignLeading, fyne.TextStyle{}),
-						container.New(layout.NewCenterLayout(),
-							container.NewHBox(
-								widget.NewButton("Add a File", func(){
-									go func() {
-										file, err := NewFileOpen(hcl_gui)
+						container.NewHBox(
+							layout.NewSpacer(),
+							widget.NewButtonWithIcon("File", theme.ContentAddIcon(), func(){
+								go func() {
+									file, err := NewFileOpen(hcl_gui)
+									if err == nil {
+										hcl_gui.data.dictionaries.AddFile(file);
+										if file_exists := File_Exists(file); file_exists == true {
+											customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, table, dictionaries, entry, search.Text)
+										}
+									}
+								}()
+							}),
+							widget.NewButtonWithIcon("Folder", theme.ContentAddIcon(), func(){
+								go func() {
+									dir, err := NewFolderOpen(hcl_gui)
+									if err == nil {
+										files_added := 0
+										found_files, err := ioutil.ReadDir(dir)
 										if err == nil {
-											hcl_gui.data.dictionaries.AddFile(file);
-											if file_exists := File_Exists(file); file_exists == true {
+											for _, file := range found_files {
+												if (!file.IsDir()) {
+													if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
+														files_added++
+													}
+												}
+											}
+											if files_added > 0 {
 												customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, table, dictionaries, entry, search.Text)
 											}
 										}
-									}()
-								}),
-								widget.NewButton("Add a Folder", func(){
-									go func() {
-										dir, err := NewFolderOpen(hcl_gui)
-										if err == nil {
-											files_added := 0
-											found_files, err := ioutil.ReadDir(dir)
-											if err == nil {
-												for _, file := range found_files {
-													if (!file.IsDir()) {
-														if file_added := hcl_gui.data.dictionaries.AddFile(filepath_mod.Join(dir, file.Name())); file_added == true {
-															files_added++
-														}
-													}
-												}
-												if files_added > 0 {
-													customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, table, dictionaries, entry, search.Text)
-												}
-											}
-										}
-									}()
-								}),
-							),
+									}
+								}()
+							}),
 						),
 					),
 				),
@@ -503,13 +502,57 @@ func customselect_dictionaries_dictionarylist(hcl_gui *hcl_gui, dictionaries *[]
 						return table
 					}(),
 				),
-				container.NewVBox(
-					widget.NewButton("Clear All", func() {
-						entry.SetText("")
-						valid_files := len(*dictionaries)
-						table.Length = func() (int, int) { return valid_files+1, 2 }
-						table.Refresh()
-					}),
+				container.NewPadded(
+					container.NewGridWithColumns(2,
+						container.NewHBox(
+							widget.NewButtonWithIcon("File", theme.ContentAddIcon(), func() {
+								go func() {
+									file, err := NewFileOpen(hcl_gui)
+									if err == nil {
+										hcl_gui.data.dictionaries.AddFile(file);
+										if file_exists := File_Exists(file); file_exists == true {
+											customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, table, dictionaries, entry, search.Text)
+											entry.SetText(entry.Text+file+"\n")
+											valid_files := len(*dictionaries)
+											table.Length = func() (int, int) { return valid_files+1, 2 }
+											table.Refresh()
+										}
+									}
+								}()
+							}),	
+							widget.NewButtonWithIcon("Folder", theme.ContentAddIcon(), func() {
+								go func() {
+									dir, err := NewFolderOpen(hcl_gui)
+									if err == nil {
+										found_files, err := ioutil.ReadDir(dir)
+										files := []string{}
+										if err == nil {
+											if len(found_files) > 0 {
+												for _, found_file := range found_files {
+													if (!found_file.IsDir()) {
+														file := filepath_mod.Join(dir, found_file.Name())
+														hcl_gui.data.dictionaries.AddFile(file);
+														files = append(files, file)
+													}
+												}
+												customselect_dictionaries_dictionarylist_options(modal, data, hcl_gui, table, dictionaries, entry, search.Text)
+												entry.SetText(entry.Text+strings.Join(files, "\n")+"\n")
+												valid_files := len(*dictionaries)
+												table.Length = func() (int, int) { return valid_files+1, 2 }
+												table.Refresh()
+											}
+										}
+									}
+								}()
+							}),
+						),
+						widget.NewButtonWithIcon("Clear All", theme.ContentClearIcon(), func() {
+							entry.SetText("")
+							valid_files := len(*dictionaries)
+							table.Length = func() (int, int) { return valid_files+1, 2 }
+							table.Refresh()
+						}),
+					),
 				),
 			),
 		),
