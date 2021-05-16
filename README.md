@@ -2,10 +2,22 @@
 hashcat.launcher is a cross-platform app that run and control hashcat  
 it is designed to make it easier to use hashcat offering a friendly graphical user interface
 
-## Installation
+
+## Getting Started
+
+### Using pre-built release
  - Download a [release](https://github.com/s77rt/hashcat.launcher/releases)
- - Extract
- - Execute
+ - Extract the archive
+ - Run the executable
+
+### Building from source
+ - `git clone https://github.com/s77rt/hashcat.launcher.git`
+ - `cd hashcat.launcher/cmd/hashcat.launcher`
+ - `go build`
+ - Run the executable
+
+## Screenshots
+![hashcat.launcher](/docs/screenshots/1.png?raw=true "hashcat.launcher")
 
 ## Changelog
 Refer to [CHANGELOG.md](https://github.com/s77rt/hashcat.launcher/blob/master/docs/CHANGELOG.md)
