@@ -2,11 +2,12 @@ package xsettings
 
 import (
 	"encoding/json"
-	"os"
 	"log"
-	"strings"
-	"strconv"
+	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 )
@@ -81,7 +82,7 @@ func (s *Settings) chooseScale(value string) {
 	if err != nil {
 		log.Println("Cannot set scale to:", value)
 	}
-	s.fyneSettings.Scale = float32(scale/100)
+	s.fyneSettings.Scale = float32(scale / 100)
 }
 
 func (s *Settings) Theme() string {

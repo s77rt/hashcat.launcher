@@ -1,14 +1,15 @@
 package subprocess
 
 import (
-	"os"
-	"os/exec"
-	"io"
 	"bufio"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
 )
 
 type SubprocessStatus int
+
 const (
 	SubprocessStatusNotRunning SubprocessStatus = iota
 	SubprocessStatusRunning
@@ -16,16 +17,16 @@ const (
 )
 
 type Subprocess struct {
-	Status SubprocessStatus
-	WDir string
-	Program string
-	Args []string
-	Process *os.Process
-	Stdin_stream io.WriteCloser
+	Status          SubprocessStatus
+	WDir            string
+	Program         string
+	Args            []string
+	Process         *os.Process
+	Stdin_stream    io.WriteCloser
 	Stdout_callback func(string)
 	Stderr_callback func(string)
-	Preprocess func()
-	Postprocess func()
+	Preprocess      func()
+	Postprocess     func()
 }
 
 func (p *Subprocess) Execute() {

@@ -2,17 +2,17 @@ package xwidget
 
 import (
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/widget"
-	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 )
 
 // Selector
 type Selector struct {
 	widget.Select
 
-	OnTapped func()
+	OnTapped  func()
 	OnChanged func(string)
 }
 
@@ -47,10 +47,10 @@ type SelectorOption struct {
 
 	Value string
 
-	OnTapped func(string)
+	OnTapped          func(string)
 	OnTappedSecondary func(string)
 
-	hovered  bool
+	hovered bool
 }
 
 func NewSelectorOptionWithStyle(text string, value string, alignment fyne.TextAlign, style fyne.TextStyle, tappedLeft func(string)) *SelectorOption {
@@ -103,8 +103,8 @@ func (so *SelectorOption) CreateRenderer() fyne.WidgetRenderer {
 
 type SelectorOptionRenderer struct {
 	selectoroption *SelectorOption
-	background *canvas.Rectangle
-	label *widget.Label
+	background     *canvas.Rectangle
+	label          *widget.Label
 }
 
 func (h *SelectorOptionRenderer) Layout(size fyne.Size) {

@@ -1,16 +1,17 @@
 package subprocess
 
 import (
-	"os"
-	"os/exec"
-	"io"
 	"bufio"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
 	"syscall"
 	"unsafe"
 )
 
 type SubprocessStatus int
+
 const (
 	SubprocessStatusNotRunning SubprocessStatus = iota
 	SubprocessStatusRunning
@@ -18,16 +19,16 @@ const (
 )
 
 type Subprocess struct {
-	Status SubprocessStatus
-	WDir string
-	Program string
-	Args []string
-	Process *os.Process
-	Stdin_stream io.WriteCloser
+	Status          SubprocessStatus
+	WDir            string
+	Program         string
+	Args            []string
+	Process         *os.Process
+	Stdin_stream    io.WriteCloser
 	Stdout_callback func(string)
 	Stderr_callback func(string)
-	Preprocess func()
-	Postprocess func()
+	Preprocess      func()
+	Postprocess     func()
 }
 
 func (p *Subprocess) Execute() {
@@ -70,12 +71,12 @@ func (p *Subprocess) Execute() {
 func (p *Subprocess) PostKey(key uint8) (uintptr, error) {
 	var user32 = syscall.NewLazyDLL("user32.dll")
 
-	EnumWindows := func (enumFunc uintptr, lparam uintptr) {
+	EnumWindows := func(enumFunc uintptr, lparam uintptr) {
 		user32.NewProc("EnumWindows").Call(uintptr(enumFunc), uintptr(lparam))
 	}
 
 	var hwnd uintptr
-	cb := syscall.NewCallback(func(h uintptr , prm uintptr) uintptr {
+	cb := syscall.NewCallback(func(h uintptr, prm uintptr) uintptr {
 		var itr_pid uint32
 		itr_pid = 0x0001
 		user32.NewProc("GetWindowThreadProcessId").Call(uintptr(h), uintptr(unsafe.Pointer(&itr_pid)))

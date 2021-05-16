@@ -2,7 +2,10 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
-## [undefined] mm/dd/yyyy
+## [dev] mm/dd/yyyy
+### Changed:
+ - hashcat min required version: v6.2.1
+
 ### Added:
  - Markov options (#31)
  - Two buttons to add & select dictionaries in one click

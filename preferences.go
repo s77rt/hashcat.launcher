@@ -2,8 +2,9 @@ package hashcatlauncher
 
 import (
 	"os"
-	"runtime"
 	"path/filepath"
+	"runtime"
+
 	"fyne.io/fyne/v2"
 )
 

@@ -2,6 +2,7 @@ package hashcatlauncher
 
 import (
 	"fmt"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -14,14 +15,14 @@ func tasksScreen(hcl_gui *hcl_gui) fyne.CanvasObject {
 	// Tree
 	hcl_gui.tasks_tree = widget.NewTreeWithStrings(
 		map[string][]string{
-			"": {},
-			"Running": {},
-			"Queued": {},
-			"Paused": {},
-			"Failed": {},
+			"":         {},
+			"Running":  {},
+			"Queued":   {},
+			"Paused":   {},
+			"Failed":   {},
 			"Finished": {},
 		},
-	) 
+	)
 
 	hcl_gui.tasks_tree.OnSelected = func(uid string) {
 		_, ok := hcl_gui.sessions[uid]

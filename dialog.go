@@ -1,16 +1,17 @@
 package hashcatlauncher
 
 import (
-	"sync"
 	"errors"
 	"strings"
+	"sync"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	dialog2 "github.com/OpenDiablo2/dialog"
 )
 
 const (
-	Dialog_OS string = "os"
+	Dialog_OS     string = "os"
 	Dialog_Native string = "native"
 )
 
@@ -25,7 +26,7 @@ func NewFileOpen(hcl_gui *hcl_gui) (string, error) {
 	} else {
 		file, err = newFileOpen_Native(hcl_gui)
 	}
-	
+
 	return file, err
 }
 
@@ -69,7 +70,7 @@ func NewFileSave(hcl_gui *hcl_gui) (string, error) {
 	} else {
 		file, err = newFileSave_Native(hcl_gui)
 	}
-	
+
 	return file, err
 }
 
@@ -113,7 +114,7 @@ func NewFolderOpen(hcl_gui *hcl_gui) (string, error) {
 	} else {
 		folder, err = newFolderOpen_Native(hcl_gui)
 	}
-	
+
 	return folder, err
 }
 

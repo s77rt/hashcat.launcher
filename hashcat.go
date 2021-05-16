@@ -1,51 +1,53 @@
 package hashcatlauncher
 
 import (
-	"os"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
-	"path/filepath"
+
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
 )
 
 // Types
 type hashcat struct {
-	binary_file string
-	available_hash_types map[string]string
+	binary_file                      string
+	available_hash_types             map[string]string
 	available_hash_types_sorted_keys []string
-	args hashcat_args
+	args                             hashcat_args
 }
 
 type hashcat_args struct {
-	session string
-	attack_mode hashcat_attack_mode
-	hash_file string
-	hash_type hashcat_hash_type
-	separator string
+	session             string
+	attack_mode         hashcat_attack_mode
+	hash_file           string
+	hash_type           hashcat_hash_type
+	separator           string
 	remove_found_hashes bool
-	disable_potfile bool
-	ignore_usernames bool
-	disable_monitor bool
-	temp_abort int
-	devices_types []int
-	workload_profile hashcat_workload_profile
-	outfile string
-	outfile_format []int
-	optimized_kernel bool
-	slower_candidate bool
-	disable_self_test bool
-	force bool
-	status_timer int
-	attack_payload string
-	markov_hcstat2 string
-	markov_disable bool
-	markov_classic bool
-	markov_threshold int
+	disable_potfile     bool
+	ignore_usernames    bool
+	disable_monitor     bool
+	temp_abort          int
+	devices_types       []int
+	workload_profile    hashcat_workload_profile
+	outfile             string
+	outfile_format      []int
+	optimized_kernel    bool
+	slower_candidate    bool
+	disable_self_test   bool
+	force               bool
+	status_timer        int
+	attack_payload      string
+	markov_hcstat2      string
+	markov_disable      bool
+	markov_classic      bool
+	markov_threshold    int
 }
 
 type hashcat_workload_profile int
+
 const (
 	_ hashcat_workload_profile = iota
 	hashcat_workload_profile_Low
@@ -55,6 +57,7 @@ const (
 )
 
 type hashcat_attack_mode int
+
 const (
 	hashcat_attack_mode_Dictionary hashcat_attack_mode = iota
 	hashcat_attack_mode_Combinator
@@ -77,7 +80,7 @@ func get_available_hash_types(hcl_gui *hcl_gui) {
 		subprocess.SubprocessStatusNotRunning,
 		wdir,
 		hcl_gui.hashcat.binary_file,
-		[]string{"--example-hashes", "--quiet"},
+		[]string{"--hash-info", "--quiet"},
 		nil,
 		nil,
 		func(s string) {
@@ -95,7 +98,7 @@ func get_available_hash_types(hcl_gui *hcl_gui) {
 		func(s string) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
 		},
-		func(){},
+		func() {},
 		func() {
 			hcl_gui.hashcat.available_hash_types_sorted_keys = make([]string, 0, len(hcl_gui.hashcat.available_hash_types))
 			for k := range hcl_gui.hashcat.available_hash_types {
@@ -119,18 +122,18 @@ func get_devices_info(hcl_gui *hcl_gui) string {
 		nil,
 		nil,
 		func(s string) {
-			info += re_ansi.ReplaceAllString(s, "")+"\n"
+			info += re_ansi.ReplaceAllString(s, "") + "\n"
 		},
 		func(s string) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
-			errors += re_ansi.ReplaceAllString(s, "")+"\n"
+			errors += re_ansi.ReplaceAllString(s, "") + "\n"
 		},
-		func(){},
-		func(){},
+		func() {},
+		func() {},
 	}
 	cmd.Execute()
 	if len(errors) > 0 {
-		info += "\nErrors:\n"+errors
+		info += "\nErrors:\n" + errors
 	}
 	return info
 }
@@ -143,22 +146,22 @@ func get_benchmark(hcl_gui *hcl_gui) string {
 		subprocess.SubprocessStatusNotRunning,
 		wdir,
 		hcl_gui.hashcat.binary_file,
-		[]string{"-O", fmt.Sprintf("-m%d", hcl_gui.hashcat.args.hash_type), "-b", fmt.Sprintf("-w%d", hcl_gui.hashcat.args.workload_profile), "-D", intSliceToString(hcl_gui.hashcat.args.devices_types,","), "--force", "--quiet"},
+		[]string{"-O", fmt.Sprintf("-m%d", hcl_gui.hashcat.args.hash_type), "-b", fmt.Sprintf("-w%d", hcl_gui.hashcat.args.workload_profile), "-D", intSliceToString(hcl_gui.hashcat.args.devices_types, ","), "--force", "--quiet"},
 		nil,
 		nil,
 		func(s string) {
-			benchmark += re_ansi.ReplaceAllString(s, "")+"\n"
+			benchmark += re_ansi.ReplaceAllString(s, "") + "\n"
 		},
 		func(s string) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
-			errors += re_ansi.ReplaceAllString(s, "")+"\n"
+			errors += re_ansi.ReplaceAllString(s, "") + "\n"
 		},
-		func(){},
-		func(){},
+		func() {},
+		func() {},
 	}
 	cmd.Execute()
 	if len(errors) > 0 {
-		benchmark += "\nErrors:\n"+errors
+		benchmark += "\nErrors:\n" + errors
 	}
 	return benchmark
 }
@@ -171,7 +174,7 @@ func set_hash_type(hcl_gui *hcl_gui, value string) {
 }
 
 func set_attack_mode(hcl_gui *hcl_gui, value string) {
-	switch value{
+	switch value {
 	case "Dictionary":
 		hcl_gui.hc_attack_mode.Selected = "Dictionary"
 		hcl_gui.hashcat.args.attack_mode = hashcat_attack_mode_Dictionary
@@ -263,13 +266,13 @@ func set_devices_types(hcl_gui *hcl_gui, devices string) {
 	case "FPGA":
 		devices_int = []int{3}
 	case "GPU+CPU":
-		devices_int = []int{1,2}
+		devices_int = []int{1, 2}
 	case "GPU+FPGA":
-		devices_int = []int{2,3}
+		devices_int = []int{2, 3}
 	case "CPU+FPGA":
-		devices_int = []int{1,3}
+		devices_int = []int{1, 3}
 	case "All":
-		devices_int = []int{1,2,3}
+		devices_int = []int{1, 2, 3}
 	}
 	hcl_gui.hashcat.args.devices_types = devices_int
 }
@@ -317,13 +320,13 @@ func set_outfile_format(hcl_gui *hcl_gui, outfile_format string) {
 	case "plain":
 		outfile_format_int = []int{2}
 	case "hash[:salt]:plain":
-		outfile_format_int = []int{1,2}
+		outfile_format_int = []int{1, 2}
 	case "hash[:salt]:plain:hex_plain":
-		outfile_format_int = []int{1,2,3}
+		outfile_format_int = []int{1, 2, 3}
 	case "hash[:salt]:plain:crack_pos":
-		outfile_format_int = []int{1,2,4}
+		outfile_format_int = []int{1, 2, 4}
 	case "hash[:salt]:plain:hex_plain:crack_pos":
-		outfile_format_int = []int{1,2,3,4}
+		outfile_format_int = []int{1, 2, 3, 4}
 	}
 	hcl_gui.hashcat.args.outfile_format = outfile_format_int
 }

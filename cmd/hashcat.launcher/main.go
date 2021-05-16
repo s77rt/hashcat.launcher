@@ -4,9 +4,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
 	"fyne.io/fyne/v2/app"
-	"github.com/s77rt/hashcat.launcher"
 	dialog2 "github.com/OpenDiablo2/dialog"
+	"github.com/s77rt/hashcat.launcher"
 )
 
 func main() {
@@ -20,7 +21,7 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 	go func() {
-		<- sigs
+		<-sigs
 		app_gui.Clean()
 		os.Exit(0)
 	}()
@@ -28,7 +29,7 @@ func main() {
 	defer func() {
 		app_gui.Clean()
 	}()
- 
+
 	dialog2.Init()
 	app.Driver().Run()
 }

@@ -1,12 +1,13 @@
 package hashcatlauncher
 
 import (
-	"os"
-	"strings"
-	"strconv"
-	"io/ioutil"
 	"encoding/binary"
+	"io/ioutil"
+	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
+
 	"fyne.io/fyne/v2/dialog"
 )
 
@@ -23,7 +24,7 @@ func GetRestoreFiles(hcl_gui *hcl_gui) []string {
 
 type RestoreFile struct {
 	Version int32
-	Cwd string // 256 chars
+	Cwd     string // 256 chars
 
 	Dicts_pos uint32
 	Masks_pos uint32
@@ -34,8 +35,8 @@ type RestoreFile struct {
 	Argv string
 
 	Session_name string
-	Time int64
-	Task_id int
+	Time         int64
+	Task_id      int
 
 	Path string
 }

@@ -2,6 +2,7 @@ package hashcatlauncher
 
 import (
 	"time"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/widget"
 )
@@ -13,9 +14,9 @@ type hcl_gui_monitor struct {
 type monitor_hardware struct {
 	temp *widget.Label
 	core *widget.Label
-	mem *widget.Label
-	bus *widget.Label
-	fan *widget.ProgressBar
+	mem  *widget.Label
+	bus  *widget.Label
+	fan  *widget.ProgressBar
 	util *widget.ProgressBar
 }
 
@@ -30,10 +31,10 @@ func (monitor *hcl_gui_monitor) Init() {
 		}
 	}()
 	for i, _ := range monitor.hardwares {
-		monitor.hardwares[i].temp = widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-		monitor.hardwares[i].core = widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-		monitor.hardwares[i].mem = widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-		monitor.hardwares[i].bus = widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
+		monitor.hardwares[i].temp = widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+		monitor.hardwares[i].core = widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+		monitor.hardwares[i].mem = widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+		monitor.hardwares[i].bus = widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 		monitor.hardwares[i].fan = widget.NewProgressBar()
 		monitor.hardwares[i].fan.Min = 0
 		monitor.hardwares[i].fan.Max = 100

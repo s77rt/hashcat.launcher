@@ -1,38 +1,40 @@
 package hashcatlauncher
 
 import (
-	"os"
-	"io"
-	"sort"
-	"strings"
-	"strconv"
-	"time"
-	"fmt"
 	"errors"
+	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
-	"fyne.io/fyne/v2/widget"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
 )
 
 type Session struct {
-	Id string
-	Nickname string
-	Arguments []string
-	Status SessionStatus
-	Process subprocess.Subprocess
-	Journal *widget.TextGrid
-	Content fyne.CanvasObject
+	Id                    string
+	Nickname              string
+	Arguments             []string
+	Status                SessionStatus
+	Process               subprocess.Subprocess
+	Journal               *widget.TextGrid
+	Content               fyne.CanvasObject
 	Notifications_Enabled bool
-	Priority int
+	Priority              int
 }
 
 type SessionStatus int
+
 const (
 	SessionStatusRunning SessionStatus = iota
 	SessionStatusQueued
@@ -47,7 +49,6 @@ type SessionIdSorter []*Session
 func (a SessionIdSorter) Len() int           { return len(a) }
 func (a SessionIdSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a SessionIdSorter) Less(i, j int) bool { return a[i].Id < a[j].Id }
-
 
 func (session *Session) UpdateJournal(new_msg string) {
 	session.Journal.SetText(fmt.Sprintf("%s %s\n%s", time.Now().Format("2006-01-02 15:04:05"), new_msg, session.Journal.Text()))
@@ -113,7 +114,7 @@ func (session *Session) SetStatus(app fyne.App, hcl_gui *hcl_gui, status Session
 		CalculateSessionsStatusStats(hcl_gui)
 		if session.Notifications_Enabled == true {
 			app.SendNotification(&fyne.Notification{
-				Title:   session.Nickname,
+				Title: session.Nickname,
 				Content: (func() string {
 					switch session.Status {
 					case SessionStatusRunning:
@@ -144,7 +145,7 @@ func RemoveSession(hcl_gui *hcl_gui, session *Session) {
 func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, restore_file *RestoreFile, attack_payload []string, enable_notifications bool, priority int) {
 	if task_id < 0 {
 		task_id = hcl_gui.next_task_id
-		SetPreference_next_task_id(app, hcl_gui, (hcl_gui.next_task_id+1))
+		SetPreference_next_task_id(app, hcl_gui, (hcl_gui.next_task_id + 1))
 	}
 	if session_id == "" {
 		session_id = fmt.Sprintf("hcl_%d_%d", time.Now().UnixNano(), task_id)
@@ -168,38 +169,38 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 
 	latest_update := widget.NewLabelWithStyle(fmt.Sprintf("Latest update: %s", time.Now().Format("2006-01-02 15:04:05")), fyne.TextAlignLeading, fyne.TextStyle{})
 
-	status := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	speed := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	hash_type := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	hash_target := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	time_started := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	time_estimated := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
+	status := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	speed := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	hash_type := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	hash_target := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	time_started := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	time_estimated := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	progress := widget.NewProgressBar()
 	progress.Min = 0
 	progress.Max = 100
-	progress_text := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
+	progress_text := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	recovered := widget.NewProgressBar()
 	recovered.Min = 0
 	recovered.Max = 100
-	recovered_text := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	guess_queue := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	guess_base := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	guess_mod := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	guess_mask := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
-	guess_charset := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
+	recovered_text := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	guess_queue := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	guess_base := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	guess_mod := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	guess_mask := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	guess_charset := widget.NewLabelWithStyle("N/A", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 
-	start := widget.NewButtonWithIcon("Start", theme.MediaPlayIcon(), func(){
+	start := widget.NewButtonWithIcon("Start", theme.MediaPlayIcon(), func() {
 		if hcl_gui.count_sessions_running < hcl_gui.max_active_sessions {
 			session.Start()
 		} else {
 			dialog.ShowError(errors.New("Max Active Sessions Reached!"), hcl_gui.window)
 		}
 	})
-	view_arguments := widget.NewButton("View Arguments", func(){
+	view_arguments := widget.NewButton("View Arguments", func() {
 		var modal *widget.PopUp
 		view_arguments_data := strings.Join(session.Arguments, "\n")
 		var copy_btn *widget.Button
-		copy_btn = widget.NewButton("Copy", func(){
+		copy_btn = widget.NewButton("Copy", func() {
 			hcl_gui.window.Clipboard().SetContent(view_arguments_data)
 			copy_btn.SetText("Copied!")
 		})
@@ -208,7 +209,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 				widget.NewLabelWithStyle("Arguments", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 				layout.NewSpacer(),
 				widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-					hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+					hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent) {})
 					modal.Hide()
 				}),
 			),
@@ -225,7 +226,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 		)
 		hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
 			if key.Name == fyne.KeyEscape {
-				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent){})
+				hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent) {})
 				modal.Hide()
 			}
 		})
@@ -233,25 +234,25 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 		modal.Show()
 	})
 	view_arguments.Importance = widget.LowImportance
-	refresh := widget.NewButtonWithIcon("Refresh", theme.ViewRefreshIcon(), func(){
+	refresh := widget.NewButtonWithIcon("Refresh", theme.ViewRefreshIcon(), func() {
 		session.Refresh()
 	})
 	refresh.Disable()
 	var pause, resume *widget.Button
-	pause = widget.NewButtonWithIcon("Pause", theme.MediaPauseIcon(), func(){
+	pause = widget.NewButtonWithIcon("Pause", theme.MediaPauseIcon(), func() {
 		session.Pause()
-		go func(){
-			time.Sleep(100*time.Millisecond)
+		go func() {
+			time.Sleep(100 * time.Millisecond)
 			session.Refresh()
 		}()
 		session.UpdateJournal("Paused")
 	})
 	pause.Disable()
-	resume = widget.NewButtonWithIcon("Resume", theme.MediaPlayIcon(), func(){
+	resume = widget.NewButtonWithIcon("Resume", theme.MediaPlayIcon(), func() {
 		if hcl_gui.count_sessions_running < hcl_gui.max_active_sessions {
 			session.Resume()
-			go func(){
-				time.Sleep(100*time.Millisecond)
+			go func() {
+				time.Sleep(100 * time.Millisecond)
 				session.Refresh()
 			}()
 			session.UpdateJournal("Resumed")
@@ -260,22 +261,22 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 		}
 	})
 	resume.Disable()
-	checkpoint := widget.NewButtonWithIcon("Checkpoint", theme.MediaRecordIcon(), func(){
+	checkpoint := widget.NewButtonWithIcon("Checkpoint", theme.MediaRecordIcon(), func() {
 		session.Checkpoint()
 	})
 	checkpoint.Disable()
-	skip := widget.NewButtonWithIcon("Skip", theme.MediaSkipNextIcon(), func(){
+	skip := widget.NewButtonWithIcon("Skip", theme.MediaSkipNextIcon(), func() {
 		session.Skip()
 	})
 	skip.Disable()
-	stop := widget.NewButtonWithIcon("Stop", theme.MediaStopIcon(), func(){
+	stop := widget.NewButtonWithIcon("Stop", theme.MediaStopIcon(), func() {
 		if started {
 			session.Quit()
 		}
 		session.UpdateJournal("Graceful Stop")
 	})
 	stop.Disable()
-	terminate := widget.NewButtonWithIcon("Terminate", theme.CancelIcon(), func(){
+	terminate := widget.NewButtonWithIcon("Terminate", theme.CancelIcon(), func() {
 		if started {
 			session.Quit()
 		}
@@ -284,7 +285,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 		terminated = true
 	})
 	terminate.Disable()
-	terminate_n_close := widget.NewButtonWithIcon("Terminate & Close", theme.CancelIcon(), func(){
+	terminate_n_close := widget.NewButtonWithIcon("Terminate & Close", theme.CancelIcon(), func() {
 		if started {
 			session.Quit()
 		}
@@ -368,18 +369,18 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 
 			args = append(args, fmt.Sprintf("--separator=%s", string(hcl_gui.hashcat.args.separator)))
 
-			args = append(args, []string{"-D", intSliceToString(hcl_gui.hashcat.args.devices_types,",")}...)
+			args = append(args, []string{"-D", intSliceToString(hcl_gui.hashcat.args.devices_types, ",")}...)
 
 			if len(hcl_gui.hashcat.args.outfile) > 0 {
 				args = append(args, []string{"-o", hcl_gui.hashcat.args.outfile}...)
 			}
 
-			args = append(args, fmt.Sprintf("--outfile-format=%s", intSliceToString(hcl_gui.hashcat.args.outfile_format,",")))
+			args = append(args, fmt.Sprintf("--outfile-format=%s", intSliceToString(hcl_gui.hashcat.args.outfile_format, ",")))
 
 			if len(hcl_gui.hc_extra_args.Text) > 0 {
 				args = append(args, strings.Split(hcl_gui.hc_extra_args.Text, " ")...)
 			}
-				
+
 			args = append(args, attack_payload...)
 
 			return args
@@ -454,9 +455,9 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 				case "Hash.Target":
 					hash_target.SetText(status_line[2])
 				case "Guess.Queue.Base":
-					guess_queue.SetText("Base: "+status_line[2])
+					guess_queue.SetText("Base: " + status_line[2])
 				case "Guess.Queue.Mod":
-					guess_queue.SetText(guess_queue.Text+", Mod: "+status_line[2])
+					guess_queue.SetText(guess_queue.Text + ", Mod: " + status_line[2])
 				case "Guess.Queue":
 					guess_queue.SetText(status_line[2])
 				case "Guess.Base":
@@ -496,7 +497,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 				case "Time.Estimated":
 					time_estimated.SetText(status_line[2])
 				case "Speed.#1":
-					if (!multiple_devices) {
+					if !multiple_devices {
 						speed_line := re_speed.FindStringSubmatch(status_line[2])
 						if len(speed_line) == 1 {
 							speed.SetText(speed_line[0])
@@ -551,7 +552,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 								}
 							}
 						}
-						if (hwmon_id >= 0) {
+						if hwmon_id >= 0 {
 							hcl_gui.monitor.hardwares[hwmon_id].temp.SetText(hwmon_temp)
 							hcl_gui.monitor.hardwares[hwmon_id].fan.SetValue(hwmon_fan)
 							hcl_gui.monitor.hardwares[hwmon_id].util.SetValue(hwmon_util)
@@ -569,7 +570,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 			if len(s) > 0 {
 				status.SetText("An error occurred")
 				session.SetStatus(app, hcl_gui, SessionStatusFailed)
-				session.UpdateJournal("Error: "+re_ansi.ReplaceAllString(s, ""))
+				session.UpdateJournal("Error: " + re_ansi.ReplaceAllString(s, ""))
 			}
 		},
 		func() {
@@ -671,7 +672,7 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 			widget.NewCard("Features", "task options and features",
 				container.NewVBox(
 					(func() *widget.Check {
-						c := widget.NewCheck("Enable Notifications", func(check bool){
+						c := widget.NewCheck("Enable Notifications", func(check bool) {
 							session.Notifications_Enabled = check
 						})
 						c.SetChecked(session.Notifications_Enabled)
@@ -790,7 +791,7 @@ func AutoStart(hcl_gui *hcl_gui) {
 			for _, session := range SortTasksByPriorityAndDate(hcl_gui) {
 				if session.Process.Status == subprocess.SubprocessStatusNotRunning {
 					session.Start()
-					time.Sleep(2*time.Second)
+					time.Sleep(2 * time.Second)
 					break
 				}
 			}
