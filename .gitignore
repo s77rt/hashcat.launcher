@@ -3,3 +3,6 @@
 hashcat.launcher
 hashcat.launcher.exe
 hashcat.launcher.bin
+bin/
+*.tar.gz
+version.go

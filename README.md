@@ -12,9 +12,9 @@ it is designed to make it easier to use hashcat offering a friendly graphical us
 
 ### Building from source
  - `git clone https://github.com/s77rt/hashcat.launcher.git`
- - `cd hashcat.launcher/cmd/hashcat.launcher`
- - `go build`
- - Run the executable
+ - `cd hashcat.launcher`
+ - `make`
+ - Executables can be found packaged in `bin` directory
 
 ## Screenshots
 ![hashcat.launcher](/docs/screenshots/1.png?raw=true "hashcat.launcher")

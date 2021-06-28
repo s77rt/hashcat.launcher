@@ -2,7 +2,7 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
-## [dev] mm/dd/yyyy
+## [dev] dd/mm/yyyy
 ### Changed:
  - hashcat min required version: v6.2.1
 

@@ -1,5 +1,7 @@
 package hashcatlauncher
 
+//go:generate go run gen.go
+
 import (
 	"errors"
 	"fmt"
@@ -13,8 +15,6 @@ import (
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xsettings"
 	"github.com/s77rt/hashcat.launcher/pkg/xfyne/xwidget"
 )
-
-var Version = "dev"
 
 const hashcat_min_version = "v6.2.1"
 
