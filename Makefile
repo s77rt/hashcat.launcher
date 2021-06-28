@@ -27,6 +27,8 @@ compile:
 	@echo "Compiling: "
 	@mkdir -p $(BIN_DIR)
 
+	@go generate
+
 	# Linux (64bit)
 	CC=gcc fyne package -appBuild 1 -appID s77rt.hashcat.launcher -appVersion $(GIT_TAG) -icon $(CMD_DIR)$(PROJECT_NAME)/../../Icon.png -os linux -sourceDir $(CMD_DIR)$(PROJECT_NAME)
 	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_linux.zip $(CMD_DIR)$(PROJECT_NAME)/$(PROJECT_NAME)
