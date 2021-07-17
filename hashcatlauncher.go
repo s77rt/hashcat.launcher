@@ -41,6 +41,7 @@ type hcl_gui struct {
 	hc_attack_mode             *widget.Select
 	hc_separator               *widget.Entry
 	hc_disable_monitor         *widget.Check
+	hc_devices_ids             *widget.Entry
 	hc_devices_types           *widget.Select
 	hc_wordload_profiles       *widget.Select
 	hc_temp_abort              *widget.Select

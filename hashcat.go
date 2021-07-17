@@ -30,6 +30,7 @@ type hashcat_args struct {
 	ignore_usernames    bool
 	disable_monitor     bool
 	temp_abort          int
+	devices_ids         []int
 	devices_types       []int
 	workload_profile    hashcat_workload_profile
 	outfile             string
@@ -75,12 +76,15 @@ type hashcat_hash_type int
 func get_available_hash_types(hcl_gui *hcl_gui) {
 	var hashmode, hashtype string
 	hcl_gui.hashcat.available_hash_types = make(map[string]string)
+	args := []string{}
+	args = append(args, "--hash-info")
+	args = append(args, "--quiet")
 	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
 	cmd := subprocess.Subprocess{
 		subprocess.SubprocessStatusNotRunning,
 		wdir,
 		hcl_gui.hashcat.binary_file,
-		[]string{"--hash-info", "--quiet"},
+		args,
 		nil,
 		nil,
 		func(s string) {
@@ -113,12 +117,16 @@ func get_available_hash_types(hcl_gui *hcl_gui) {
 func get_devices_info(hcl_gui *hcl_gui) string {
 	info := ""
 	errors := ""
+	args := []string{}
+	args = append(args, "-I")
+	args = append(args, "--force")
+	args = append(args, "--quiet")
 	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
 	cmd := subprocess.Subprocess{
 		subprocess.SubprocessStatusNotRunning,
 		wdir,
 		hcl_gui.hashcat.binary_file,
-		[]string{"-I", "--force", "--quiet"},
+		args,
 		nil,
 		nil,
 		func(s string) {
@@ -141,12 +149,23 @@ func get_devices_info(hcl_gui *hcl_gui) string {
 func get_benchmark(hcl_gui *hcl_gui) string {
 	benchmark := ""
 	errors := ""
+	args := []string{}
+	args = append(args, "-O")
+	args = append(args, fmt.Sprintf("-m%d", hcl_gui.hashcat.args.hash_type))
+	args = append(args, "-b")
+	args = append(args, fmt.Sprintf("-w%d", hcl_gui.hashcat.args.workload_profile))
+	if len(hcl_gui.hashcat.args.devices_ids) > 0 {
+		args = append(args, []string{"-d", intSliceToString(hcl_gui.hashcat.args.devices_ids, ",")}...)
+	}
+	args = append(args, []string{"-D", intSliceToString(hcl_gui.hashcat.args.devices_types, ",")}...)
+	args = append(args, "--force")
+	args = append(args, "--quiet")
 	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
 	cmd := subprocess.Subprocess{
 		subprocess.SubprocessStatusNotRunning,
 		wdir,
 		hcl_gui.hashcat.binary_file,
-		[]string{"-O", fmt.Sprintf("-m%d", hcl_gui.hashcat.args.hash_type), "-b", fmt.Sprintf("-w%d", hcl_gui.hashcat.args.workload_profile), "-D", intSliceToString(hcl_gui.hashcat.args.devices_types, ","), "--force", "--quiet"},
+		args,
 		nil,
 		nil,
 		func(s string) {
@@ -256,25 +275,37 @@ func set_temp_abort(hcl_gui *hcl_gui, temp string) {
 	hcl_gui.hashcat.args.temp_abort = int(temp_int)
 }
 
+func set_devices_ids(hcl_gui *hcl_gui, devices string) {
+	var devices_ids []int
+	devices = strings.ReplaceAll(devices, " ", "")
+	for _, s := range strings.Split(devices, ",") {
+		i, err := strconv.Atoi(s)
+		if err == nil {
+			devices_ids = append(devices_ids, i)
+		}
+	}
+	hcl_gui.hashcat.args.devices_ids = devices_ids
+}
+
 func set_devices_types(hcl_gui *hcl_gui, devices string) {
-	var devices_int []int
+	var devices_types []int
 	switch devices {
 	case "GPU":
-		devices_int = []int{2}
+		devices_types = []int{2}
 	case "CPU":
-		devices_int = []int{1}
+		devices_types = []int{1}
 	case "FPGA":
-		devices_int = []int{3}
+		devices_types = []int{3}
 	case "GPU+CPU":
-		devices_int = []int{1, 2}
+		devices_types = []int{1, 2}
 	case "GPU+FPGA":
-		devices_int = []int{2, 3}
+		devices_types = []int{2, 3}
 	case "CPU+FPGA":
-		devices_int = []int{1, 3}
+		devices_types = []int{1, 3}
 	case "All":
-		devices_int = []int{1, 2, 3}
+		devices_types = []int{1, 2, 3}
 	}
-	hcl_gui.hashcat.args.devices_types = devices_int
+	hcl_gui.hashcat.args.devices_types = devices_types
 }
 
 func set_workload_profile(hcl_gui *hcl_gui, profile string) {
@@ -392,6 +423,7 @@ func hashcat_init(hcl_gui *hcl_gui) {
 
 	hcl_gui.hc_temp_abort.SetSelected("90")
 
+	hcl_gui.hc_devices_ids.SetText("")
 	hcl_gui.hc_devices_types.SetSelected("GPU")
 
 	hcl_gui.hc_wordload_profiles.SetSelected("Default")

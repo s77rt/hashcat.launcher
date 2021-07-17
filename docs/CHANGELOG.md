@@ -2,6 +2,10 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [dev] DD/MM/YYYY
+### Added:
+ - Filter/Select devices by id (#40)
+
 ## [0.5.2] 28/06/2021
 ### Changed:
  - hashcat min required version: v6.2.1

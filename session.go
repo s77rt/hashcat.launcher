@@ -369,6 +369,9 @@ func NewSession(app fyne.App, hcl_gui *hcl_gui, task_id int, session_id string, 
 
 			args = append(args, fmt.Sprintf("--separator=%s", string(hcl_gui.hashcat.args.separator)))
 
+			if len(hcl_gui.hashcat.args.devices_ids) > 0 {
+				args = append(args, []string{"-d", intSliceToString(hcl_gui.hashcat.args.devices_ids, ",")}...)
+			}
 			args = append(args, []string{"-D", intSliceToString(hcl_gui.hashcat.args.devices_types, ",")}...)
 
 			if len(hcl_gui.hashcat.args.outfile) > 0 {

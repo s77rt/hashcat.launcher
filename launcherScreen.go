@@ -80,6 +80,11 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 
 	hcl_gui.hc_temp_abort = widget.NewSelect([]string{"60", "70", "75", "80", "85", "90", "95", "100"}, func(s string) { set_temp_abort(hcl_gui, s) })
 
+	hcl_gui.hc_devices_ids = widget.NewEntry()
+	hcl_gui.hc_devices_ids.PlaceHolder = "All"
+	hcl_gui.hc_devices_ids.OnChanged = func(s string) {
+		set_devices_ids(hcl_gui, s)
+	}
 	hcl_gui.hc_devices_types = widget.NewSelect([]string{"GPU", "CPU", "FPGA", "GPU+CPU", "GPU+FPGA", "CPU+FPGA", "All"}, func(s string) { set_devices_types(hcl_gui, s) })
 
 	hcl_gui.hc_wordload_profiles = widget.NewSelect([]string{"Low", "Default", "High", "Nightmare"}, func(s string) { set_workload_profile(hcl_gui, s) })
@@ -1257,9 +1262,13 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 				container.NewGridWithColumns(2,
 					widget.NewCard("Devices", "choose which devices to use",
 						container.NewVBox(
-							container.NewGridWithColumns(2,
+							container.NewGridWithColumns(3,
 								container.NewVBox(
-									widget.NewLabelWithStyle("Devices:", fyne.TextAlignLeading, fyne.TextStyle{}),
+									widget.NewLabelWithStyle("Devices IDs:", fyne.TextAlignLeading, fyne.TextStyle{}),
+									hcl_gui.hc_devices_ids,
+								),
+								container.NewVBox(
+									widget.NewLabelWithStyle("Devices Types:", fyne.TextAlignLeading, fyne.TextStyle{}),
 									hcl_gui.hc_devices_types,
 								),
 								container.NewVBox(
@@ -1267,112 +1276,114 @@ func launcherScreen(app fyne.App, hcl_gui *hcl_gui) fyne.CanvasObject {
 									hcl_gui.hc_wordload_profiles,
 								),
 							),
-							widget.NewButton("Info", func() {
-								var modal *widget.PopUp
-								var info_box *widget.TextGrid
-								var copy_btn *widget.Button
-								var close_btn *widget.Button
-								info_box = widget.NewTextGrid()
-								info := "Obtaining info..."
-								info_box.SetText(info)
-								copy_btn = widget.NewButton("Copy", func() {
-									hcl_gui.window.Clipboard().SetContent(info_box.Text())
-									copy_btn.SetText("Copied!")
-								})
-								copy_btn.Disable()
-								close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-									hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent) {})
-									modal.Hide()
-								})
-								close_btn.Disable()
-								c := container.NewVBox(
-									container.NewHBox(
-										widget.NewLabelWithStyle("Info", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-										layout.NewSpacer(),
-										close_btn,
-									),
-									container.NewPadded(
-										container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
-											container.NewScroll(
-												info_box,
-											),
-										),
-									),
-									container.NewHBox(
-										copy_btn,
-									),
-								)
-								hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
-									if key.Name == fyne.KeyEscape {
-										hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent) {})
-										modal.Hide()
-									}
-								})
-								modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
-								modal.Show()
-								go func() {
-									info = get_devices_info(hcl_gui)
+							container.NewGridWithColumns(2,
+								widget.NewButton("Info", func() {
+									var modal *widget.PopUp
+									var info_box *widget.TextGrid
+									var copy_btn *widget.Button
+									var close_btn *widget.Button
+									info_box = widget.NewTextGrid()
+									info := "Obtaining info..."
 									info_box.SetText(info)
-									copy_btn.Enable()
-									close_btn.Enable()
-								}()
-							}),
-							widget.NewButton("Benchmark", func() {
-								if hcl_gui.hashcat.args.hash_type == -1 {
-									err := errors.New("You must select a hash type")
-									fmt.Fprintf(os.Stderr, "%s\n", err)
-									dialog.ShowError(err, hcl_gui.window)
-									return
-								}
-								var modal *widget.PopUp
-								var benchmark_box *widget.TextGrid
-								var copy_btn *widget.Button
-								var close_btn *widget.Button
-								copy_btn = widget.NewButton("Copy", func() {
-									hcl_gui.window.Clipboard().SetContent(benchmark_box.Text())
-									copy_btn.SetText("Copied!")
-								})
-								copy_btn.Disable()
-								close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-									hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent) {})
-									modal.Hide()
-								})
-								close_btn.Disable()
-								benchmark_box = widget.NewTextGrid()
-								benchmark := "Benchmarking..."
-								benchmark_box.SetText(benchmark)
-								c := container.NewVBox(
-									container.NewHBox(
-										widget.NewLabelWithStyle("Benchmark", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-										layout.NewSpacer(),
-										close_btn,
-									),
-									container.NewPadded(
-										container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
-											container.NewScroll(
-												benchmark_box,
-											),
-										),
-									),
-									container.NewHBox(
-										copy_btn,
-									),
-								)
-								hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
-									if key.Name == fyne.KeyEscape {
+									copy_btn = widget.NewButton("Copy", func() {
+										hcl_gui.window.Clipboard().SetContent(info_box.Text())
+										copy_btn.SetText("Copied!")
+									})
+									copy_btn.Disable()
+									close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
 										hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent) {})
 										modal.Hide()
+									})
+									close_btn.Disable()
+									c := container.NewVBox(
+										container.NewHBox(
+											widget.NewLabelWithStyle("Info", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+											layout.NewSpacer(),
+											close_btn,
+										),
+										container.NewPadded(
+											container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
+												container.NewScroll(
+													info_box,
+												),
+											),
+										),
+										container.NewHBox(
+											copy_btn,
+										),
+									)
+									hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+										if key.Name == fyne.KeyEscape {
+											hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent) {})
+											modal.Hide()
+										}
+									})
+									modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+									modal.Show()
+									go func() {
+										info = get_devices_info(hcl_gui)
+										info_box.SetText(info)
+										copy_btn.Enable()
+										close_btn.Enable()
+									}()
+								}),
+								widget.NewButton("Benchmark", func() {
+									if hcl_gui.hashcat.args.hash_type == -1 {
+										err := errors.New("You must select a hash type")
+										fmt.Fprintf(os.Stderr, "%s\n", err)
+										dialog.ShowError(err, hcl_gui.window)
+										return
 									}
-								})
-								modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
-								modal.Show()
-								go func() {
-									benchmark = get_benchmark(hcl_gui)
+									var modal *widget.PopUp
+									var benchmark_box *widget.TextGrid
+									var copy_btn *widget.Button
+									var close_btn *widget.Button
+									copy_btn = widget.NewButton("Copy", func() {
+										hcl_gui.window.Clipboard().SetContent(benchmark_box.Text())
+										copy_btn.SetText("Copied!")
+									})
+									copy_btn.Disable()
+									close_btn = widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
+										hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent) {})
+										modal.Hide()
+									})
+									close_btn.Disable()
+									benchmark_box = widget.NewTextGrid()
+									benchmark := "Benchmarking..."
 									benchmark_box.SetText(benchmark)
-									copy_btn.Enable()
-									close_btn.Enable()
-								}()
-							}),
+									c := container.NewVBox(
+										container.NewHBox(
+											widget.NewLabelWithStyle("Benchmark", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+											layout.NewSpacer(),
+											close_btn,
+										),
+										container.NewPadded(
+											container.New(layout.NewGridWrapLayout(fyne.Size{600, 500}),
+												container.NewScroll(
+													benchmark_box,
+												),
+											),
+										),
+										container.NewHBox(
+											copy_btn,
+										),
+									)
+									hcl_gui.window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+										if key.Name == fyne.KeyEscape {
+											hcl_gui.window.Canvas().SetOnTypedKey(func(*fyne.KeyEvent) {})
+											modal.Hide()
+										}
+									})
+									modal = widget.NewModalPopUp(c, hcl_gui.window.Canvas())
+									modal.Show()
+									go func() {
+										benchmark = get_benchmark(hcl_gui)
+										benchmark_box.SetText(benchmark)
+										copy_btn.Enable()
+										close_btn.Enable()
+									}()
+								}),
+							),
 						),
 					),
 					widget.NewCard("Monitor", "monitoring options",
