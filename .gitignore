@@ -19,5 +19,8 @@
 /vendor/
 /Godeps/
 
+# Windows related files
+*.syso
+
 # Binaries output
 /bin/
