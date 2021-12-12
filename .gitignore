@@ -1,8 +1,9 @@
 *.exe
 *.bin
 hashcat.launcher
+hashcat.launcher/hashcat
 hashcat.launcher.exe
 hashcat.launcher.bin
 bin/
 *.tar.gz
-version.go
+*.syso

@@ -2,9 +2,14 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
-## [dev] DD/MM/YYYY
+## [1.0.0-alpha] 12/12/2021
+### Changed:
+ - refactored the code
+ - design
+
 ### Added:
  - Filter/Select devices by id (#40)
+ - Tools section
 
 ## [0.5.2] 28/06/2021
 ### Changed:

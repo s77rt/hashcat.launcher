@@ -1,45 +1,53 @@
 PROJECT_NAME = hashcat.launcher
-PACKAGE_NAME = hashcatlauncher
 
 CMD_DIR = ./cmd/
 
 BIN_DIR = ./bin/
 
-GIT_TAG = "$(shell git describe --tags --abbrev=0 | cut -c2-)"
+BIN_DIR_MAC = ./bin/mac/
+BIN_DIR_LINUX = ./bin/linux/
+BIN_DIR_WINDOWS = ./bin/windows/
 
-all: clean dep compile
+GIT_TAG = "$(shell git describe --tags | cut -c 2-)"
+
+LD_FLAGS_LINUX = "-X 'github.com/s77rt/$(PROJECT_NAME).Version=$(GIT_TAG)'"
+LD_FLAGS_WINDOWS = "-X 'github.com/s77rt/$(PROJECT_NAME).Version=$(GIT_TAG)' -H windowsgui"
+LD_FLAGS_MAC = "-X 'github.com/s77rt/$(PROJECT_NAME).Version=$(GIT_TAG)'"
+
+all: clean dep build
 
 clean:
 	@echo -n "Cleaning: "
 	@rm -rf $(BIN_DIR)
-	@rm -f $(CMD_DIR)$(PROJECT_NAME)/$(PROJECT_NAME)
-	@rm -f $(CMD_DIR)$(PROJECT_NAME)/$(PROJECT_NAME).exe
-	@rm -f $(CMD_DIR)$(PROJECT_NAME)/*.syso
-	@rm -f $(PROJECT_NAME).tar.gz
 	@echo "[OK]"
 
 dep:
 	@echo -n "Downloading Dependencies: "
-	@go get -d ./...
+	@go mod tidy
+	@go install github.com/akavel/rsrc@latest
 	@echo "[OK]"
 
-compile:
-	@echo "Compiling: "
-	@mkdir -p $(BIN_DIR)
+build-linux:
+	@echo "Building for Linux"
+	@mkdir -p $(BIN_DIR_LINUX)
+	GOOS=linux GOARCH=amd64 go build -ldflags $(LD_FLAGS_LINUX) -o $(BIN_DIR_LINUX)$(PROJECT_NAME) $(CMD_DIR)$(PROJECT_NAME)
+	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_linux.zip $(BIN_DIR_LINUX)$(PROJECT_NAME)
+	@echo "Building for Linux [OK]"
 
-	@go generate
+build-windows:
+	@echo "Building for windows"
+	@mkdir -p $(BIN_DIR_WINDOWS)
+	rsrc -arch amd64 -ico Icon.ico -o $(CMD_DIR)$(PROJECT_NAME)/rsrc_windows_amd64.syso
+	GOOS=windows GOARCH=amd64 go build -ldflags $(LD_FLAGS_WINDOWS) -o $(BIN_DIR_WINDOWS)$(PROJECT_NAME).exe $(CMD_DIR)$(PROJECT_NAME)
+	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_windows.zip $(BIN_DIR_WINDOWS)$(PROJECT_NAME).exe
+	@echo "Building for windows [OK]"
 
-	# Linux (64bit)
-	CC=gcc fyne package -appBuild 1 -appID s77rt.hashcat.launcher -appVersion $(GIT_TAG) -icon $(CMD_DIR)$(PROJECT_NAME)/../../Icon.png -os linux -sourceDir $(CMD_DIR)$(PROJECT_NAME)
-	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_linux.zip $(CMD_DIR)$(PROJECT_NAME)/$(PROJECT_NAME)
-	@rm -f $(CMD_DIR)$(PROJECT_NAME)/$(PROJECT_NAME)
-	@rm -f $(PROJECT_NAME).tar.gz
+build-mac:
+	@echo "Building for macOS"
+	@mkdir -p $(BIN_DIR_MAC)
+	GOOS=darwin GOARCH=amd64 go build -ldflags $(LD_FLAGS_MAC) -o $(BIN_DIR_MAC)$(PROJECT_NAME) $(CMD_DIR)$(PROJECT_NAME)
+	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_mac.zip $(BIN_DIR_MAC)$(PROJECT_NAME)
+	@echo "Building for macOS [OK]"
 
-	# Windows (64bit)
-	CC=x86_64-w64-mingw32-gcc fyne package -appBuild 1 -appID s77rt.hashcat.launcher -appVersion $(GIT_TAG) -icon $(CMD_DIR)$(PROJECT_NAME)/../../Icon.png -os windows -sourceDir $(CMD_DIR)$(PROJECT_NAME)
-	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_windows.zip $(CMD_DIR)$(PROJECT_NAME)/$(PROJECT_NAME).exe
-	@rm -f $(CMD_DIR)$(PROJECT_NAME)/$(PROJECT_NAME).exe
-	@rm -f $(CMD_DIR)$(PROJECT_NAME)/*.syso
-	@rm -f $(PROJECT_NAME).tar.gz
-
-	@echo "[OK]"
+#build: build-linux build-windows build-mac
+build: build-linux build-windows

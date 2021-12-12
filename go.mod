@@ -1,9 +1,13 @@
 module github.com/s77rt/hashcat.launcher
 
-go 1.15
+go 1.17
 
 require (
-	fyne.io/fyne/v2 v2.0.3
-	github.com/OpenDiablo2/dialog v0.0.0-20201230220514-26162241209f
-	github.com/fyne-io/fyne-cross v1.0.0 // indirect
+	github.com/sqweek/dialog v0.0.0-20211002065838-9a201b55ab91
+	github.com/zserge/lorca v0.1.10
+)
+
+require (
+	github.com/TheTitanrain/w32 v0.0.0-20180517000239-4f5cfb03fabf // indirect
+	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0 // indirect
 )

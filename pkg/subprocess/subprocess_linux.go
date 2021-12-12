@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"sync"
 )
 
 type SubprocessStatus int
@@ -17,16 +18,16 @@ const (
 )
 
 type Subprocess struct {
-	Status          SubprocessStatus
-	WDir            string
-	Program         string
-	Args            []string
-	Process         *os.Process
-	Stdin_stream    io.WriteCloser
-	Stdout_callback func(string)
-	Stderr_callback func(string)
-	Preprocess      func()
-	Postprocess     func()
+	Status         SubprocessStatus
+	WDir           string
+	Program        string
+	Args           []string
+	Process        *os.Process
+	StdinStream    io.WriteCloser
+	StdoutCallback func(string)
+	StderrCallback func(string)
+	PreProcess     func()
+	PostProcess    func()
 }
 
 func (p *Subprocess) Execute() {
@@ -44,24 +45,36 @@ func (p *Subprocess) Execute() {
 
 	p.Status = SubprocessStatusRunning
 	p.Process = c.Process
-	p.Stdin_stream = stdin
-	p.Preprocess()
+	p.StdinStream = stdin
+	p.PreProcess()
 
-	go func() {
-		stdout_scanner := bufio.NewScanner(stdout)
-		for stdout_scanner.Scan() {
-			p.Stdout_callback(stdout_scanner.Text())
-		}
+	var wg sync.WaitGroup
 
-		stderr_scanner := bufio.NewScanner(stderr)
-		for stderr_scanner.Scan() {
-			p.Stderr_callback(stderr_scanner.Text())
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+
+		stdoutScanner := bufio.NewScanner(stdout)
+		for stdoutScanner.Scan() {
+			p.StdoutCallback(stdoutScanner.Text())
 		}
-	}()
+	}(&wg)
+
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+
+		stderrScanner := bufio.NewScanner(stderr)
+		for stderrScanner.Scan() {
+			p.StderrCallback(stderrScanner.Text())
+		}
+	}(&wg)
+
+	wg.Wait()
 
 	c.Wait()
 	p.Status = SubprocessStatusFinished
-	p.Postprocess()
+	p.PostProcess()
 }
 
 func (p *Subprocess) PostKey(key uint8) (uintptr, error) {

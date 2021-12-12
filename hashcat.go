@@ -1,101 +1,51 @@
 package hashcatlauncher
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
 )
 
-// Types
-type hashcat struct {
-	binary_file                      string
-	available_hash_types             map[string]string
-	available_hash_types_sorted_keys []string
-	args                             hashcat_args
+type Hashcat struct {
+	BinaryFile string           `json:"binaryFile"`
+	Algorithms map[int64]string `json:"algorithms"`
 }
 
-type hashcat_args struct {
-	session             string
-	attack_mode         hashcat_attack_mode
-	hash_file           string
-	hash_type           hashcat_hash_type
-	separator           string
-	remove_found_hashes bool
-	disable_potfile     bool
-	ignore_usernames    bool
-	disable_monitor     bool
-	temp_abort          int
-	devices_ids         []int
-	devices_types       []int
-	workload_profile    hashcat_workload_profile
-	outfile             string
-	outfile_format      []int
-	optimized_kernel    bool
-	slower_candidate    bool
-	disable_self_test   bool
-	force               bool
-	status_timer        int
-	attack_payload      string
-	markov_hcstat2      string
-	markov_disable      bool
-	markov_classic      bool
-	markov_threshold    int
-}
+var DefaultSessionID = "hashcat"
 
-type hashcat_workload_profile int
+func (h *Hashcat) GetAlgorithms() {
+	h.Algorithms = make(map[int64]string)
 
-const (
-	_ hashcat_workload_profile = iota
-	hashcat_workload_profile_Low
-	hashcat_workload_profile_Default
-	hashcat_workload_profile_High
-	hashcat_workload_profile_Nightmare
-)
+	var algorithmMode int64
+	var algorithmName string
 
-type hashcat_attack_mode int
-
-const (
-	hashcat_attack_mode_Dictionary hashcat_attack_mode = iota
-	hashcat_attack_mode_Combinator
-	_
-	hashcat_attack_mode_Mask
-	_
-	_
-	hashcat_attack_mode_Hybrid1
-	hashcat_attack_mode_Hybrid2
-)
-
-type hashcat_hash_type int
-
-// Get Functions
-func get_available_hash_types(hcl_gui *hcl_gui) {
-	var hashmode, hashtype string
-	hcl_gui.hashcat.available_hash_types = make(map[string]string)
-	args := []string{}
-	args = append(args, "--hash-info")
-	args = append(args, "--quiet")
-	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
+	args := []string{"--hash-info", "--quiet"}
+	wdir, _ := filepath.Split(h.BinaryFile)
 	cmd := subprocess.Subprocess{
 		subprocess.SubprocessStatusNotRunning,
 		wdir,
-		hcl_gui.hashcat.binary_file,
+		h.BinaryFile,
 		args,
 		nil,
 		nil,
 		func(s string) {
-			mode_line := re_mode.FindStringSubmatch(s)
-			if len(mode_line) == 2 {
-				hashmode = mode_line[1]
+			modeLine := reMode.FindStringSubmatch(s)
+			if len(modeLine) == 2 {
+				var err error
+				algorithmMode, err = strconv.ParseInt(modeLine[1], 10, 64)
+				if err != nil {
+					return
+				}
 			} else {
-				type_line := re_type.FindStringSubmatch(s)
-				if len(type_line) == 2 {
-					hashtype = type_line[1]
-					hcl_gui.hashcat.available_hash_types[hashmode] = hashtype
+				typeLine := reType.FindStringSubmatch(s)
+				if len(typeLine) == 2 {
+					algorithmName = typeLine[1]
+					h.Algorithms[algorithmMode] = algorithmName
 				}
 			}
 		},
@@ -103,328 +53,246 @@ func get_available_hash_types(hcl_gui *hcl_gui) {
 			fmt.Fprintf(os.Stderr, "%s\n", s)
 		},
 		func() {},
-		func() {
-			hcl_gui.hashcat.available_hash_types_sorted_keys = make([]string, 0, len(hcl_gui.hashcat.available_hash_types))
-			for k := range hcl_gui.hashcat.available_hash_types {
-				hcl_gui.hashcat.available_hash_types_sorted_keys = append(hcl_gui.hashcat.available_hash_types_sorted_keys, k)
-			}
-			sort.Sort(SortByLenThenABC(hcl_gui.hashcat.available_hash_types_sorted_keys))
-		},
-	}
-	cmd.Execute()
-}
-
-func get_devices_info(hcl_gui *hcl_gui) string {
-	info := ""
-	errors := ""
-	args := []string{}
-	args = append(args, "-I")
-	args = append(args, "--force")
-	args = append(args, "--quiet")
-	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
-	cmd := subprocess.Subprocess{
-		subprocess.SubprocessStatusNotRunning,
-		wdir,
-		hcl_gui.hashcat.binary_file,
-		args,
-		nil,
-		nil,
-		func(s string) {
-			info += re_ansi.ReplaceAllString(s, "") + "\n"
-		},
-		func(s string) {
-			fmt.Fprintf(os.Stderr, "%s\n", s)
-			errors += re_ansi.ReplaceAllString(s, "") + "\n"
-		},
-		func() {},
 		func() {},
 	}
 	cmd.Execute()
-	if len(errors) > 0 {
-		info += "\nErrors:\n" + errors
+}
+
+type HashcatArgs struct {
+	Session *string
+
+	AttackMode *HashcatAttackMode `json:"attackMode"`
+	HashMode   *HashcatHashMode   `json:"hashMode"`
+
+	Dictionaries    *[]string `json:"dictionaries"`    // Files
+	Rules           *[]string `json:"rules"`           // Files
+	Mask            *string   `json:"mask"`            // Direct Input
+	MaskFile        *string   `json:"maskFile"`        // File
+	LeftDictionary  *string   `json:"leftDictionary"`  // File
+	LeftRule        *string   `json:"leftRule"`        // Direct Input
+	RightDictionary *string   `json:"rightDictionary"` // File
+	RightRule       *string   `json:"rightRule"`       // Direct Input
+
+	CustomCharset1 *string `json:"customCharset1"`
+	CustomCharset2 *string `json:"customCharset2"`
+	CustomCharset3 *string `json:"customCharset3"`
+	CustomCharset4 *string `json:"customCharset4"`
+
+	EnableMaskIncrementMode *bool  `json:"enableMaskIncrementMode"`
+	MaskIncrementMin        *int64 `json:"maskIncrementMin"`
+	MaskIncrementMax        *int64 `json:"maskIncrementMax"`
+
+	Hash *string `json:"hash"` // File
+
+	EnableOptimizedKernel           *bool `json:"enableOptimizedKernel"`
+	EnableSlowerCandidateGenerators *bool `json:"enableSlowerCandidateGenerators"`
+	RemoveFoundHashes               *bool `json:"removeFoundHashes"`
+	DisablePotFile                  *bool `json:"disablePotFile"`
+	IgnoreUsernames                 *bool `json:"ignoreUsernames"`
+	DisableSelfTest                 *bool `json:"disableSelfTest"`
+	IgnoreWarnings                  *bool `json:"ignoreWarnings"`
+
+	DevicesIDs      *[]int64 `json:"devicesIDs"`
+	DevicesTypes    *[]int64 `json:"devicesTypes"`
+	WorkloadProfile *int64   `json:"workloadProfile"`
+
+	DisableMonitor *bool  `json:"disableMonitor"`
+	TempAbort      *int64 `json:"tempAbort"`
+
+	MarkovDisable   *bool  `json:"markovDisable"`
+	MarkovClassic   *bool  `json:"markovClassic"`
+	MarkovThreshold *int64 `json:"markovThreshold"`
+
+	ExtraArguments *[]string `json:"extraArguments"`
+
+	StatusTimer *int64 `json:"statusTimer"`
+
+	OutputFile   *string  `json:"outputFile"`
+	OutputFormat *[]int64 `json:"outputFormat"`
+}
+
+func (ha *HashcatArgs) Build() (args []string, err error) {
+	if ha.Session == nil {
+		ha.Session = &DefaultSessionID
 	}
-	return info
-}
 
-func get_benchmark(hcl_gui *hcl_gui) string {
-	benchmark := ""
-	errors := ""
-	args := []string{}
-	args = append(args, "-O")
-	args = append(args, fmt.Sprintf("-m%d", hcl_gui.hashcat.args.hash_type))
-	args = append(args, "-b")
-	args = append(args, fmt.Sprintf("-w%d", hcl_gui.hashcat.args.workload_profile))
-	if len(hcl_gui.hashcat.args.devices_ids) > 0 {
-		args = append(args, []string{"-d", intSliceToString(hcl_gui.hashcat.args.devices_ids, ",")}...)
+	if ha.Hash == nil {
+		err = errors.New("Missing hash")
+		return
 	}
-	args = append(args, []string{"-D", intSliceToString(hcl_gui.hashcat.args.devices_types, ",")}...)
-	args = append(args, "--force")
-	args = append(args, "--quiet")
-	wdir, _ := filepath.Split(hcl_gui.hashcat.binary_file)
-	cmd := subprocess.Subprocess{
-		subprocess.SubprocessStatusNotRunning,
-		wdir,
-		hcl_gui.hashcat.binary_file,
-		args,
-		nil,
-		nil,
-		func(s string) {
-			benchmark += re_ansi.ReplaceAllString(s, "") + "\n"
-		},
-		func(s string) {
-			fmt.Fprintf(os.Stderr, "%s\n", s)
-			errors += re_ansi.ReplaceAllString(s, "") + "\n"
-		},
-		func() {},
-		func() {},
+
+	if ha.HashMode == nil {
+		err = errors.New("Missing hash mode (algorithm)")
+		return
 	}
-	cmd.Execute()
-	if len(errors) > 0 {
-		benchmark += "\nErrors:\n" + errors
+
+	if ha.AttackMode == nil {
+		err = errors.New("Missing attack mode")
+		return
 	}
-	return benchmark
-}
 
-// Set Functions
-func set_hash_type(hcl_gui *hcl_gui, value string) {
-	value_int, _ := strconv.ParseInt(value, 10, 32)
-	hcl_gui.hashcat.args.hash_type = hashcat_hash_type(value_int)
-	hcl_gui.hc_hash_type.SetSelected(value)
-}
-
-func set_attack_mode(hcl_gui *hcl_gui, value string) {
-	switch value {
-	case "Dictionary":
-		hcl_gui.hc_attack_mode.Selected = "Dictionary"
-		hcl_gui.hashcat.args.attack_mode = hashcat_attack_mode_Dictionary
-		hcl_gui.hc_dictionary_attack_conf.Show()
-		hcl_gui.hc_combinator_attack_conf.Hide()
-		hcl_gui.hc_mask_attack_conf.Hide()
-		hcl_gui.hc_hybrid1_attack_conf.Hide()
-		hcl_gui.hc_hybrid2_attack_conf.Hide()
-	case "Combinator":
-		hcl_gui.hc_attack_mode.Selected = "Combinator"
-		hcl_gui.hashcat.args.attack_mode = hashcat_attack_mode_Combinator
-		hcl_gui.hc_dictionary_attack_conf.Hide()
-		hcl_gui.hc_combinator_attack_conf.Show()
-		hcl_gui.hc_mask_attack_conf.Hide()
-		hcl_gui.hc_hybrid1_attack_conf.Hide()
-		hcl_gui.hc_hybrid2_attack_conf.Hide()
-	case "Mask":
-		hcl_gui.hc_attack_mode.Selected = "Mask"
-		hcl_gui.hashcat.args.attack_mode = hashcat_attack_mode_Mask
-		hcl_gui.hc_dictionary_attack_conf.Hide()
-		hcl_gui.hc_combinator_attack_conf.Hide()
-		hcl_gui.hc_mask_attack_conf.Show()
-		hcl_gui.hc_hybrid1_attack_conf.Hide()
-		hcl_gui.hc_hybrid2_attack_conf.Hide()
-	case "Hybrid1 (Dict+Mask)":
-		hcl_gui.hc_attack_mode.Selected = "Hybrid1 (Dict+Mask)"
-		hcl_gui.hashcat.args.attack_mode = hashcat_attack_mode_Hybrid1
-		hcl_gui.hc_dictionary_attack_conf.Hide()
-		hcl_gui.hc_combinator_attack_conf.Hide()
-		hcl_gui.hc_mask_attack_conf.Hide()
-		hcl_gui.hc_hybrid1_attack_conf.Show()
-		hcl_gui.hc_hybrid2_attack_conf.Hide()
-	case "Hybrid2 (Mask+Dict)":
-		hcl_gui.hc_attack_mode.Selected = "Hybrid2 (Mask+Dict)"
-		hcl_gui.hashcat.args.attack_mode = hashcat_attack_mode_Hybrid2
-		hcl_gui.hc_dictionary_attack_conf.Hide()
-		hcl_gui.hc_combinator_attack_conf.Hide()
-		hcl_gui.hc_mask_attack_conf.Hide()
-		hcl_gui.hc_hybrid1_attack_conf.Hide()
-		hcl_gui.hc_hybrid2_attack_conf.Show()
+	if ha.StatusTimer == nil {
+		err = errors.New("Missing status timer")
+		return
 	}
-}
 
-func set_hash_file(hcl_gui *hcl_gui, file string) {
-	hcl_gui.hashcat.args.hash_file = file
-}
-
-func set_separator(hcl_gui *hcl_gui) {
-	hcl_gui.hashcat.args.separator = string(hcl_gui.hc_separator.Text[3])
-}
-
-func set_remove_found_hashes(hcl_gui *hcl_gui, check bool) {
-	hcl_gui.hashcat.args.remove_found_hashes = check
-}
-
-func set_disable_potfile(hcl_gui *hcl_gui, check bool) {
-	hcl_gui.hashcat.args.disable_potfile = check
-}
-
-func set_ignore_usernames(hcl_gui *hcl_gui, check bool) {
-	hcl_gui.hashcat.args.ignore_usernames = check
-}
-
-func set_disable_monitor(hcl_gui *hcl_gui, check bool) {
-	if check {
-		hcl_gui.hc_temp_abort.Selected = "OFF"
-		hcl_gui.hc_temp_abort.Refresh()
-	} else {
-		hcl_gui.hc_temp_abort.SetSelected("90")
+	if ha.OutputFile == nil {
+		err = errors.New("Missing output file")
+		return
 	}
-	hcl_gui.hashcat.args.disable_monitor = check
-}
 
-func set_temp_abort(hcl_gui *hcl_gui, temp string) {
-	hcl_gui.hashcat.args.disable_monitor = false
-	hcl_gui.hc_disable_monitor.Checked = false
-	hcl_gui.hc_disable_monitor.Refresh()
-	temp_int, _ := strconv.ParseInt(temp, 10, 32)
-	hcl_gui.hashcat.args.temp_abort = int(temp_int)
-}
+	if ha.OutputFormat == nil {
+		err = errors.New("Missing output format")
+		return
+	}
 
-func set_devices_ids(hcl_gui *hcl_gui, devices string) {
-	var devices_ids []int
-	devices = strings.ReplaceAll(devices, " ", "")
-	for _, s := range strings.Split(devices, ",") {
-		i, err := strconv.Atoi(s)
-		if err == nil {
-			devices_ids = append(devices_ids, i)
+	args = append(args, fmt.Sprintf("--session=%s", *ha.Session))
+
+	args = append(args, []string{"--status", "--status-json", fmt.Sprintf("--status-timer=%d", *ha.StatusTimer)}...)
+
+	if ha.EnableOptimizedKernel != nil && *ha.EnableOptimizedKernel == true {
+		args = append(args, "-O")
+	}
+
+	if ha.EnableSlowerCandidateGenerators != nil && *ha.EnableSlowerCandidateGenerators == true {
+		args = append(args, "-S")
+	}
+
+	if ha.RemoveFoundHashes != nil && *ha.RemoveFoundHashes == true {
+		args = append(args, "--remove")
+	}
+
+	if ha.DisablePotFile != nil && *ha.DisablePotFile == true {
+		args = append(args, "--potfile-disable")
+	}
+
+	if ha.IgnoreUsernames != nil && *ha.IgnoreUsernames == true {
+		args = append(args, "--username")
+	}
+
+	if ha.DisableSelfTest != nil && *ha.DisableSelfTest == true {
+		args = append(args, "--self-test-disable")
+	}
+
+	if ha.IgnoreWarnings != nil && *ha.IgnoreWarnings == true {
+		args = append(args, "--force")
+	}
+
+	if ha.DisableMonitor != nil && *ha.DisableMonitor == true {
+		args = append(args, "--hwmon-disable")
+	} else if ha.TempAbort != nil {
+		args = append(args, fmt.Sprintf("--hwmon-temp-abort=%d", *ha.TempAbort))
+	}
+
+	if ha.MarkovDisable != nil && *ha.MarkovDisable == true {
+		args = append(args, "--markov-disable")
+	}
+	if ha.MarkovClassic != nil && *ha.MarkovClassic == true {
+		args = append(args, "--markov-classic")
+	}
+	if ha.MarkovThreshold != nil {
+		args = append(args, fmt.Sprintf("--markov-threshold=%d", *ha.MarkovThreshold))
+	}
+
+	if ha.WorkloadProfile != nil {
+		args = append(args, fmt.Sprintf("-w%d", *ha.WorkloadProfile))
+	}
+
+	args = append(args, fmt.Sprintf("-m%d", *ha.HashMode))
+	args = append(args, fmt.Sprintf("-a%d", *ha.AttackMode))
+	args = append(args, *ha.Hash)
+
+	if ha.DevicesIDs != nil {
+		args = append(args, []string{"-d", strings.Trim(strings.Replace(fmt.Sprint(*ha.DevicesIDs), " ", ",", -1), "[]")}...)
+	}
+
+	if ha.DevicesTypes != nil {
+		args = append(args, []string{"-D", strings.Trim(strings.Replace(fmt.Sprint(*ha.DevicesTypes), " ", ",", -1), "[]")}...)
+	}
+
+	if ha.ExtraArguments != nil && len(*ha.ExtraArguments) > 0 {
+		args = append(args, *ha.ExtraArguments...)
+	}
+
+	args = append(args, []string{"-o", *ha.OutputFile}...)
+	args = append(args, fmt.Sprintf("--outfile-format=%s", strings.Trim(strings.Replace(fmt.Sprint(*ha.OutputFormat), " ", ",", -1), "[]")))
+
+	switch *ha.AttackMode {
+	case HashcatAttackModeDictionary:
+		if ha.Dictionaries == nil {
+			err = errors.New("Missing dictionaries")
+			return
 		}
-	}
-	hcl_gui.hashcat.args.devices_ids = devices_ids
-}
-
-func set_devices_types(hcl_gui *hcl_gui, devices string) {
-	var devices_types []int
-	switch devices {
-	case "GPU":
-		devices_types = []int{2}
-	case "CPU":
-		devices_types = []int{1}
-	case "FPGA":
-		devices_types = []int{3}
-	case "GPU+CPU":
-		devices_types = []int{1, 2}
-	case "GPU+FPGA":
-		devices_types = []int{2, 3}
-	case "CPU+FPGA":
-		devices_types = []int{1, 3}
-	case "All":
-		devices_types = []int{1, 2, 3}
-	}
-	hcl_gui.hashcat.args.devices_types = devices_types
-}
-
-func set_workload_profile(hcl_gui *hcl_gui, profile string) {
-	var workload_profile hashcat_workload_profile
-	switch profile {
-	case "Low":
-		workload_profile = hashcat_workload_profile_Low
-	case "Default":
-		workload_profile = hashcat_workload_profile_Default
-	case "High":
-		workload_profile = hashcat_workload_profile_High
-	case "Nightmare":
-		workload_profile = hashcat_workload_profile_Nightmare
-	}
-	hcl_gui.hashcat.args.workload_profile = workload_profile
-}
-
-func set_outfile(hcl_gui *hcl_gui, outfile string) {
-	hcl_gui.hashcat.args.outfile = outfile
-}
-
-func set_optimized_kernel(hcl_gui *hcl_gui, check bool) {
-	hcl_gui.hashcat.args.optimized_kernel = check
-}
-
-func set_slower_candidate(hcl_gui *hcl_gui, check bool) {
-	hcl_gui.hashcat.args.slower_candidate = check
-}
-
-func set_disable_self_test(hcl_gui *hcl_gui, check bool) {
-	hcl_gui.hashcat.args.disable_self_test = check
-}
-
-func set_force(hcl_gui *hcl_gui, check bool) {
-	hcl_gui.hashcat.args.force = check
-}
-
-func set_outfile_format(hcl_gui *hcl_gui, outfile_format string) {
-	var outfile_format_int []int
-	switch outfile_format {
-	case "hash[:salt]":
-		outfile_format_int = []int{1}
-	case "plain":
-		outfile_format_int = []int{2}
-	case "hash[:salt]:plain":
-		outfile_format_int = []int{1, 2}
-	case "hash[:salt]:plain:hex_plain":
-		outfile_format_int = []int{1, 2, 3}
-	case "hash[:salt]:plain:crack_pos":
-		outfile_format_int = []int{1, 2, 4}
-	case "hash[:salt]:plain:hex_plain:crack_pos":
-		outfile_format_int = []int{1, 2, 3, 4}
-	}
-	hcl_gui.hashcat.args.outfile_format = outfile_format_int
-}
-
-// Markov
-func set_markov_hcstat2(hcl_gui *hcl_gui, markov_hcstat2 string) {
-	hcl_gui.hashcat.args.markov_hcstat2 = markov_hcstat2
-}
-
-func set_markov_disable(hcl_gui *hcl_gui, check bool) {
-	hcl_gui.hashcat.args.markov_disable = check
-}
-
-func set_markov_classic(hcl_gui *hcl_gui, check bool) {
-	hcl_gui.hashcat.args.markov_classic = check
-}
-
-func set_markov_threshold(hcl_gui *hcl_gui, markov_threshold int) {
-	hcl_gui.hashcat.args.markov_threshold = markov_threshold
-}
-
-// Others
-func get_mask_length(mask string) int {
-	if len(mask) == 0 {
-		return 0
-	}
-	length := 0
-	skip_next := false
-	for _, s := range strings.Split(mask, " ") {
-		if len(s) == 0 {
-			continue
-		}
-		if skip_next == true {
-			skip_next = false
-			continue
-		}
-		if s[0] == 0x2d {
-			if len(s) == 2 {
-				skip_next = true
+		args = append(args, *ha.Dictionaries...)
+		if ha.Rules != nil {
+			for _, rule := range *ha.Rules {
+				args = append(args, []string{"-r", rule}...)
 			}
-			continue
 		}
-		for _, l := range s {
-			if l == 0x3f {
-				continue
+	case HashcatAttackModeCombinator:
+		if ha.LeftDictionary == nil {
+			err = errors.New("Missing left dictionary")
+			return
+		}
+		if ha.RightDictionary == nil {
+			err = errors.New("Missing right dictionary")
+			return
+		}
+		args = append(args, []string{*ha.LeftDictionary, *ha.RightDictionary}...)
+		if ha.LeftRule != nil {
+			args = append(args, []string{"-j", *ha.LeftRule}...)
+		}
+		if ha.RightRule != nil {
+			args = append(args, []string{"-k", *ha.RightRule}...)
+		}
+	case HashcatAttackModeMask:
+		if ha.MaskFile != nil {
+			args = append(args, *ha.MaskFile)
+		} else if ha.Mask != nil {
+			if ha.CustomCharset1 != nil {
+				args = append(args, []string{"-1", *ha.CustomCharset1}...)
 			}
-			length++
+			if ha.CustomCharset2 != nil {
+				args = append(args, []string{"-2", *ha.CustomCharset2}...)
+			}
+			if ha.CustomCharset3 != nil {
+				args = append(args, []string{"-3", *ha.CustomCharset3}...)
+			}
+			if ha.CustomCharset4 != nil {
+				args = append(args, []string{"-4", *ha.CustomCharset4}...)
+			}
+			args = append(args, *ha.Mask)
+		} else {
+			err = errors.New("Missing mask")
+			return
 		}
-		if length > 0 {
-			break
+		if ha.EnableMaskIncrementMode != nil && *ha.EnableMaskIncrementMode == true {
+			if ha.MaskIncrementMin == nil || ha.MaskIncrementMax == nil {
+				err = errors.New("Missing mask increment min and/or max")
+				return
+			}
+			if *ha.MaskIncrementMin > *ha.MaskIncrementMax {
+				err = errors.New("mask increment min cannot be greater than mask increment max")
+				return
+			}
+			args = append(args, []string{"-i", fmt.Sprintf("--increment-min=%d", *ha.MaskIncrementMin), fmt.Sprintf("--increment-max=%d", *ha.MaskIncrementMax)}...)
 		}
 	}
-	return length
+
+	return
 }
 
-// Init
-func hashcat_init(hcl_gui *hcl_gui) {
-	hcl_gui.hc_attack_mode.Options = []string{"Dictionary", "Combinator", "Mask", "Hybrid1 (Dict+Mask)", "Hybrid2 (Mask+Dict)"}
-	hcl_gui.hc_attack_mode.SetSelected("Dictionary")
+type HashcatAttackMode int64
 
-	hcl_gui.hashcat.args.hash_type = -1
-	go get_available_hash_types(hcl_gui)
+const (
+	HashcatAttackModeDictionary HashcatAttackMode = iota
+	HashcatAttackModeCombinator
+	_
+	HashcatAttackModeMask
+	_
+	_
+	HashcatAttackModeHybrid1
+	HashcatAttackModeHybrid2
+)
 
-	hcl_gui.hc_temp_abort.SetSelected("90")
-
-	hcl_gui.hc_devices_ids.SetText("")
-	hcl_gui.hc_devices_types.SetSelected("GPU")
-
-	hcl_gui.hc_wordload_profiles.SetSelected("Default")
-}
+type HashcatHashMode int64
