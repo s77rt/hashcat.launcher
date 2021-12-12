@@ -1,0 +1,28 @@
+/* Width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.steps-content {
+  min-height: 200px;
+  height: 100%;
+  padding: 20px;
+  background-color: #141414;
+  border: 1px dashed #1d1d1d;
+  border-radius: 2px;
+}
