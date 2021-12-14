@@ -31,6 +31,7 @@ dep:
 
 build-frontend:
 	@echo "Building frontend"
+	npm --prefix $(FRONTEND_DIR)/$(PROJECT_NAME) install
 	npm --prefix $(FRONTEND_DIR)/$(PROJECT_NAME) run build
 
 build-linux:
