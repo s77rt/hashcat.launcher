@@ -546,7 +546,7 @@ class NewTask extends Component {
 											}
 										>
 											{this.state._hashes.map(hash =>
-												<Option value={hash} key={hash}>{filename(hash)}</Option>
+												<Option value={hash} key={hash} title={hash}>{filename(hash)}</Option>
 											)}
 										</Select>
 									</Form.Item>
@@ -605,7 +605,7 @@ class NewTask extends Component {
 														}
 													>
 														{this.state._dictionaries.map(dictionary =>
-															<Option value={dictionary} key={dictionary}>{filename(dictionary)}</Option>
+															<Option value={dictionary} key={dictionary} title={dictionary}>{filename(dictionary)}</Option>
 														)}
 													</Select>
 												</Form.Item>
@@ -626,7 +626,7 @@ class NewTask extends Component {
 														}
 													>
 														{this.state._rules.map(rule =>
-															<Option value={rule} key={rule}>{filename(rule)}</Option>
+															<Option value={rule} key={rule} title={rule}>{filename(rule)}</Option>
 														)}
 													</Select>
 												</Form.Item>
@@ -654,7 +654,7 @@ class NewTask extends Component {
 																	}
 																>
 																	{this.state._dictionaries.map(dictionary =>
-																		<Option value={dictionary} key={dictionary}>{filename(dictionary)}</Option>
+																		<Option value={dictionary} key={dictionary} title={dictionary}>{filename(dictionary)}</Option>
 																	)}
 																</Select>
 															</Form.Item>
@@ -696,7 +696,7 @@ class NewTask extends Component {
 																	}
 																>
 																	{this.state._dictionaries.map(dictionary =>
-																		<Option value={dictionary} key={dictionary}>{filename(dictionary)}</Option>
+																		<Option value={dictionary} key={dictionary} title={dictionary}>{filename(dictionary)}</Option>
 																	)}
 																</Select>
 															</Form.Item>
@@ -763,7 +763,7 @@ class NewTask extends Component {
 																}
 															>
 																{this.state._masks.map(mask =>
-																	<Option value={mask} key={mask}>{filename(mask)}</Option>
+																	<Option value={mask} key={mask} title={mask}>{filename(mask)}</Option>
 																)}
 															</Select>
 															<Button
@@ -874,7 +874,7 @@ class NewTask extends Component {
 																	}
 																>
 																	{this.state._dictionaries.map(dictionary =>
-																		<Option value={dictionary} key={dictionary}>{filename(dictionary)}</Option>
+																		<Option value={dictionary} key={dictionary} title={dictionary}>{filename(dictionary)}</Option>
 																	)}
 																</Select>
 															</Form.Item>
@@ -938,7 +938,7 @@ class NewTask extends Component {
 																}
 															>
 																{this.state._masks.map(mask =>
-																	<Option value={mask} key={mask}>{filename(mask)}</Option>
+																	<Option value={mask} key={mask} title={mask}>{filename(mask)}</Option>
 																)}
 															</Select>
 															<Button
@@ -1071,7 +1071,7 @@ class NewTask extends Component {
 																}
 															>
 																{this.state._masks.map(mask =>
-																	<Option value={mask} key={mask}>{filename(mask)}</Option>
+																	<Option value={mask} key={mask} title={mask}>{filename(mask)}</Option>
 																)}
 															</Select>
 															<Button
@@ -1179,7 +1179,7 @@ class NewTask extends Component {
 																	}
 																>
 																	{this.state._dictionaries.map(dictionary =>
-																		<Option value={dictionary} key={dictionary}>{filename(dictionary)}</Option>
+																		<Option value={dictionary} key={dictionary} title={dictionary}>{filename(dictionary)}</Option>
 																	)}
 																</Select>
 															</Form.Item>

@@ -1,6 +1,7 @@
 package hashcatlauncher
 
 import (
+	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -86,7 +87,7 @@ func (a *App) Init() {
 	}
 
 	if err := a.Scan(); err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
 	a.Tasks = make(map[string]*Task)
