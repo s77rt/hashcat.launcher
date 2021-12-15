@@ -113,6 +113,7 @@ class NewTask extends Component {
 			advancedOptionsCollapse: [],
 
 			isLoadingSetOutputFile: false,
+			isLoadingCreateTask: false,
 
 			maskInputType: "text", // text or file
 
@@ -429,11 +430,6 @@ class NewTask extends Component {
 	}
 
 	_onClickCreateTask(e) {
-		if (typeof window.GOcreateTask !== "function") {
-			message.error("GOcreateTask is not a function");
-			return;
-		}
-
 		window.GOcreateTask({
 			attackMode: this.state.attackMode,
 			hashMode: this.state.algorithm,
@@ -486,15 +482,24 @@ class NewTask extends Component {
 		}).then(
 			response => {
 				message.success("Task has been created successfully!");
+				this.setState({isLoadingCreateTask: false});
 			},
 			error => {
 				message.error(error);
+				this.setState({isLoadingCreateTask: false});
 			}
 		);
 	}
 
 	onClickCreateTask(e) {
-		this.setState({}, this._onClickCreateTask(e));
+		if (typeof window.GOcreateTask !== "function") {
+			message.error("GOcreateTask is not a function");
+			return;
+		}
+
+		this.setState({
+			isLoadingCreateTask: true
+		}, this._onClickCreateTask(e));
 	}
 
 	componentDidMount() {
@@ -1562,7 +1567,12 @@ class NewTask extends Component {
 									</Form.Item>
 								</Form>
 							) : this.state.step === 4 ? (
-								<Button type="primary" icon={<PlusOutlined />} onClick={this.onClickCreateTask}>
+								<Button
+									type="primary"
+									icon={<PlusOutlined />}
+									onClick={this.onClickCreateTask}
+									loading={this.state.isLoadingCreateTask}
+								>
 									Create Task
 								</Button>
 							) : null }
