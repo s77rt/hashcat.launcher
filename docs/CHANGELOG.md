@@ -5,6 +5,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 ## [dev] DD/MM/YYYY
 ### Added:
  - Allow loading files from symlinks
+ - Allow preserving task config
 
 ## [1.0.0-alpha] 12/12/2021
 ### Changed:
