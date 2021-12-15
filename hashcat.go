@@ -277,6 +277,93 @@ func (ha *HashcatArgs) Build() (args []string, err error) {
 			}
 			args = append(args, []string{"-i", fmt.Sprintf("--increment-min=%d", *ha.MaskIncrementMin), fmt.Sprintf("--increment-max=%d", *ha.MaskIncrementMax)}...)
 		}
+	case HashcatAttackModeHybrid1:
+		// Left (Dictionary)
+		if ha.LeftDictionary == nil {
+			err = errors.New("Missing dictionary")
+			return
+		}
+		args = append(args, *ha.LeftDictionary)
+		if ha.LeftRule != nil {
+			args = append(args, []string{"-j", *ha.LeftRule}...)
+		}
+		// Right (Mask)
+		if ha.MaskFile != nil {
+			args = append(args, *ha.MaskFile)
+		} else if ha.Mask != nil {
+			if ha.CustomCharset1 != nil {
+				args = append(args, []string{"-1", *ha.CustomCharset1}...)
+			}
+			if ha.CustomCharset2 != nil {
+				args = append(args, []string{"-2", *ha.CustomCharset2}...)
+			}
+			if ha.CustomCharset3 != nil {
+				args = append(args, []string{"-3", *ha.CustomCharset3}...)
+			}
+			if ha.CustomCharset4 != nil {
+				args = append(args, []string{"-4", *ha.CustomCharset4}...)
+			}
+			args = append(args, *ha.Mask)
+		} else {
+			err = errors.New("Missing mask")
+			return
+		}
+		if ha.EnableMaskIncrementMode != nil && *ha.EnableMaskIncrementMode == true {
+			if ha.MaskIncrementMin == nil || ha.MaskIncrementMax == nil {
+				err = errors.New("Missing mask increment min and/or max")
+				return
+			}
+			if *ha.MaskIncrementMin > *ha.MaskIncrementMax {
+				err = errors.New("mask increment min cannot be greater than mask increment max")
+				return
+			}
+			args = append(args, []string{"-i", fmt.Sprintf("--increment-min=%d", *ha.MaskIncrementMin), fmt.Sprintf("--increment-max=%d", *ha.MaskIncrementMax)}...)
+		}
+	case HashcatAttackModeHybrid2:
+		// Left (Mask)
+		if ha.MaskFile != nil {
+			args = append(args, *ha.MaskFile)
+		} else if ha.Mask != nil {
+			if ha.CustomCharset1 != nil {
+				args = append(args, []string{"-1", *ha.CustomCharset1}...)
+			}
+			if ha.CustomCharset2 != nil {
+				args = append(args, []string{"-2", *ha.CustomCharset2}...)
+			}
+			if ha.CustomCharset3 != nil {
+				args = append(args, []string{"-3", *ha.CustomCharset3}...)
+			}
+			if ha.CustomCharset4 != nil {
+				args = append(args, []string{"-4", *ha.CustomCharset4}...)
+			}
+			args = append(args, *ha.Mask)
+		} else {
+			err = errors.New("Missing mask")
+			return
+		}
+		if ha.EnableMaskIncrementMode != nil && *ha.EnableMaskIncrementMode == true {
+			if ha.MaskIncrementMin == nil || ha.MaskIncrementMax == nil {
+				err = errors.New("Missing mask increment min and/or max")
+				return
+			}
+			if *ha.MaskIncrementMin > *ha.MaskIncrementMax {
+				err = errors.New("mask increment min cannot be greater than mask increment max")
+				return
+			}
+			args = append(args, []string{"-i", fmt.Sprintf("--increment-min=%d", *ha.MaskIncrementMin), fmt.Sprintf("--increment-max=%d", *ha.MaskIncrementMax)}...)
+		}
+		// Right (Dictionary)
+		if ha.RightDictionary == nil {
+			err = errors.New("Missing dictionary")
+			return
+		}
+		args = append(args, *ha.RightDictionary)
+		if ha.RightRule != nil {
+			args = append(args, []string{"-k", *ha.RightRule}...)
+		}
+	default:
+		err = errors.New("Unsupported attack mode")
+		return
 	}
 
 	return
