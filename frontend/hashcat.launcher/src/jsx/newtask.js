@@ -49,6 +49,61 @@ function maskLength(mask) {
 	return length
 }
 
+const initialConfig = {
+	step: 0,
+	advancedOptionsCollapse: [],
+
+	maskInputType: "text", // text or file
+
+	attackMode: undefined,
+	algorithm: undefined,
+	dictionaries: undefined,
+	rules: undefined,
+	mask: undefined,
+	maskFile: undefined,
+	leftDictionary: undefined,
+	leftRule: undefined,
+	rightDictionary: undefined,
+	rightRule: undefined,
+
+	customCharset1: undefined,
+	customCharset2: undefined,
+	customCharset3: undefined,
+	customCharset4: undefined,
+
+	enableMaskIncrementMode: false,
+	maskIncrementMin: maskIncrementMin,
+	maskIncrementMax: maskIncrementMax,
+
+	hash: undefined,
+
+	enableOptimizedKernel: true,
+	enableSlowerCandidateGenerators: false,
+	removeFoundHashes: false,
+	disablePotFile: false,
+	ignoreUsernames: false,
+	disableSelfTest: false,
+	ignoreWarnings: false,
+
+	devicesIDs: undefined,
+	devicesTypes: undefined,
+	workloadProfile: undefined,
+
+	disableMonitor: false,
+	tempAbort: undefined,
+
+	markovDisable: false,
+	markovClassic: false,
+	markovThreshold: 0,
+
+	extraArguments: ["--quiet", "--logfile-disable"],
+
+	statusTimer: 20,
+
+	outputFile: undefined,
+	outputFormat: [1, 2]
+}
+
 class NewTask extends Component {
 	constructor(props) {
 		super(props);
@@ -108,62 +163,15 @@ class NewTask extends Component {
 
 		this.onClickCreateTask = this.onClickCreateTask.bind(this);
 
+		this.onChangePreserveTaskConfig = this.onChangePreserveTaskConfig.bind(this);
+
 		this.state = {
-			step: 0,
-			advancedOptionsCollapse: [],
+			...initialConfig,
+
+			preserveTaskConfig: false,
 
 			isLoadingSetOutputFile: false,
 			isLoadingCreateTask: false,
-
-			maskInputType: "text", // text or file
-
-			attackMode: undefined,
-			algorithm: undefined,
-			dictionaries: undefined,
-			rules: undefined,
-			mask: undefined,
-			maskFile: undefined,
-			leftDictionary: undefined,
-			leftRule: undefined,
-			rightDictionary: undefined,
-			rightRule: undefined,
-
-			customCharset1: undefined,
-			customCharset2: undefined,
-			customCharset3: undefined,
-			customCharset4: undefined,
-
-			enableMaskIncrementMode: false,
-			maskIncrementMin: maskIncrementMin,
-			maskIncrementMax: maskIncrementMax,
-
-			hash: undefined,
-
-			enableOptimizedKernel: true,
-			enableSlowerCandidateGenerators: false,
-			removeFoundHashes: false,
-			disablePotFile: false,
-			ignoreUsernames: false,
-			disableSelfTest: false,
-			ignoreWarnings: false,
-
-			devicesIDs: undefined,
-			devicesTypes: undefined,
-			workloadProfile: undefined,
-
-			disableMonitor: false,
-			tempAbort: undefined,
-
-			markovDisable: false,
-			markovClassic: false,
-			markovThreshold: 0,
-
-			extraArguments: ["--quiet", "--logfile-disable"],
-
-			statusTimer: 20,
-
-			outputFile: undefined,
-			outputFormat: [1, 2],
 
 			_dictionaries: getDictionaries(),
 			_rules: getRules(),
@@ -483,6 +491,8 @@ class NewTask extends Component {
 			response => {
 				message.success("Task has been created successfully!");
 				this.setState({isLoadingCreateTask: false});
+				if (!this.state.preserveTaskConfig)
+					this.resetInitialConfig();
 			},
 			error => {
 				message.error(error);
@@ -500,6 +510,16 @@ class NewTask extends Component {
 		this.setState({
 			isLoadingCreateTask: true
 		}, this._onClickCreateTask(e));
+	}
+
+	resetInitialConfig() {
+		this.setState(initialConfig);
+	}
+
+	onChangePreserveTaskConfig(e) {
+		this.setState({
+			preserveTaskConfig: e.target.checked
+		});
 	}
 
 	componentDidMount() {
@@ -1567,14 +1587,22 @@ class NewTask extends Component {
 									</Form.Item>
 								</Form>
 							) : this.state.step === 4 ? (
-								<Button
-									type="primary"
-									icon={<PlusOutlined />}
-									onClick={this.onClickCreateTask}
-									loading={this.state.isLoadingCreateTask}
-								>
-									Create Task
-								</Button>
+								<Space size="large">
+									<Button
+										type="primary"
+										icon={<PlusOutlined />}
+										onClick={this.onClickCreateTask}
+										loading={this.state.isLoadingCreateTask}
+									>
+										Create Task
+									</Button>
+									<Checkbox
+										checked={this.state.preserveTaskConfig}
+										onChange={this.onChangePreserveTaskConfig}
+									>
+										Preserve task config
+									</Checkbox>
+								</Space>
 							) : null }
 						</div>
 					</Col>
