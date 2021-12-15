@@ -151,19 +151,36 @@ class App extends Component {
 						title={this.state.currentView}
 					/>
 					<Content style={{ padding: '16px 24px' }}>
-						{this.state.currentView === "New Task" ? (
-							this.newTaskView
-						) : this.state.currentView === "Tasks" ? (
-							this.tasksView
-						) : this.state.currentView === "Settings" ? (
-							this.settingsView
-						) : this.state.currentView === "Tools" ? (
-							this.toolsView
-						) : this.state.currentView === "Help" ? (
-							this.helpView
-						) : this.state.currentView === "About" ? (
-							this.aboutView
-						) : null }
+						<div
+							style={{ display: this.state.currentView === "New Task" ? "block" : "none" }}
+						>
+							{this.newTaskView}
+						</div>
+						<div
+							style={{ display: this.state.currentView === "Tasks" ? "block" : "none" }}
+						>
+							{this.tasksView}
+						</div>
+						<div
+							style={{ display: this.state.currentView === "Settings" ? "block" : "none" }}
+						>
+							{this.settingsView}
+						</div>
+						<div
+							style={{ display: this.state.currentView === "Tools" ? "block" : "none" }}
+						>
+							{this.toolsView}
+						</div>
+						<div
+							style={{ display: this.state.currentView === "Help" ? "block" : "none" }}
+						>
+							{this.helpView}
+						</div>
+						<div
+							style={{ display: this.state.currentView === "About" ? "block" : "none" }}
+						>
+							{this.aboutView}
+						</div>
 					</Content>
 				</Layout>
 			</Layout>
