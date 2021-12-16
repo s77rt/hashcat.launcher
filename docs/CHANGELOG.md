@@ -10,6 +10,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 
 ### Fixed:
  - Missing hybrid attacks
+ - Mask file input not displaying the correct set value
 
 ## [1.0.0-alpha] 12/12/2021
 ### Changed:

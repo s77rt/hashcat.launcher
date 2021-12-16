@@ -888,7 +888,7 @@ class NewTask extends Component {
 																	placeholder="Select Mask"
 																	size="large"
 																	onChange={this.onChangeMaskFile}
-																	value={this.state.onChangeMaskFile}
+																	value={this.state.maskFile}
 																	filterOption={(input, option) =>
 																		String(option.value).toLowerCase().indexOf(input.toLowerCase()) >= 0 ||
 																		String(option.children).toLowerCase().indexOf(input.toLowerCase()) >= 0
@@ -1063,7 +1063,7 @@ class NewTask extends Component {
 																	placeholder="Select Mask"
 																	size="large"
 																	onChange={this.onChangeMaskFile}
-																	value={this.state.onChangeMaskFile}
+																	value={this.state.maskFile}
 																	filterOption={(input, option) =>
 																		String(option.value).toLowerCase().indexOf(input.toLowerCase()) >= 0 ||
 																		String(option.children).toLowerCase().indexOf(input.toLowerCase()) >= 0
@@ -1196,7 +1196,7 @@ class NewTask extends Component {
 																	placeholder="Select Mask"
 																	size="large"
 																	onChange={this.onChangeMaskFile}
-																	value={this.state.onChangeMaskFile}
+																	value={this.state.maskFile}
 																	filterOption={(input, option) =>
 																		String(option.value).toLowerCase().indexOf(input.toLowerCase()) >= 0 ||
 																		String(option.children).toLowerCase().indexOf(input.toLowerCase()) >= 0
