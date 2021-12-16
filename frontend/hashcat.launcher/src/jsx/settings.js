@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { message, Statistic, Row, Col, Card, Select, Typography, Upload, Button, Space, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
+import { Layout, PageHeader, message, Statistic, Row, Col, Card, Select, Typography, Upload, Button, Space, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import { FileOutlined, AimOutlined, ToolOutlined, ExportOutlined, ExperimentOutlined, SyncOutlined } from '@ant-design/icons';
 
 import EventBus from "./eventbus/EventBus";
@@ -11,6 +11,7 @@ import { getDictionaries } from './data/dictionaries';
 import { getRules } from './data/rules';
 import { getMasks } from './data/masks';
 
+const { Content } = Layout;
 const { Dragger } = Upload;
 const { Option } = Select;
 const { Title, Paragraph, Text, Link } = Typography;
@@ -75,33 +76,38 @@ class Settings extends Component {
 	render() {
 		return (
 			<>
-				<Row gutter={[16, 14]}>
-					<Col span={12}>
-						<Statistic title="Hashes" value={this.state._hashes.length} />
-					</Col>
-					<Col span={12}>
-						<Statistic title="Algorithms" value={Object.keys(this.state._algorithms).length} />
-					</Col>
-					<Col span={12}>
-						<Statistic title="Dictionaries" value={this.state._dictionaries.length} />
-					</Col>
-					<Col span={12}>
-						<Statistic title="Rules" value={this.state._rules.length} />
-					</Col>
-					<Col span={12}>
-						<Statistic title="Masks" value={this.state._masks.length} />
-					</Col>
-					<Col span={24}>
-						<Button
-							icon={<SyncOutlined />}
-							type="primary"
-							onClick={this.onClickRescan}
-							loading={this.state.isLoadingRescan}
-						>
-							Rescan
-						</Button>
-					</Col>
-				</Row>
+				<PageHeader
+					title="Settings"
+				/>
+				<Content style={{ padding: '16px 24px' }}>
+					<Row gutter={[16, 14]}>
+						<Col span={12}>
+							<Statistic title="Hashes" value={this.state._hashes.length} />
+						</Col>
+						<Col span={12}>
+							<Statistic title="Algorithms" value={Object.keys(this.state._algorithms).length} />
+						</Col>
+						<Col span={12}>
+							<Statistic title="Dictionaries" value={this.state._dictionaries.length} />
+						</Col>
+						<Col span={12}>
+							<Statistic title="Rules" value={this.state._rules.length} />
+						</Col>
+						<Col span={12}>
+							<Statistic title="Masks" value={this.state._masks.length} />
+						</Col>
+						<Col span={24}>
+							<Button
+								icon={<SyncOutlined />}
+								type="primary"
+								onClick={this.onClickRescan}
+								loading={this.state.isLoadingRescan}
+							>
+								Rescan
+							</Button>
+						</Col>
+					</Row>
+				</Content>
 			</>
 		)
 	}

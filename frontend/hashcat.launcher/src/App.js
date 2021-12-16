@@ -2,7 +2,7 @@ import './App.css';
 import 'antd/dist/antd.dark.css';
 
 import React, { Component } from "react";
-import { Row, Col, Statistic, Button, PageHeader, Layout, Tabs, Typography, Menu } from 'antd';
+import { Row, Col, Statistic, Button, Layout, Tabs, Typography, Menu } from 'antd';
 import { QuestionCircleOutlined, InfoCircleOutlined, DeploymentUnitOutlined, RocketOutlined, ToolOutlined, UserOutlined, HomeOutlined, PlusOutlined, SettingOutlined, UnorderedListOutlined, QuestionOutlined } from '@ant-design/icons';
 
 import data from "./jsx/data/data";
@@ -16,7 +16,7 @@ import About from './jsx/about';
 import TasksStats from './jsx/stats/tasks';
 
 const { TabPane } = Tabs;
-const { Header, Footer, Sider, Content } = Layout;
+const { Header, Footer, Sider } = Layout;
 const { Text, Title } = Typography;
 
 class App extends Component {
@@ -146,42 +146,44 @@ class App extends Component {
 							) : "dev"}
 						</span>
 					</Header>
+
 					<div style={{ marginTop: '64px'}}></div>
-					<PageHeader
-						title={this.state.currentView}
-					/>
-					<Content style={{ padding: '16px 24px' }}>
-						<div
-							style={{ display: this.state.currentView === "New Task" ? "block" : "none" }}
-						>
-							{this.newTaskView}
-						</div>
-						<div
-							style={{ display: this.state.currentView === "Tasks" ? "block" : "none" }}
-						>
-							{this.tasksView}
-						</div>
-						<div
-							style={{ display: this.state.currentView === "Settings" ? "block" : "none" }}
-						>
-							{this.settingsView}
-						</div>
-						<div
-							style={{ display: this.state.currentView === "Tools" ? "block" : "none" }}
-						>
-							{this.toolsView}
-						</div>
-						<div
-							style={{ display: this.state.currentView === "Help" ? "block" : "none" }}
-						>
-							{this.helpView}
-						</div>
-						<div
-							style={{ display: this.state.currentView === "About" ? "block" : "none" }}
-						>
-							{this.aboutView}
-						</div>
-					</Content>
+
+					<div
+						style={{ display: this.state.currentView === "New Task" ? "block" : "none" }}
+					>
+						{this.newTaskView}
+					</div>
+
+					<div
+						style={{ display: this.state.currentView === "Tasks" ? "block" : "none" }}
+					>
+						{this.tasksView}
+					</div>
+
+					<div
+						style={{ display: this.state.currentView === "Settings" ? "block" : "none" }}
+					>
+						{this.settingsView}
+					</div>
+
+					<div
+						style={{ display: this.state.currentView === "Tools" ? "block" : "none" }}
+					>
+						{this.toolsView}
+					</div>
+
+					<div
+						style={{ display: this.state.currentView === "Help" ? "block" : "none" }}
+					>
+						{this.helpView}
+					</div>
+
+					<div
+						style={{ display: this.state.currentView === "About" ? "block" : "none" }}
+					>
+						{this.aboutView}
+					</div>
 				</Layout>
 			</Layout>
 		)

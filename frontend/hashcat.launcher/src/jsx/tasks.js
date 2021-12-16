@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Popconfirm, Tag, PageHeader, List, InputNumber, Table, Modal, message, Progress, Badge, Descriptions, Tree, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
+import { Layout, PageHeader, Popconfirm, Tag, List, InputNumber, Table, Modal, message, Progress, Badge, Descriptions, Tree, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import {
 	FileDoneOutlined,
 	FileOutlined,
@@ -22,6 +22,7 @@ import {
 import EventBus from "./eventbus/EventBus";
 import TasksStats from './stats/tasks';
 
+const { Content } = Layout;
 const { Dragger } = Upload;
 const { Option } = Select;
 const { Text, Title, Paragraph } = Typography;
@@ -359,217 +360,222 @@ class Tasks extends Component {
 
 		return (
 			<>
-				<Row gutter={16}>
-					<Col span={5}>
-						<Tree
-							showIcon
-							treeData={this.state.data}
-							onSelect={this.onSelect}
-							selectedKeys={[taskKey]}
-							style={{
-								height: 'calc(100vh - 195px)',
-								paddingRight: '.5rem',
-								overflow: 'auto',
-								background: '#0a0a0a',
-								border: '1px solid #303030'
-							}}
-						/>
-					</Col>
-					<Col span={19}>
-						{task ? (
-							<Row gutter={[16, 14]}>
-								<Col span={24}>
-									<PageHeader
-										title={task.id}
-										tags={
-											task.stats.hasOwnProperty("status") ? (	
-												HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
-													<Tag color="warning">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-												) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
-													<Tag color="processing">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-												) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
-													<Tag color="error">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-												) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
-													<Tag color="success">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-												) : (
-													<Tag color="default">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-												)
-											) : null
-										}
-										style={{ padding: 0 }}
-										extra={[
-											<Button
-												type="dashed"
-												icon={<ControlOutlined />}
-												onClick={this.onClickArguments}
-												style={{ marginRight: '1rem' }}
-												key="arguments"
-											>
-												Arguments
-											</Button>
-										]}
-									/>
-								</Col>
-								<Col span={24}>
-									{task.stats.hasOwnProperty("progress") ? (
-										<Progress type="line" percent={Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100)} />
-									) : (
-										<Progress type="line" percent={0} />
-									)}
-								</Col>
-								<Col span={24}>
-									<Row gutter={[12, 10]}>
-										<Col>
-											<Button
-												type="primary"
-												icon={<PlayCircleOutlined />}
-												onClick={this.onClickStart}
-												loading={this.state.isLoadingStart}
-											>
-												Start
-											</Button>
-										</Col>
-										<Col>
-											<Button
-												icon={<ReloadOutlined />}
-												onClick={this.onClickRefresh}
-												loading={this.state.isLoadingRefresh}
-											>
-												Refresh
-											</Button>
-										</Col>
-										<Col>
-											<Button
-												icon={<PauseOutlined />}
-												onClick={this.onClickPause}
-												loading={this.state.isLoadingPause}
-											>
-												Pause
-											</Button>
-										</Col>
-										<Col>
-											<Button
-												icon={<CaretRightOutlined />}
-												onClick={this.onClickResume}
-												loading={this.state.isLoadingResume}
-											>
-												Resume
-											</Button>
-										</Col>
-										<Col>
-											<Button
-												icon={<EnvironmentOutlined />}
-												onClick={this.onClickCheckpoint}
-												loading={this.state.isLoadingCheckpoint}
-											>
-												Checkpoint
-											</Button>
-										</Col>
-										<Col>
-											<Button
-												icon={<StepForwardOutlined />}
-												onClick={this.onClickSkip}
-												loading={this.state.isLoadingSkip}
-											>
-												Skip
-											</Button>
-										</Col>
-										<Col>
-											<Popconfirm
-												placement="topRight"
-												title="Are you sure to quit the task?"
-												onConfirm={this.onClickQuit}
-												okText="Yes"
-												cancelText="No"
-											>
+				<PageHeader
+					title="Tasks"
+				/>
+				<Content style={{ padding: '16px 24px' }}>
+					<Row gutter={16}>
+						<Col span={5}>
+							<Tree
+								showIcon
+								treeData={this.state.data}
+								onSelect={this.onSelect}
+								selectedKeys={[taskKey]}
+								style={{
+									height: 'calc(100vh - 195px)',
+									paddingRight: '.5rem',
+									overflow: 'auto',
+									background: '#0a0a0a',
+									border: '1px solid #303030'
+								}}
+							/>
+						</Col>
+						<Col span={19}>
+							{task ? (
+								<Row gutter={[16, 14]}>
+									<Col span={24}>
+										<PageHeader
+											title={task.id}
+											tags={
+												task.stats.hasOwnProperty("status") ? (	
+													HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
+														<Tag color="warning">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+													) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
+														<Tag color="processing">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+													) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
+														<Tag color="error">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+													) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
+														<Tag color="success">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+													) : (
+														<Tag color="default">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+													)
+												) : null
+											}
+											style={{ padding: 0 }}
+											extra={[
 												<Button
-													type="danger"
-													icon={<CloseOutlined />}
-													
-													loading={this.state.isLoadingQuit}
+													type="dashed"
+													icon={<ControlOutlined />}
+													onClick={this.onClickArguments}
+													style={{ marginRight: '1rem' }}
+													key="arguments"
 												>
-													Quit
+													Arguments
 												</Button>
-											</Popconfirm>
-										</Col>
-									</Row>
-								</Col>
-								<Col span={16}>
-									<Descriptions
-										column={2}
-										layout="horizontal"
-										bordered
-									>
-										{task.stats.hasOwnProperty("status") && (
-											<Descriptions.Item label="Status" span={2}>
-												{HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
-													<Badge status="warning" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-												) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
-													<Badge status="processing" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-												) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
-													<Badge status="error" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-												) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
-													<Badge status="success" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-												) : (
-													<Badge status="default" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-												)}
-											</Descriptions.Item>
+											]}
+										/>
+									</Col>
+									<Col span={24}>
+										{task.stats.hasOwnProperty("progress") ? (
+											<Progress type="line" percent={Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100)} />
+										) : (
+											<Progress type="line" percent={0} />
 										)}
-										{task.stats.hasOwnProperty("target") && (
-											<Descriptions.Item label="Target" span={2}>
-												{task.stats["target"]}
-											</Descriptions.Item>
-										)}
-										{task.stats.hasOwnProperty("progress") && (
-											<Descriptions.Item label="Progress" span={2}>
-												{task.stats["progress"][0] + " / " + task.stats["progress"][1] + " (" + Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100) + "%)"}
-											</Descriptions.Item>
-										)}
-										{task.stats.hasOwnProperty("rejected") && (
-											<Descriptions.Item label="Rejected" span={1}>
-												{task.stats["rejected"]}
-											</Descriptions.Item>
-										)}
-										{task.stats.hasOwnProperty("restore_point") && (
-											<Descriptions.Item label="Restore point" span={1}>
-												{task.stats["restore_point"]}
-											</Descriptions.Item>
-										)}
-										{task.stats.hasOwnProperty("recovered_hashes") && (
-											<Descriptions.Item label="Recovered hashes" span={1}>
-												{task.stats["recovered_hashes"][0] + " / " + task.stats["recovered_hashes"][1] + " (" + Math.trunc((task.stats["recovered_hashes"][0] / task.stats["recovered_hashes"][1])*100) + "%)"}
-											</Descriptions.Item>
-										)}
-										{task.stats.hasOwnProperty("recovered_salts") && (
-											<Descriptions.Item label="Recovered salts" span={1}>
-												{task.stats["recovered_salts"][0] + " / " + task.stats["recovered_salts"][1] + " (" + Math.trunc((task.stats["recovered_salts"][0] / task.stats["recovered_salts"][1])*100) + "%)"}
-											</Descriptions.Item>
-										)}
-										{task.stats.hasOwnProperty("session") && (
-											<Descriptions.Item label="Session" span={2}>
-												{task.stats["session"]}
-											</Descriptions.Item>
-										)}
-									</Descriptions>
-								</Col>
-								<Col span={8}>
-									<CodeOutlined /> Terminal
-									<pre style={{
-										height: 'calc(100vh - 395px)',
-										overflow: 'auto',
-										padding: '.5rem',
-										margin: '0',
-										border: '1px solid #303030'
-									}}>
-										{task.journal.map(j => j.message + "\n")}
-									</pre>
-								</Col>
-							</Row>
-						) : (
-							"No selected task."
-						)}
-					</Col>
-				</Row>
+									</Col>
+									<Col span={24}>
+										<Row gutter={[12, 10]}>
+											<Col>
+												<Button
+													type="primary"
+													icon={<PlayCircleOutlined />}
+													onClick={this.onClickStart}
+													loading={this.state.isLoadingStart}
+												>
+													Start
+												</Button>
+											</Col>
+											<Col>
+												<Button
+													icon={<ReloadOutlined />}
+													onClick={this.onClickRefresh}
+													loading={this.state.isLoadingRefresh}
+												>
+													Refresh
+												</Button>
+											</Col>
+											<Col>
+												<Button
+													icon={<PauseOutlined />}
+													onClick={this.onClickPause}
+													loading={this.state.isLoadingPause}
+												>
+													Pause
+												</Button>
+											</Col>
+											<Col>
+												<Button
+													icon={<CaretRightOutlined />}
+													onClick={this.onClickResume}
+													loading={this.state.isLoadingResume}
+												>
+													Resume
+												</Button>
+											</Col>
+											<Col>
+												<Button
+													icon={<EnvironmentOutlined />}
+													onClick={this.onClickCheckpoint}
+													loading={this.state.isLoadingCheckpoint}
+												>
+													Checkpoint
+												</Button>
+											</Col>
+											<Col>
+												<Button
+													icon={<StepForwardOutlined />}
+													onClick={this.onClickSkip}
+													loading={this.state.isLoadingSkip}
+												>
+													Skip
+												</Button>
+											</Col>
+											<Col>
+												<Popconfirm
+													placement="topRight"
+													title="Are you sure to quit the task?"
+													onConfirm={this.onClickQuit}
+													okText="Yes"
+													cancelText="No"
+												>
+													<Button
+														type="danger"
+														icon={<CloseOutlined />}
+														
+														loading={this.state.isLoadingQuit}
+													>
+														Quit
+													</Button>
+												</Popconfirm>
+											</Col>
+										</Row>
+									</Col>
+									<Col span={16}>
+										<Descriptions
+											column={2}
+											layout="horizontal"
+											bordered
+										>
+											{task.stats.hasOwnProperty("status") && (
+												<Descriptions.Item label="Status" span={2}>
+													{HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
+														<Badge status="warning" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+													) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
+														<Badge status="processing" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+													) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
+														<Badge status="error" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+													) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
+														<Badge status="success" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+													) : (
+														<Badge status="default" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+													)}
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("target") && (
+												<Descriptions.Item label="Target" span={2}>
+													{task.stats["target"]}
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("progress") && (
+												<Descriptions.Item label="Progress" span={2}>
+													{task.stats["progress"][0] + " / " + task.stats["progress"][1] + " (" + Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100) + "%)"}
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("rejected") && (
+												<Descriptions.Item label="Rejected" span={1}>
+													{task.stats["rejected"]}
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("restore_point") && (
+												<Descriptions.Item label="Restore point" span={1}>
+													{task.stats["restore_point"]}
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("recovered_hashes") && (
+												<Descriptions.Item label="Recovered hashes" span={1}>
+													{task.stats["recovered_hashes"][0] + " / " + task.stats["recovered_hashes"][1] + " (" + Math.trunc((task.stats["recovered_hashes"][0] / task.stats["recovered_hashes"][1])*100) + "%)"}
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("recovered_salts") && (
+												<Descriptions.Item label="Recovered salts" span={1}>
+													{task.stats["recovered_salts"][0] + " / " + task.stats["recovered_salts"][1] + " (" + Math.trunc((task.stats["recovered_salts"][0] / task.stats["recovered_salts"][1])*100) + "%)"}
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("session") && (
+												<Descriptions.Item label="Session" span={2}>
+													{task.stats["session"]}
+												</Descriptions.Item>
+											)}
+										</Descriptions>
+									</Col>
+									<Col span={8}>
+										<CodeOutlined /> Terminal
+										<pre style={{
+											height: 'calc(100vh - 395px)',
+											overflow: 'auto',
+											padding: '.5rem',
+											margin: '0',
+											border: '1px solid #303030'
+										}}>
+											{task.journal.map(j => j.message + "\n")}
+										</pre>
+									</Col>
+								</Row>
+							) : (
+								"No selected task."
+							)}
+						</Col>
+					</Row>
+				</Content>
 			</>
 		)
 	}
