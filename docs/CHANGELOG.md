@@ -7,6 +7,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
  - Allow loading files from symlinks
  - Allow preserving task config
  - Import/Export task config feature
+ - Auto load existing .restore files
 
 ### Fixed:
  - Missing hybrid attacks

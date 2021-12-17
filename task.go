@@ -2,9 +2,12 @@ package hashcatlauncher
 
 import (
 	"errors"
+	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/s77rt/hashcat.launcher/pkg/ansi"
@@ -110,11 +113,15 @@ type TaskUpdate struct {
 	Timestamp int64  `json:"timestamp"`
 }
 
+func (a *App) TaskExists(taskID string) bool {
+	_, exists := a.Tasks[taskID]
+	return exists
+}
+
 func (a *App) newTaskID() (taskID string) {
 	for {
 		taskID = random.String(DefaultTaskIDLength)
-		_, ok := a.Tasks[taskID]
-		if !ok {
+		if !a.TaskExists(taskID) {
 			break
 		}
 	}
@@ -168,6 +175,94 @@ func (a *App) NewTask(args HashcatArgs) (err error) {
 		Task:      *task,
 		Timestamp: time.Now().UnixNano(),
 	})
+
+	return
+}
+
+func (a *App) RestoreTask(restoreFile RestoreFile) (err error) {
+	_, filename := filepath.Split(restoreFile.File.Name())
+
+	task := &Task{
+		ID: strings.TrimSuffix(filename, RestoreFileExt),
+	}
+
+	if a.TaskExists(task.ID) {
+		err = errors.New(fmt.Sprintf("Task already exists (ID: %s)", task.ID))
+		return
+	}
+
+	task.Arguments = strings.Split(
+		strings.TrimSuffix(
+			strings.ReplaceAll(
+				string(restoreFile.Data.Argv),
+				"\r\n",
+				"\n",
+			),
+			"\n",
+		),
+		"\n",
+	)[1:]
+
+	wdir, _ := filepath.Split(a.Hashcat.BinaryFile)
+	task.Process = subprocess.Subprocess{
+		subprocess.SubprocessStatusNotRunning,
+		wdir,
+		a.Hashcat.BinaryFile,
+		[]string{fmt.Sprintf("--session=%s", task.ID), "--restore"},
+		nil,
+		nil,
+		func(s string) {
+			a.TaskUpdateCallback(TaskUpdate{
+				Task:      *task,
+				Message:   ansi.Strip(s),
+				Source:    "stdout",
+				Timestamp: time.Now().UnixNano(),
+			})
+		},
+		func(s string) {
+			a.TaskUpdateCallback(TaskUpdate{
+				Task:      *task,
+				Message:   ansi.Strip(s),
+				Source:    "stderr",
+				Timestamp: time.Now().UnixNano(),
+			})
+		},
+		a.TaskPreProcessCallback,
+		a.TaskPostProcessCallback,
+	}
+
+	a.Tasks[task.ID] = task
+
+	a.TaskUpdateCallback(TaskUpdate{
+		Task:      *task,
+		Timestamp: time.Now().UnixNano(),
+	})
+
+	return
+}
+
+func (a *App) RestoreTasks() (err error) {
+	files, err := filepath.Glob(filepath.Join(HashcatDir, "*.restore"))
+	if err != nil {
+		return
+	}
+
+	for _, file := range files {
+		var f *os.File
+		f, err = os.Open(file)
+		if err != nil {
+			return
+		}
+		rf := RestoreFile{File: f}
+		err = rf.Unpack()
+		if err != nil {
+			return
+		}
+		err = a.RestoreTask(rf)
+		if err != nil {
+			return
+		}
+	}
 
 	return
 }

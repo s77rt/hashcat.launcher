@@ -2,7 +2,7 @@ import './App.css';
 import 'antd/dist/antd.dark.css';
 
 import React, { Component } from "react";
-import { Row, Col, Statistic, Button, Layout, Tabs, Typography, Menu } from 'antd';
+import { message, Row, Col, Statistic, Button, Layout, Tabs, Typography, Menu } from 'antd';
 import { QuestionCircleOutlined, InfoCircleOutlined, DeploymentUnitOutlined, RocketOutlined, ToolOutlined, UserOutlined, HomeOutlined, PlusOutlined, SettingOutlined, UnorderedListOutlined, QuestionOutlined } from '@ant-design/icons';
 
 import data from "./jsx/data/data";
@@ -48,28 +48,36 @@ class App extends Component {
 	}
 
 	init() {
-		if (typeof window.GOgetVersion !== "function")
-			return;
-		window.GOgetVersion().then(
-			response => {
-				this.setState({
-					version: response
-				});
-			},
-			error => {
-				console.error("Failed to get version", error);
-			}
-		);
+		if (typeof window.GOgetVersion === "function") {
+			window.GOgetVersion().then(
+				response => {
+					this.setState({
+						version: response
+					});
+				},
+				error => {
+					message.error("Failed to get version"  + " " + error);
+				}
+			);
+		}
+		if (typeof window.GOrestoreTasks === "function") {
+			window.GOrestoreTasks().then(
+				() => null,
+				error => {
+					message.error("Failed to restore tasks" + " " + error);
+				}
+			);
+		}
 	}
 
 	setView(view) {
 		this.setState({
 			currentView: view
-		})
+		});
 	}
 
 	onSelectMenu(e) {
-		this.setView(e.key)
+		this.setView(e.key);
 	}
 
 	componentDidMount() {

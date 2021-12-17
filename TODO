@@ -1,4 +1,4 @@
-[] Support restore task
+[X] Support restore task (edit: this is done implicitly)
 [] Add missing Markov options
 [] Add Task Priority
 [] Add Task Notifications
