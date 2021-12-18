@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=hashcat.launcher
+Icon=hashcat.launcher.png
+Terminal=false
+NoDisplay=true

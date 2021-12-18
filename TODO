@@ -1,9 +1,14 @@
 [X] Support restore task (edit: this is done implicitly)
-[] Add missing Markov options
-[] Add Task Priority
-[] Add Task Notifications
-[] Add more info about task attack (mostly related to hashcat itself)
-[] Add feature to load hash from clipboard
-[] Auto task start
-[] Fix low resolution icon
-[] Delete task from tasks list
+[/] Fix low resolution icon (edit: fixed on Linux)
+[ ] Add missing Markov options
+[ ] Add Task Priority
+[ ] Add Task Notifications
+[ ] Add more info about task attack (mostly related to hashcat itself)
+[ ] Add feature to load hash from clipboard
+[ ] Auto task start
+[ ] Delete task from tasks list
+
+
+[ ] TODO
+[X] DONE
+[/] Partially Done

@@ -11,9 +11,7 @@ import (
 )
 
 var (
-	Name    string = "hashcat.launcher"
 	Version string = "dev"
-	Debug   bool   = false
 )
 
 var (

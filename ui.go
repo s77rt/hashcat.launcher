@@ -11,17 +11,17 @@ import (
 )
 
 func (a *App) NewUI() {
-	tmpDir, err := ioutil.TempDir("", Name)
+	tmpDir, err := ioutil.TempDir("", "hashcat.launcher")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	a.UI, err = lorca.New(
-		fmt.Sprintf("data:text/html,<html><head><title>%s</title></head><body>Loading...</body></html>", Name),
+		"data:text/html,<html><head><title>hashcat.launcher</title></head><body>Loading...</body></html>",
 		tmpDir,
 		1080,
 		720,
-		[]string{fmt.Sprintf("--class=%s", Name)}...,
+		[]string{"--class=hashcat.launcher"}...,
 	)
 	if err != nil {
 		log.Fatal(err)
