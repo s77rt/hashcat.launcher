@@ -296,7 +296,7 @@ class Tasks extends Component {
 		Modal.info({
 			title: 'Arguments',
 			content: (
-				<div style={{ maxHeight: '300px' }}>
+				<div style={{ maxHeight: '300px', overflow: 'auto' }}>
 					<Text code copyable>
 						{task.arguments.join(" ")}
 					</Text>
