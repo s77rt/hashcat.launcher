@@ -6,6 +6,8 @@ BIN_DIR = ./bin/
 
 FRONTEND_DIR = ./frontend/
 
+RESOURCES_DIR = ./resources/
+
 BIN_DIR_MAC = ./bin/mac/
 BIN_DIR_LINUX = ./bin/linux/
 BIN_DIR_WINDOWS = ./bin/windows/
@@ -43,7 +45,7 @@ build-linux:
 build-windows:
 	@echo "Building hashcat.launcher for Windows"
 	@mkdir -p $(BIN_DIR_WINDOWS)
-	rsrc -arch amd64 -ico Icon.ico -o $(CMD_DIR)$(PROJECT_NAME)/rsrc_windows_amd64.syso
+	rsrc -arch amd64 -ico $(RESOURCES_DIR)Icon.ico -o $(CMD_DIR)$(PROJECT_NAME)/rsrc_windows_amd64.syso
 	GOOS=windows GOARCH=amd64 go build -ldflags $(LD_FLAGS_WINDOWS) -o $(BIN_DIR_WINDOWS)$(PROJECT_NAME).exe $(CMD_DIR)$(PROJECT_NAME)
 	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_windows.zip $(BIN_DIR_WINDOWS)$(PROJECT_NAME).exe
 
