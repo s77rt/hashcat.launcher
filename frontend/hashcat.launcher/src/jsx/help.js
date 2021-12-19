@@ -44,6 +44,16 @@ class Help extends Component {
 								After adding a file, go to Settings and click on Rescan
 								to rescan and load new added files.
 							</Panel>
+							<Panel header="What is the difference between an idle task and a queued task" key="5">
+								An idle task have a priority that is less than zero
+								<br />
+								while, a queued task have a priority that is equal or greater than zero.
+								<br />
+								<br />
+								An idle task can only be started manually
+								<br />
+								while, a queued task can be started manually or automatically.
+							</Panel>
 						</Collapse>
 					</Typography>
 				</Content>

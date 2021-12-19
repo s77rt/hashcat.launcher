@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 
@@ -20,8 +21,8 @@ const DefaultTaskIDLength = 9
 type Task struct {
 	ID        string                `json:"id"`
 	Arguments []string              `json:"arguments"`
-	Process   subprocess.Subprocess `json:"-"`
-	Priority  int                   `json:"priority"`
+	Process   subprocess.Subprocess `json:"process"`
+	Priority  int64                 `json:"priority"`
 }
 
 func (task *Task) Start() error {
@@ -129,7 +130,7 @@ func (a *App) newTaskID() (taskID string) {
 	return
 }
 
-func (a *App) NewTask(args HashcatArgs) (err error) {
+func (a *App) NewTask(args HashcatArgs, priority int64) (err error) {
 	task := &Task{
 		ID: a.newTaskID(),
 	}
@@ -143,7 +144,7 @@ func (a *App) NewTask(args HashcatArgs) (err error) {
 
 	wdir, _ := filepath.Split(a.Hashcat.BinaryFile)
 	task.Process = subprocess.Subprocess{
-		subprocess.SubprocessStatusNotRunning,
+		subprocess.SubprocessStatusNotStarted,
 		wdir,
 		a.Hashcat.BinaryFile,
 		task.Arguments,
@@ -165,16 +166,33 @@ func (a *App) NewTask(args HashcatArgs) (err error) {
 				Timestamp: time.Now().UnixNano(),
 			})
 		},
-		a.TaskPreProcessCallback,
-		a.TaskPostProcessCallback,
+		func() {
+			a.TaskPreProcessCallback(TaskUpdate{
+				Task:      *task,
+				Timestamp: time.Now().UnixNano(),
+			})
+		},
+		func() {
+			a.TaskPostProcessCallback(TaskUpdate{
+				Task:      *task,
+				Timestamp: time.Now().UnixNano(),
+			})
+			a.StartNextTask()
+		},
 	}
+
+	task.Priority = priority
 
 	a.Tasks[task.ID] = task
 
-	a.TaskUpdateCallback(TaskUpdate{
+	a.TaskAddCallback(TaskUpdate{
 		Task:      *task,
 		Timestamp: time.Now().UnixNano(),
 	})
+
+	if task.Priority >= 0 {
+		a.StartNextTask()
+	}
 
 	return
 }
@@ -205,7 +223,7 @@ func (a *App) RestoreTask(restoreFile RestoreFile) (err error) {
 
 	wdir, _ := filepath.Split(a.Hashcat.BinaryFile)
 	task.Process = subprocess.Subprocess{
-		subprocess.SubprocessStatusNotRunning,
+		subprocess.SubprocessStatusNotStarted,
 		wdir,
 		a.Hashcat.BinaryFile,
 		[]string{fmt.Sprintf("--session=%s", task.ID), "--restore"},
@@ -227,16 +245,33 @@ func (a *App) RestoreTask(restoreFile RestoreFile) (err error) {
 				Timestamp: time.Now().UnixNano(),
 			})
 		},
-		a.TaskPreProcessCallback,
-		a.TaskPostProcessCallback,
+		func() {
+			a.TaskPreProcessCallback(TaskUpdate{
+				Task:      *task,
+				Timestamp: time.Now().UnixNano(),
+			})
+		},
+		func() {
+			a.TaskPostProcessCallback(TaskUpdate{
+				Task:      *task,
+				Timestamp: time.Now().UnixNano(),
+			})
+			a.StartNextTask()
+		},
 	}
+
+	task.Priority = -1
 
 	a.Tasks[task.ID] = task
 
-	a.TaskUpdateCallback(TaskUpdate{
+	a.TaskAddCallback(TaskUpdate{
 		Task:      *task,
 		Timestamp: time.Now().UnixNano(),
 	})
+
+	if task.Priority >= 0 {
+		a.StartNextTask()
+	}
 
 	return
 }
@@ -265,4 +300,40 @@ func (a *App) RestoreTasks() (err error) {
 	}
 
 	return
+}
+
+// StartNextTask starts the next queued task with the highest priority
+// given that the task has not been started yet and there is no other running tasks
+// tasks that have a priorty less than zero are not eligible
+func (a *App) StartNextTask() {
+	runningTasks := 0
+
+	tasks := []*Task{}
+	for _, task := range a.Tasks {
+		if task.Process.Status == subprocess.SubprocessStatusRunning {
+			runningTasks++
+		}
+		tasks = append(tasks, task)
+	}
+
+	if runningTasks > 0 {
+		return
+	}
+
+	sort.Slice(tasks, func(i, j int) bool {
+		return tasks[i].Priority > tasks[j].Priority
+	})
+
+	for _, task := range tasks {
+		if task.Priority < 0 {
+			// since tasks are ordered by priority
+			// we can stop here as tasks with priority < 0 are not eligible
+			// for auto-start
+			break
+		}
+		if task.Process.Status == subprocess.SubprocessStatusNotStarted {
+			task.Start()
+			break
+		}
+	}
 }

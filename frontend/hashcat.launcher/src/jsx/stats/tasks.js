@@ -5,10 +5,16 @@ const tasks = {
 		var task = this.tasks[taskUpdate.task.id] || {
 			id: taskUpdate.task.id,
 			arguments: taskUpdate.task.arguments,
+			process: taskUpdate.task.process,
 			priority: taskUpdate.task.priority,
 			stats: {},
 			journal: []
 		}
+
+		// id is immutable
+		// arguments are immutable
+		task.process = taskUpdate.task.process
+		task.priority = taskUpdate.task.priority
 
 		try {
 			task.stats = JSON.parse(taskUpdate.message)

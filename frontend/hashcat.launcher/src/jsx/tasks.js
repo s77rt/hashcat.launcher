@@ -1,6 +1,10 @@
 import React, { Component } from "react";
 import { Layout, PageHeader, Popconfirm, Tag, List, InputNumber, Table, Modal, message, Progress, Badge, Descriptions, Tree, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import {
+	LineOutlined,
+	FireOutlined,
+	ClockCircleOutlined,
+	CheckCircleOutlined,
 	FileDoneOutlined,
 	FileOutlined,
 	AimOutlined,
@@ -72,6 +76,10 @@ const HASHCAT_STATUS_BADGE_ERROR = [HASHCAT_STATUS_ABORTED, HASHCAT_STATUS_ABORT
 const HASHCAT_STATUS_BADGE_SUCCESS = [HASHCAT_STATUS_CRACKED];
 const HASHCAT_STATUS_BADGE_PINK = [HASHCAT_STATUS_EXHAUSTED];
 
+const PROCESS_STATUS_NOTSTARTED = 0,
+	PROCESS_STATUS_RUNNING = 1,
+	PROCESS_STATUS_FINISHED = 2;
+
 class Tasks extends Component {
 	constructor(props) {
 		super(props);
@@ -88,6 +96,8 @@ class Tasks extends Component {
 
 		this.onClickArguments = this.onClickArguments.bind(this);
 
+		this.onChangePriority = this.onChangePriority.bind(this);
+
 		this.state = {
 			data: [],
 
@@ -100,7 +110,9 @@ class Tasks extends Component {
 			isLoadingResume: false,
 			isLoadingCheckpoint: false,
 			isLoadingSkip: false,
-			isLoadingQuit: false
+			isLoadingQuit: false,
+
+			isReadOnlyPriority: false
 		};
 	}
 
@@ -306,11 +318,93 @@ class Tasks extends Component {
 		});
 	}
 
+	onChangePriority(priority) {
+		if (typeof(priority) !== "number")
+			return
+
+		const task = this.state.task;
+		if (!task) {
+			message.error("no task is selected");
+			return;
+		}
+
+		if (typeof window.GOpriorityTask !== "function") {
+			message.error("GOpriorityTask is not a function");
+			return;
+		}
+
+		this.setState({isReadOnlyPriority: true}, () => {
+			window.GOpriorityTask(task.id, priority).then(
+				response => {
+					task.priority = priority;
+					this.reBuildData();
+					this.setState({isReadOnlyPriority: false});
+					if (task.priority >= 0 && this.state.data[2].children.length === 0) {
+						if (typeof window.GOstartNextTask === "function") {
+							window.GOstartNextTask();
+						}
+					}
+				},
+				error => {
+					message.error(error);
+					this.setState({isReadOnlyPriority: false});
+				}
+			);
+		})
+	}
+
 	reBuildData() {
-		var data = [];
+		var data = [
+			{
+				key: "Idle",
+				title: "Idle",
+				selectable: false,
+				icon: <LineOutlined />,
+				children: []
+			},
+			{
+				key: "Queued",
+				title: "Queued",
+				selectable: false,
+				icon: <ClockCircleOutlined />,
+				children: []
+			},
+			{
+				key: "In Progress",
+				title: "In Progress",
+				selectable: false,
+				icon: <FireOutlined />,
+				children: []
+			},
+			{
+				key: "Finished",
+				title: "Finished",
+				selectable: false,
+				icon: <CheckCircleOutlined />,
+				children: []
+			}
+		];
 
 		Object.values(TasksStats.tasks).forEach(task => {
-			data.push({
+			var category;
+			switch (task.process.status) {
+				case PROCESS_STATUS_NOTSTARTED:
+					if (task.priority >= 0)
+						category = data[1];
+					else
+						category = data[0];
+					break;
+				case PROCESS_STATUS_RUNNING:
+					category = data[2];
+					break;
+				case PROCESS_STATUS_FINISHED:
+					category = data[3];
+					break;
+				default:
+					category = data[0];
+					message.warning("unrecognized process status");
+			}
+			category.children.push({
 				key: task.id,
 				title: (
 					task.stats.hasOwnProperty("progress") ? (
@@ -335,11 +429,15 @@ class Tasks extends Component {
 							<Badge status="default" />
 						)
 					) : (
-						<Badge status="default" />
+						<Badge color="#b7b7b7" />
 					)
 				),
 			});
 		});
+
+		for (let i = 0; i < data.length; i++) {
+			data[i].title = data[i].title + " (" + data[i].children.length + ")";
+		}
 
 		this.setState({
 			data: data
@@ -371,6 +469,7 @@ class Tasks extends Component {
 						<Col span={5}>
 							<Tree
 								showIcon
+								blockNode
 								treeData={this.state.data}
 								onSelect={this.onSelect}
 								selectedKeys={[taskKey]}
@@ -407,17 +506,29 @@ class Tasks extends Component {
 												) : null
 											}
 											style={{ padding: 0 }}
-											extra={[
-												<Button
-													type="dashed"
-													icon={<ControlOutlined />}
-													onClick={this.onClickArguments}
-													style={{ marginRight: '1rem' }}
-													key="arguments"
-												>
-													Arguments
-												</Button>
-											]}
+											extra={
+												<Form layout="inline">
+													<Form.Item
+														label="Priority"
+													>
+														<InputNumber
+															min={-1}
+															max={999}
+															value={task.priority}
+															onChange={this.onChangePriority}
+															readOnly={this.state.isReadOnlyPriority}
+															bordered={false}
+														/>
+													</Form.Item>
+													<Button
+														icon={<ControlOutlined />}
+														onClick={this.onClickArguments}
+														style={{ marginRight: '1rem' }}
+													>
+														Arguments
+													</Button>
+												</Form>
+											}
 										/>
 									</Col>
 									<Col span={24}>

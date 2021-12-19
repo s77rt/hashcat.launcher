@@ -34,9 +34,10 @@ type App struct {
 	Masks        []string
 
 	Tasks                   map[string]*Task
+	TaskAddCallback         func(TaskUpdate)
 	TaskUpdateCallback      func(TaskUpdate)
-	TaskPreProcessCallback  func()
-	TaskPostProcessCallback func()
+	TaskPreProcessCallback  func(TaskUpdate)
+	TaskPostProcessCallback func(TaskUpdate)
 }
 
 func (a *App) Init() {
@@ -89,11 +90,16 @@ func (a *App) Init() {
 	}
 
 	a.Tasks = make(map[string]*Task)
+	a.TaskAddCallback = func(taskUpdate TaskUpdate) {
+		a.UI.Eval(`eventBus.dispatch("taskUpdate",` + MarshalJSONS(taskUpdate) + `)`)
+	}
 	a.TaskUpdateCallback = func(taskUpdate TaskUpdate) {
 		a.UI.Eval(`eventBus.dispatch("taskUpdate",` + MarshalJSONS(taskUpdate) + `)`)
 	}
-	a.TaskPreProcessCallback = func() {}
-	a.TaskPostProcessCallback = func() {}
+	a.TaskPreProcessCallback = func(taskUpdate TaskUpdate) {}
+	a.TaskPostProcessCallback = func(taskUpdate TaskUpdate) {
+		a.UI.Eval(`eventBus.dispatch("taskUpdate",` + MarshalJSONS(taskUpdate) + `)`)
+	}
 }
 
 func (a *App) Clean() {

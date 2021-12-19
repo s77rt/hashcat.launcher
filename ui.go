@@ -61,8 +61,8 @@ func (a *App) BindUI() {
 		return a.Masks
 	})
 
-	a.UI.Bind("GOcreateTask", func(args HashcatArgs) error {
-		return a.NewTask(args)
+	a.UI.Bind("GOcreateTask", func(args HashcatArgs, priority int64) error {
+		return a.NewTask(args, priority)
 	})
 
 	a.UI.Bind("GOstartTask", func(taskID string) error {
@@ -119,6 +119,19 @@ func (a *App) BindUI() {
 		}
 
 		return errors.New("task not found")
+	})
+
+	a.UI.Bind("GOpriorityTask", func(taskID string, priority int64) error {
+		if task, ok := a.Tasks[taskID]; ok {
+			task.Priority = priority
+			return nil
+		}
+
+		return errors.New("task not found")
+	})
+
+	a.UI.Bind("GOstartNextTask", func() {
+		a.StartNextTask()
 	})
 
 	a.UI.Bind("GOrestoreTasks", func() error {

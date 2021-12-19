@@ -3,11 +3,15 @@
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
 ## [dev] DD/MM/YYYY
+### Changed:
+ - Exhausted status color to pink (#58)
+
 ### Added:
  - Allow loading files from symlinks
  - Allow preserving task config
  - Import/Export task config feature
  - Auto load existing .restore files
+ - Queued tasks system
 
 ### Fixed:
  - Missing hybrid attacks

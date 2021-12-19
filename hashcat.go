@@ -27,7 +27,7 @@ func (h *Hashcat) GetAlgorithms() {
 	args := []string{"--hash-info", "--quiet"}
 	wdir, _ := filepath.Split(h.BinaryFile)
 	cmd := subprocess.Subprocess{
-		subprocess.SubprocessStatusNotRunning,
+		subprocess.SubprocessStatusNotStarted,
 		wdir,
 		h.BinaryFile,
 		args,

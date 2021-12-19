@@ -14,22 +14,22 @@ import (
 type SubprocessStatus int
 
 const (
-	SubprocessStatusNotRunning SubprocessStatus = iota
+	SubprocessStatusNotStarted SubprocessStatus = iota
 	SubprocessStatusRunning
 	SubprocessStatusFinished
 )
 
 type Subprocess struct {
-	Status         SubprocessStatus
-	WDir           string
-	Program        string
-	Args           []string
-	Process        *os.Process
-	StdinStream    io.WriteCloser
-	StdoutCallback func(string)
-	StderrCallback func(string)
-	PreProcess     func()
-	PostProcess    func()
+	Status         SubprocessStatus `json:"status"`
+	WDir           string           `json:"-"`
+	Program        string           `json:"-"`
+	Args           []string         `json:"-"`
+	Process        *os.Process      `json:"-"`
+	StdinStream    io.WriteCloser   `json:"-"`
+	StdoutCallback func(string)     `json:"-"`
+	StderrCallback func(string)     `json:"-"`
+	PreProcess     func()           `json:"-"`
+	PostProcess    func()           `json:"-"`
 }
 
 func (p *Subprocess) Execute() {
@@ -45,6 +45,7 @@ func (p *Subprocess) Execute() {
 	err := c.Start()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "can't execute subprocess: %s\n", err)
+		return
 	}
 
 	p.Status = SubprocessStatusRunning
@@ -90,10 +91,10 @@ func (p *Subprocess) PostKey(key uint8) (uintptr, error) {
 
 	var hwnd uintptr
 	cb := syscall.NewCallback(func(h uintptr, prm uintptr) uintptr {
-		var itr_pid uint32
-		itr_pid = 0x0001
-		user32.NewProc("GetWindowThreadProcessId").Call(uintptr(h), uintptr(unsafe.Pointer(&itr_pid)))
-		if int(itr_pid) == p.Process.Pid {
+		var itrPid uint32
+		itrPid = 0x0001
+		user32.NewProc("GetWindowThreadProcessId").Call(uintptr(h), uintptr(unsafe.Pointer(&itrPid)))
+		if int(itrPid) == p.Process.Pid {
 			hwnd = h
 			user32.NewProc("PostMessageW").Call(h, 0x0100, uintptr(key), 0)
 			//return 0 // stop enumeration (commented to make sure all windows created by our process get's the message)

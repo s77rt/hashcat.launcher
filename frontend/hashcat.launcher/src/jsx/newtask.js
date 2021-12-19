@@ -110,7 +110,9 @@ const initialConfig = {
 	statusTimer: 20,
 
 	outputFile: undefined,
-	outputFormat: [1, 2]
+	outputFormat: [1, 2],
+
+	priority: 0
 }
 
 class NewTask extends Component {
@@ -169,6 +171,8 @@ class NewTask extends Component {
 
 		this.onChangeOutputFile = this.onChangeOutputFile.bind(this);
 		this.onChangeOutputFormat = this.onChangeOutputFormat.bind(this);
+
+		this.onChangePriority = this.onChangePriority.bind(this);
 
 		this.onClickCreateTask = this.onClickCreateTask.bind(this);
 
@@ -451,14 +455,13 @@ class NewTask extends Component {
 		});
 	}
 
-	onChangePreserveTaskConfig(e) {
-		this.setState({
-			preserveTaskConfig: e.target.checked
-		});
-	}
+	onChangePriority(priority) {
+		if (typeof(priority) !== "number")
+			return
 
-	resetInitialConfig() {
-		this.setState(initialConfig);
+		this.setState({
+			priority: priority
+		});
 	}
 
 	onClickCreateTask() {
@@ -519,7 +522,7 @@ class NewTask extends Component {
 
 				outputFile: this.state.outputFile,
 				outputFormat: this.state.outputFormat,
-			}).then(
+			}, this.state.priority).then(
 				response => {
 					message.success("Task has been created successfully!");
 					this.setState({isLoadingCreateTask: false});
@@ -532,6 +535,16 @@ class NewTask extends Component {
 				}
 			);
 		});
+	}
+
+	onChangePreserveTaskConfig(e) {
+		this.setState({
+			preserveTaskConfig: e.target.checked
+		});
+	}
+
+	resetInitialConfig() {
+		this.setState(initialConfig);
 	}
 
 	importConfig(config) {
@@ -1694,21 +1707,43 @@ class NewTask extends Component {
 										</Form.Item>
 									</Form>
 								) : this.state.step === 4 ? (
-									<Space size="large">
-										<Button
-											type="primary"
-											icon={<PlusOutlined />}
-											onClick={this.onClickCreateTask}
-											loading={this.state.isLoadingCreateTask}
-										>
-											Create Task
-										</Button>
-										<Checkbox
-											checked={this.state.preserveTaskConfig}
-											onChange={this.onChangePreserveTaskConfig}
-										>
-											Preserve task config
-										</Checkbox>
+									<Space direction="vertical">
+										<Form layout="vertical">
+											<Form.Item
+												label="Priority"
+												tooltip={
+													<Typography>
+														Tasks are started automatically in a descending order of priority.
+													<br />
+														Set to -1 to disable auto-start.
+													</Typography>
+												}
+											>
+												<InputNumber
+													min={-1}
+													max={999}
+													value={this.state.priority}
+													onChange={this.onChangePriority}
+													bordered={true}
+												/>
+											</Form.Item>
+										</Form>
+										<Space size="large" direction="horizontal">
+											<Button
+												type="primary"
+												icon={<PlusOutlined />}
+												onClick={this.onClickCreateTask}
+												loading={this.state.isLoadingCreateTask}
+											>
+												Create Task
+											</Button>
+												<Checkbox
+													checked={this.state.preserveTaskConfig}
+													onChange={this.onChangePreserveTaskConfig}
+												>
+													Preserve task config
+												</Checkbox>
+										</Space>
 									</Space>
 								) : null }
 							</div>
