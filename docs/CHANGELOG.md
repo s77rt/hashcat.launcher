@@ -2,7 +2,7 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
-## [dev] DD/MM/YYYY
+## [1.0.0-beta] 20/12/2021
 ### Changed:
  - Exhausted status color to pink (#58)
  - Export configs to /exported directory (#59)
