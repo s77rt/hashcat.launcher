@@ -27,7 +27,7 @@ type Task struct {
 
 func (task *Task) Start() error {
 	if task.Process.Process != nil {
-		return errors.New("task has been started already")
+		return errors.New("Task has been started already")
 	}
 
 	go task.Process.Execute()
@@ -36,7 +36,7 @@ func (task *Task) Start() error {
 
 func (task *Task) Refresh() error {
 	if task.Process.Process == nil {
-		return errors.New("task has not been started yet")
+		return errors.New("Task has not been started yet")
 	}
 
 	if runtime.GOOS == "windows" {
@@ -48,7 +48,7 @@ func (task *Task) Refresh() error {
 }
 func (task *Task) Pause() error {
 	if task.Process.Process == nil {
-		return errors.New("task has not been started yet")
+		return errors.New("Task has not been started yet")
 	}
 
 	if runtime.GOOS == "windows" {
@@ -60,7 +60,7 @@ func (task *Task) Pause() error {
 }
 func (task *Task) Resume() error {
 	if task.Process.Process == nil {
-		return errors.New("task has not been started yet")
+		return errors.New("Task has not been started yet")
 	}
 
 	if runtime.GOOS == "windows" {
@@ -72,7 +72,7 @@ func (task *Task) Resume() error {
 }
 func (task *Task) Checkpoint() error {
 	if task.Process.Process == nil {
-		return errors.New("task has not been started yet")
+		return errors.New("Task has not been started yet")
 	}
 
 	if runtime.GOOS == "windows" {
@@ -84,7 +84,7 @@ func (task *Task) Checkpoint() error {
 }
 func (task *Task) Skip() error {
 	if task.Process.Process == nil {
-		return errors.New("task has not been started yet")
+		return errors.New("Task has not been started yet")
 	}
 
 	if runtime.GOOS == "windows" {
@@ -96,7 +96,7 @@ func (task *Task) Skip() error {
 }
 func (task *Task) Quit() error {
 	if task.Process.Process == nil {
-		return errors.New("task has not been started yet")
+		return errors.New("Task has not been started yet")
 	}
 
 	if runtime.GOOS == "windows" {
@@ -336,4 +336,23 @@ func (a *App) StartNextTask() {
 			break
 		}
 	}
+}
+
+func (a *App) DeleteTask(taskID string) error {
+	task, ok := a.Tasks[taskID]
+	if !ok {
+		return errors.New("Task does not exist")
+	}
+
+	if task.Process.Status == subprocess.SubprocessStatusRunning {
+		return errors.New("Task is running")
+	}
+
+	os.Remove(filepath.Join(HashcatDir, fmt.Sprintf("%s.restore", task.ID)))
+
+	delete(a.Tasks, taskID)
+
+	a.TaskDeleteCallback(taskID)
+
+	return nil
 }

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Layout, PageHeader, Popconfirm, Tag, List, InputNumber, Table, Modal, message, Progress, Badge, Descriptions, Tree, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import {
+	DeleteOutlined,
 	LineOutlined,
 	FireOutlined,
 	ClockCircleOutlined,
@@ -94,9 +95,10 @@ class Tasks extends Component {
 		this.onClickSkip = this.onClickSkip.bind(this);
 		this.onClickQuit = this.onClickQuit.bind(this);
 
-		this.onClickArguments = this.onClickArguments.bind(this);
-
 		this.onChangePriority = this.onChangePriority.bind(this);
+
+		this.onClickArguments = this.onClickArguments.bind(this);
+		this.onClickDelete = this.onClickDelete.bind(this);
 
 		this.state = {
 			data: [],
@@ -112,8 +114,15 @@ class Tasks extends Component {
 			isLoadingSkip: false,
 			isLoadingQuit: false,
 
-			isReadOnlyPriority: false
+			isReadOnlyPriority: false,
+			isLoadingDelete: false
 		};
+	}
+
+	refresh() {
+		this.setState({
+			task: TasksStats.tasks[this.state.taskKey]
+		});
 	}
 
 	onSelect(keys) {
@@ -299,25 +308,6 @@ class Tasks extends Component {
 		})
 	}
 
-	onClickArguments() {
-		const task = this.state.task;
-		if (!task) {
-			message.error("no task is selected");
-			return;
-		}
-
-		Modal.info({
-			title: 'Arguments',
-			content: (
-				<div style={{ maxHeight: '300px', overflow: 'auto' }}>
-					<Text code copyable>
-						{task.arguments.join(" ")}
-					</Text>
-				</div>
-			),
-		});
-	}
-
 	onChangePriority(priority) {
 		if (typeof(priority) !== "number")
 			return
@@ -348,6 +338,51 @@ class Tasks extends Component {
 				error => {
 					message.error(error);
 					this.setState({isReadOnlyPriority: false});
+				}
+			);
+		})
+	}
+
+	onClickArguments() {
+		const task = this.state.task;
+		if (!task) {
+			message.error("no task is selected");
+			return;
+		}
+
+		Modal.info({
+			title: 'Arguments',
+			content: (
+				<div style={{ maxHeight: '300px', overflow: 'auto' }}>
+					<Text code copyable>
+						{task.arguments.join(" ")}
+					</Text>
+				</div>
+			),
+		});
+	}
+
+	onClickDelete() {
+		const task = this.state.task;
+		if (!task) {
+			message.error("no task is selected");
+			return;
+		}
+
+		if (typeof window.GOdeleteTask !== "function") {
+			message.error("GOdeleteTask is not a function");
+			return;
+		}
+
+		this.setState({isLoadingDelete: true}, () => {
+			window.GOdeleteTask(task.id).then(
+				response => {
+					this.refresh();
+					this.setState({isLoadingDelete: false});
+				},
+				error => {
+					message.error(error);
+					this.setState({isLoadingDelete: false});
 				}
 			);
 		})
@@ -527,6 +562,21 @@ class Tasks extends Component {
 													>
 														Arguments
 													</Button>
+													<Popconfirm
+														placement="topRight"
+														title="Are you sure you want to delete this task?"
+														onConfirm={this.onClickDelete}
+														okText="Yes"
+														cancelText="No"
+													>
+														<Button
+															type="danger"
+															icon={<DeleteOutlined />}
+															loading={this.state.isLoadingDelete}
+														>
+															Delete
+														</Button>
+													</Popconfirm>
 												</Form>
 											}
 										/>
@@ -598,7 +648,7 @@ class Tasks extends Component {
 											<Col>
 												<Popconfirm
 													placement="topRight"
-													title="Are you sure to quit the task?"
+													title="Are you sure you want to quit this task?"
 													onConfirm={this.onClickQuit}
 													okText="Yes"
 													cancelText="No"
@@ -606,7 +656,6 @@ class Tasks extends Component {
 													<Button
 														type="danger"
 														icon={<CloseOutlined />}
-														
 														loading={this.state.isLoadingQuit}
 													>
 														Quit

@@ -30,6 +30,10 @@ const tasks = {
 
 		this.tasks[task.id] = task;
 	},
+
+	_delete: function(taskID) {
+		delete(this.tasks[taskID]);
+	}
 }
 
 export default tasks;

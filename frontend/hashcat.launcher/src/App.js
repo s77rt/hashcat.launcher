@@ -85,11 +85,16 @@ class App extends Component {
 			TasksStats._update(taskUpdate);
 			EventBus.dispatch("tasksUpdate");
 		});
+		EventBus.on("taskDelete", (taskID) => {
+			TasksStats._delete(taskID);
+			EventBus.dispatch("tasksUpdate");
+		});
 		this.init();
 	}
 
 	componentWillUnmount() {
 		EventBus.remove("taskUpdate");
+		EventBus.remove("taskDelete");
 	}
 
 	render() {

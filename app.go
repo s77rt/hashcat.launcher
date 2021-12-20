@@ -38,6 +38,7 @@ type App struct {
 	TaskUpdateCallback      func(TaskUpdate)
 	TaskPreProcessCallback  func(TaskUpdate)
 	TaskPostProcessCallback func(TaskUpdate)
+	TaskDeleteCallback      func(string)
 }
 
 func (a *App) Init() {
@@ -99,6 +100,9 @@ func (a *App) Init() {
 	a.TaskPreProcessCallback = func(taskUpdate TaskUpdate) {}
 	a.TaskPostProcessCallback = func(taskUpdate TaskUpdate) {
 		a.UI.Eval(`eventBus.dispatch("taskUpdate",` + MarshalJSONS(taskUpdate) + `)`)
+	}
+	a.TaskDeleteCallback = func(taskID string) {
+		a.UI.Eval(`eventBus.dispatch("taskDelete",` + MarshalJSONS(taskID) + `)`)
 	}
 }
 

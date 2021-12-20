@@ -12,6 +12,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
  - Import/Export task config feature
  - Auto load existing .restore files
  - Queued tasks system
+ - Delete task from tasks list
 
 ### Fixed:
  - Missing hybrid attacks

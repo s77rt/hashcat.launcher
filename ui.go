@@ -138,6 +138,10 @@ func (a *App) BindUI() {
 		return a.RestoreTasks()
 	})
 
+	a.UI.Bind("GOdeleteTask", func(taskID string) error {
+		return a.DeleteTask(taskID)
+	})
+
 	a.UI.Bind("GOsaveDialog", func() (string, error) {
 		return dialog.File().Save()
 	})
