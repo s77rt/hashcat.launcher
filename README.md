@@ -17,7 +17,7 @@ it is designed to make it easier to use hashcat offering a friendly graphical us
  - Executables can be found packaged in `bin` directory
 
 ## Screenshots
-![hashcat.launcher](/docs/screenshots/1.png?raw=true "hashcat.launcher")
+![hashcat.launcher](/docs/screenshots/preview.gif?raw=true "hashcat.launcher")
 
 ## Changelog
 Refer to [CHANGELOG.md](https://github.com/s77rt/hashcat.launcher/blob/master/docs/CHANGELOG.md)
