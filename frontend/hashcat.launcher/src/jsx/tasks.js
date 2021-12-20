@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { Layout, PageHeader, Popconfirm, Tag, List, InputNumber, Table, Modal, message, Progress, Badge, Descriptions, Tree, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
+import { Tooltip, Layout, PageHeader, Popconfirm, Tag, List, InputNumber, Table, Modal, message, Progress, Badge, Descriptions, Tree, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import {
+	InfoCircleOutlined,
 	DeleteOutlined,
 	LineOutlined,
 	FireOutlined,
@@ -80,6 +81,33 @@ const HASHCAT_STATUS_BADGE_PINK = [HASHCAT_STATUS_EXHAUSTED];
 const PROCESS_STATUS_NOTSTARTED = 0,
 	PROCESS_STATUS_RUNNING = 1,
 	PROCESS_STATUS_FINISHED = 2;
+
+function totalSpeed(devices) {
+	var speed = 0;
+	devices.forEach(device => {
+		speed += device.speed;
+	});
+	return speed;
+}
+
+function humanizeSpeed(H) {
+	let KH = 1000;
+	let MH = KH * KH;
+	let GH = MH * KH;
+	let TH = GH * KH;
+
+	if (H < KH*100) {
+		return `${(H).toFixed(0)} H/s`
+	} else if (H < MH) {
+		return `${(H/KH).toFixed(1)} kH/s`
+	} else if (H < GH) {
+		return `${(H/MH).toFixed(1)} MH/s`
+	} else if (H < TH) {
+		return `${(H/GH).toFixed(1)} GH/s`
+	} else {
+		return `${(H/TH).toFixed(1)} TH/s`
+	}
+}
 
 class Tasks extends Component {
 	constructor(props) {
@@ -715,6 +743,51 @@ class Tasks extends Component {
 											{task.stats.hasOwnProperty("recovered_salts") && (
 												<Descriptions.Item label="Recovered salts" span={1}>
 													{task.stats["recovered_salts"][0] + " / " + task.stats["recovered_salts"][1] + " (" + Math.trunc((task.stats["recovered_salts"][0] / task.stats["recovered_salts"][1])*100) + "%)"}
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("devices") && (
+												<Descriptions.Item label="Speed" span={2}>
+													{humanizeSpeed(totalSpeed(task.stats["devices"]))}
+													<Tooltip title={
+														<Table
+															columns={[
+																{
+																	title: 'ID',
+																	dataIndex: 'id',
+																	key: 'ID'
+																},
+																{
+																	title: 'Speed',
+																	dataIndex: 'speed',
+																	key: 'Speed'
+																},
+																{
+																	title: 'Temp',
+																	dataIndex: 'temp',
+																	key: 'Temp'
+																},
+																{
+																	title: 'Util',
+																	dataIndex: 'util',
+																	key: 'Util'
+																}
+															]}
+															dataSource={task.stats["devices"].map(device =>
+																({
+																	key: device.device_id,
+																	id: device.device_id,
+																	speed: humanizeSpeed(device.speed),
+																	temp: device.hasOwnProperty("temp") ? device.temp + " °C": "-",
+																	util: device.util + "%",
+																})
+															)}
+															size="small"
+															pagination={false}
+															style={{ overflow: 'auto' }}
+														/>
+													}>
+														<InfoCircleOutlined style={{ marginLeft: ".5rem" }} />
+													</Tooltip>
 												</Descriptions.Item>
 											)}
 											{task.stats.hasOwnProperty("session") && (
