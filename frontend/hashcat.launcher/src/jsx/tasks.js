@@ -28,6 +28,8 @@ import {
 import EventBus from "./eventbus/EventBus";
 import TasksStats from './stats/tasks';
 
+import moment from "moment"
+
 const { Content } = Layout;
 const { Dragger } = Upload;
 const { Option } = Select;
@@ -787,6 +789,20 @@ class Tasks extends Component {
 														/>
 													}>
 														<InfoCircleOutlined style={{ marginLeft: ".5rem" }} />
+													</Tooltip>
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("time_start") && (
+												<Descriptions.Item label="Started" span={1}>
+													<Tooltip title={moment.unix(task.stats["time_start"]).format("MMMM Do YYYY, HH:mm")}>
+														{moment.unix(task.stats["time_start"]).fromNow()}
+													</Tooltip>
+												</Descriptions.Item>
+											)}
+											{task.stats.hasOwnProperty("estimated_stop") && (
+												<Descriptions.Item label="ETA" span={1}>
+													<Tooltip title={moment.unix(task.stats["estimated_stop"]).format("MMMM Do YYYY, HH:mm")}>
+														{moment.unix(task.stats["estimated_stop"]).fromNow()}
 													</Tooltip>
 												</Descriptions.Item>
 											)}

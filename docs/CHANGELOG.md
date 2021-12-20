@@ -2,6 +2,10 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [dev] DD/MM/YYYY
+### Added:
+ - Missing Started and ETA info for tasks
+
 ## [1.0.0-beta] 20/12/2021
 ### Changed:
  - Exhausted status color to pink (#58)
