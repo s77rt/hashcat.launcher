@@ -14,18 +14,18 @@ var (
 	Version string = "dev"
 )
 
-var (
+type App struct {
+	Server net.Listener
+	UI     lorca.UI
+
 	HashcatDir string
 
 	HashesDir       string
 	DictionariesDir string
 	RulesDir        string
 	MasksDir        string
-)
 
-type App struct {
-	Server net.Listener
-	UI     lorca.UI
+	ExportedDir string
 
 	Hashcat      *Hashcat
 	Hashes       []string
@@ -41,49 +41,55 @@ type App struct {
 	TaskDeleteCallback      func(string)
 }
 
-func (a *App) Init() {
+func (a *App) Init() error {
 	exe, err := os.Executable()
 	if err != nil {
-		panic("unable to get executable location")
+		return err
 	}
 
 	exeDir, _ := filepath.Split(exe)
 
-	HashcatDir = filepath.Join(exeDir, "hashcat")
-	err = os.MkdirAll(HashcatDir, 0o755)
+	a.HashcatDir = filepath.Join(exeDir, "hashcat")
+	err = os.MkdirAll(a.HashcatDir, 0o755)
 	if err != nil {
-		panic("unable to create hashcat dir")
+		return err
 	}
 
-	HashesDir = filepath.Join(HashcatDir, "hashes")
-	err = os.MkdirAll(HashesDir, 0o755)
+	a.HashesDir = filepath.Join(a.HashcatDir, "hashes")
+	err = os.MkdirAll(a.HashesDir, 0o755)
 	if err != nil {
-		panic("unable to create hashes dir")
+		return err
 	}
 
-	DictionariesDir = filepath.Join(HashcatDir, "dictionaries")
-	err = os.MkdirAll(DictionariesDir, 0o755)
+	a.DictionariesDir = filepath.Join(a.HashcatDir, "dictionaries")
+	err = os.MkdirAll(a.DictionariesDir, 0o755)
 	if err != nil {
-		panic("unable to create dictionaries dir")
+		return err
 	}
 
-	RulesDir = filepath.Join(HashcatDir, "rules")
-	err = os.MkdirAll(RulesDir, 0o755)
+	a.RulesDir = filepath.Join(a.HashcatDir, "rules")
+	err = os.MkdirAll(a.RulesDir, 0o755)
 	if err != nil {
-		panic("unable to create rules dir")
+		return err
 	}
 
-	MasksDir = filepath.Join(HashcatDir, "masks")
-	err = os.MkdirAll(MasksDir, 0o755)
+	a.MasksDir = filepath.Join(a.HashcatDir, "masks")
+	err = os.MkdirAll(a.MasksDir, 0o755)
 	if err != nil {
-		panic("unable to create masks dir")
+		return err
+	}
+
+	a.ExportedDir = filepath.Join(exeDir, "exported")
+	err = os.MkdirAll(a.ExportedDir, 0o755)
+	if err != nil {
+		return err
 	}
 
 	a.Hashcat = &Hashcat{}
 	if runtime.GOOS == "windows" {
-		a.Hashcat.BinaryFile = filepath.Join(HashcatDir, "hashcat.exe")
+		a.Hashcat.BinaryFile = filepath.Join(a.HashcatDir, "hashcat.exe")
 	} else {
-		a.Hashcat.BinaryFile = filepath.Join(HashcatDir, "hashcat.bin")
+		a.Hashcat.BinaryFile = filepath.Join(a.HashcatDir, "hashcat.bin")
 	}
 
 	if err := a.Scan(); err != nil {
@@ -104,9 +110,16 @@ func (a *App) Init() {
 	a.TaskDeleteCallback = func(taskID string) {
 		a.UI.Eval(`eventBus.dispatch("taskDelete",` + MarshalJSONS(taskID) + `)`)
 	}
+
+	if err := a.Bundle(); err != nil {
+		log.Println(err)
+	}
+
+	return nil
 }
 
-func (a *App) Clean() {
+func (a *App) Clean() error {
+	return nil
 }
 
 func (a *App) Scan() (err error) {

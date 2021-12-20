@@ -3,7 +3,6 @@ package hashcatlauncher
 import (
 	"embed"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -11,7 +10,7 @@ import (
 //go:embed resources
 var resources embed.FS
 
-func bundleIcon() error {
+func (a *App) bundleIcon() error {
 	iconDir := filepath.Join(os.Getenv("HOME"), ".local/share/icons")
 	err := os.MkdirAll(iconDir, 0o755)
 	if err != nil {
@@ -37,7 +36,7 @@ func bundleIcon() error {
 	return nil
 }
 
-func bundleDesktopEntry() error {
+func (a *App) bundleDesktopEntry() error {
 	desktopEntryDir := filepath.Join(os.Getenv("HOME"), ".local/share/applications")
 	err := os.MkdirAll(desktopEntryDir, 0o755)
 	if err != nil {
@@ -63,11 +62,13 @@ func bundleDesktopEntry() error {
 	return nil
 }
 
-func init() {
-	if err := bundleIcon(); err != nil {
-		log.Println("bundleIcon error", err)
+func (a *App) Bundle() error {
+	if err := a.bundleIcon(); err != nil {
+		return err
 	}
-	if err := bundleDesktopEntry(); err != nil {
-		log.Println("bundleDesktopEntry error", err)
+	if err := a.bundleDesktopEntry(); err != nil {
+		return err
 	}
+
+	return nil
 }

@@ -30,21 +30,21 @@ func fileWalk(dir string) ([]string, error) {
 }
 
 func (a *App) ScanHashes() (err error) {
-	a.Hashes, err = fileWalk(HashesDir)
+	a.Hashes, err = fileWalk(a.HashesDir)
 	return
 }
 
 func (a *App) ScanDictionaries() (err error) {
-	a.Dictionaries, err = fileWalk(DictionariesDir)
+	a.Dictionaries, err = fileWalk(a.DictionariesDir)
 	return
 }
 
 func (a *App) ScanRules() (err error) {
-	a.Rules, err = fileWalk(RulesDir)
+	a.Rules, err = fileWalk(a.RulesDir)
 	return
 }
 
 func (a *App) ScanMasks() (err error) {
-	a.Masks, err = fileWalk(MasksDir)
+	a.Masks, err = fileWalk(a.MasksDir)
 	return
 }

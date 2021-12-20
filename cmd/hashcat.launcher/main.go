@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,17 +11,25 @@ import (
 
 func main() {
 	app := hashcatlauncher.NewApp()
-	app.Init()
+	if err := app.Init(); err != nil {
+		panic(err)
+	}
 
-	app.NewServer()
+	if err := app.NewServer(); err != nil {
+		panic(err)
+	}
 	defer app.Server.Close()
 
-	app.NewUI()
+	if err := app.NewUI(); err != nil {
+		panic(err)
+	}
 	defer app.UI.Close()
 
 	app.BindUI()
 
-	app.LoadUI()
+	if err := app.LoadUI(); err != nil {
+		panic(err)
+	}
 
 	app.RestrictUI()
 
@@ -30,6 +39,8 @@ func main() {
 	case <-sigs:
 	case <-app.UI.Done():
 	}
-	app.Clean()
-	os.Exit(0)
+
+	if err := app.Clean(); err != nil {
+		log.Println(err)
+	}
 }

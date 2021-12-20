@@ -4,16 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 
 	"github.com/sqweek/dialog"
 	"github.com/zserge/lorca"
 )
 
-func (a *App) NewUI() {
+func (a *App) NewUI() error {
 	tmpDir, err := ioutil.TempDir("", "hashcat.launcher")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	a.UI, err = lorca.New(
@@ -24,12 +23,14 @@ func (a *App) NewUI() {
 		[]string{"--class=hashcat.launcher"}...,
 	)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	a.UI.SetBounds(lorca.Bounds{
 		WindowState: lorca.WindowStateMaximized,
 	})
+
+	return nil
 }
 
 func (a *App) BindUI() {
@@ -142,15 +143,17 @@ func (a *App) BindUI() {
 		return a.DeleteTask(taskID)
 	})
 
+	a.UI.Bind("GOexportConfig", func(config interface{}) error {
+		return a.ExportConfig(config)
+	})
+
 	a.UI.Bind("GOsaveDialog", func() (string, error) {
 		return dialog.File().Save()
 	})
 }
 
-func (a *App) LoadUI() {
-	if err := a.UI.Load(fmt.Sprintf("http://%s/frontend/hashcat.launcher/build", a.Server.Addr())); err != nil {
-		log.Fatal(err)
-	}
+func (a *App) LoadUI() error {
+	return a.UI.Load(fmt.Sprintf("http://%s/frontend/hashcat.launcher/build", a.Server.Addr()))
 }
 
 func (a *App) RestrictUI() {

@@ -277,7 +277,7 @@ func (a *App) RestoreTask(restoreFile RestoreFile) (err error) {
 }
 
 func (a *App) RestoreTasks() (err error) {
-	files, err := filepath.Glob(filepath.Join(HashcatDir, "*.restore"))
+	files, err := filepath.Glob(filepath.Join(a.HashcatDir, "*.restore"))
 	if err != nil {
 		return
 	}
@@ -348,7 +348,7 @@ func (a *App) DeleteTask(taskID string) error {
 		return errors.New("Task is running")
 	}
 
-	os.Remove(filepath.Join(HashcatDir, fmt.Sprintf("%s.restore", task.ID)))
+	os.Remove(filepath.Join(a.HashcatDir, fmt.Sprintf("%s.restore", task.ID)))
 
 	delete(a.Tasks, taskID)
 

@@ -593,21 +593,24 @@ class NewTask extends Component {
 	}
 
 	onClickExportConfig() {
+		if (typeof window.GOexportConfig !== "function") {
+			message.error("GOexportConfig is not a function");
+			return;
+		}
+
 		this.setState({
 			isLoadingExportConfig: true
 		}, () => {
-			var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.exportConfig(), null, '\t'));
-			var downloadAnchorNode = document.createElement('a');
-			downloadAnchorNode.style.display = "none";
-			downloadAnchorNode.setAttribute("href", dataStr);
-			downloadAnchorNode.setAttribute("download", "config.json");
-			document.body.appendChild(downloadAnchorNode);
-			downloadAnchorNode.click();
-			downloadAnchorNode.remove();
-			message.success("Exported!");
-			this.setState({
-				isLoadingExportConfig: false
-			});
+			window.GOexportConfig(this.exportConfig()).then(
+				response => {
+					message.success("Exported!");
+					this.setState({isLoadingExportConfig: false});
+				},
+				error => {
+					message.error(error);
+					this.setState({isLoadingExportConfig: false});
+				}
+			);
 		});
 	}
 

@@ -5,6 +5,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 ## [dev] DD/MM/YYYY
 ### Changed:
  - Exhausted status color to pink (#58)
+ - Export configs to /exported directory (#59)
 
 ### Added:
  - Allow loading files from symlinks
