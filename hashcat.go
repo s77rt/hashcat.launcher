@@ -18,7 +18,7 @@ type Hashcat struct {
 
 var DefaultSessionID = "hashcat"
 
-func (h *Hashcat) GetAlgorithms() {
+func (h *Hashcat) LoadAlgorithms() {
 	h.Algorithms = make(map[int64]string)
 
 	var algorithmMode int64

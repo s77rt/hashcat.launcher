@@ -123,7 +123,7 @@ func (a *App) Clean() error {
 }
 
 func (a *App) Scan() (err error) {
-	a.Hashcat.GetAlgorithms()
+	a.Hashcat.LoadAlgorithms()
 
 	if err = a.ScanHashes(); err != nil {
 		return
