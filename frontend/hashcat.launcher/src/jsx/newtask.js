@@ -105,7 +105,7 @@ const initialConfig = {
 	markovClassic: false,
 	markovThreshold: 0,
 
-	extraArguments: ["--quiet", "--logfile-disable"],
+	extraArguments: ["--quiet", "--potfile-disable", "--logfile-disable"],
 
 	statusTimer: 20,
 
