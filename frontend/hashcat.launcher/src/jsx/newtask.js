@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Layout, PageHeader, Descriptions, Table, InputNumber, message, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
+import { Modal, Layout, PageHeader, Descriptions, Table, InputNumber, message, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import {
 	ImportOutlined,
 	ExportOutlined,
@@ -181,6 +181,9 @@ class NewTask extends Component {
 		this.onClickImportConfig = this.onClickImportConfig.bind(this);
 		this.onClickExportConfig = this.onClickExportConfig.bind(this);
 
+		this.onClickDevicesInfo = this.onClickDevicesInfo.bind(this);
+		this.onClickBenchmark = this.onClickBenchmark.bind(this);
+
 		this.state = {
 			...initialConfig,
 
@@ -190,6 +193,9 @@ class NewTask extends Component {
 			isLoadingExportConfig: false,
 			isLoadingSetOutputFile: false,
 			isLoadingCreateTask: false,
+
+			isLoadingDevicesInfo: false,
+			isLoadingBenchmark: false,
 
 			_dictionaries: getDictionaries(),
 			_rules: getRules(),
@@ -609,6 +615,84 @@ class NewTask extends Component {
 				error => {
 					message.error(error);
 					this.setState({isLoadingExportConfig: false});
+				}
+			);
+		});
+	}
+
+	onClickDevicesInfo() {
+		if (typeof window.GOhashcatDevices !== "function") {
+			message.error("GOhashcatDevices is not a function");
+			return;
+		}
+
+		this.setState({
+			isLoadingDevicesInfo: true
+		}, () => {
+			window.GOhashcatDevices().then(
+				response => {
+					Modal.info({
+						title: 'Devices',
+						content: (
+							<pre style={{
+								maxHeight: '300px',
+								overflow: 'auto',
+								padding: '.5rem',
+								margin: '0',
+								border: '1px solid #303030'
+							}}>
+								{response}
+							</pre>
+						),
+						width: 720
+					});
+					this.setState({isLoadingDevicesInfo: false});
+				},
+				error => {
+					message.error(error);
+					this.setState({isLoadingDevicesInfo: false});
+				}
+			);
+		});
+	}
+
+	onClickBenchmark() {
+		if (typeof window.GOhashcatBenchmark !== "function") {
+			message.error("GOhashcatBenchmark is not a function");
+			return;
+		}
+
+		const algorithm = this.state.algorithm;
+		if (typeof(algorithm) !== "number") {
+			message.error("No algorithm is selected");
+			return;
+		}
+
+		this.setState({
+			isLoadingBenchmark: true
+		}, () => {
+			window.GOhashcatBenchmark(algorithm).then(
+				response => {
+					Modal.info({
+						title: 'Benchmark',
+						content: (
+							<pre style={{
+								maxHeight: '300px',
+								overflow: 'auto',
+								padding: '.5rem',
+								margin: '0',
+								border: '1px solid #303030'
+							}}>
+								{response}
+							</pre>
+						),
+						width: 720
+					});
+					this.setState({isLoadingBenchmark: false});
+				},
+				error => {
+					message.error(error);
+					this.setState({isLoadingBenchmark: false});
 				}
 			);
 		});
@@ -1545,6 +1629,24 @@ class NewTask extends Component {
 																<Option value={4} key={4}>Nightmare</Option>
 															</Select>
 														</Form.Item>
+													</Col>
+												</Row>
+												<Row gutter={[18, 16]}>
+													<Col>
+														<Button
+															loading={this.state.isLoadingDevicesInfo}
+															onClick={this.onClickDevicesInfo}
+														>
+															Devices Info
+														</Button>
+													</Col>
+													<Col>
+														<Button
+															loading={this.state.isLoadingBenchmark}
+															onClick={this.onClickBenchmark}
+														>
+															Benchmark
+														</Button>
 													</Col>
 												</Row>
 											</Panel>

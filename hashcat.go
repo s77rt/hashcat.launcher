@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	"github.com/s77rt/hashcat.launcher/pkg/ansi"
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
 )
 
@@ -56,6 +58,36 @@ func (h *Hashcat) LoadAlgorithms() {
 		func() {},
 	}
 	cmd.Execute()
+}
+
+func (h *Hashcat) Devices() (devices string, err error) {
+	wdir, _ := filepath.Split(h.BinaryFile)
+
+	c := exec.Command(h.BinaryFile, []string{"-I", "--quiet"}...)
+	c.Dir = wdir
+	devicesBytes, err := c.CombinedOutput()
+	if err != nil {
+		return
+	}
+
+	devices = ansi.Strip(string(devicesBytes))
+
+	return
+}
+
+func (h *Hashcat) Benchmark(hashMode HashcatHashMode) (benchmark string, err error) {
+	wdir, _ := filepath.Split(h.BinaryFile)
+
+	c := exec.Command(h.BinaryFile, []string{"-b", fmt.Sprintf("-m%d", hashMode), "--quiet"}...)
+	c.Dir = wdir
+	benchmarkBytes, err := c.CombinedOutput()
+	if err != nil {
+		return
+	}
+
+	benchmark = ansi.Strip(string(benchmarkBytes))
+
+	return
 }
 
 type HashcatArgs struct {

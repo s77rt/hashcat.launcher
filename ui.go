@@ -143,6 +143,14 @@ func (a *App) BindUI() {
 		return a.DeleteTask(taskID)
 	})
 
+	a.UI.Bind("GOhashcatDevices", func() (string, error) {
+		return a.Hashcat.Devices()
+	})
+
+	a.UI.Bind("GOhashcatBenchmark", func(hashMode HashcatHashMode) (string, error) {
+		return a.Hashcat.Benchmark(hashMode)
+	})
+
 	a.UI.Bind("GOexportConfig", func(config interface{}) error {
 		return a.ExportConfig(config)
 	})
