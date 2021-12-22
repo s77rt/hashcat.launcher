@@ -36,6 +36,7 @@ func (h *Hashcat) LoadAlgorithms() {
 		nil,
 		nil,
 		func(s string) {
+			s = ansi.Strip(s)
 			modeLine := reMode.FindStringSubmatch(s)
 			if len(modeLine) == 2 {
 				var err error
@@ -52,6 +53,7 @@ func (h *Hashcat) LoadAlgorithms() {
 			}
 		},
 		func(s string) {
+			s = ansi.Strip(s)
 			fmt.Fprintf(os.Stderr, "%s\n", s)
 		},
 		func() {},
