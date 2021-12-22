@@ -725,6 +725,24 @@ class Tasks extends Component {
 											{task.stats.hasOwnProperty("progress") && (
 												<Descriptions.Item label="Progress" span={2}>
 													{task.stats["progress"][0] + " / " + task.stats["progress"][1] + " (" + Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100) + "%)"}
+													{task.stats.hasOwnProperty("guess") && (
+														<Tooltip title={
+															<Descriptions bordered size="small" column={1} layout="horizontal">
+																{task.stats.guess.guess_base !== null ? (
+																	<Descriptions.Item label="Guess Base">{task.stats.guess.guess_base} ({task.stats.guess.guess_base_offset}/{task.stats.guess.guess_base_count})</Descriptions.Item>
+																) : (
+																	<Descriptions.Item label="Guess Base">-</Descriptions.Item>
+																)}
+																{task.stats.guess.guess_mod !== null ? (
+																	<Descriptions.Item label="Guess Mod">{task.stats.guess.guess_mod} ({task.stats.guess.guess_mod_offset}/{task.stats.guess.guess_mod_count})</Descriptions.Item>
+																) : (
+																	<Descriptions.Item label="Guess Mod">-</Descriptions.Item>
+																)}
+															</Descriptions>
+														}>
+															<InfoCircleOutlined style={{ marginLeft: ".5rem" }} />
+														</Tooltip>
+													)}
 												</Descriptions.Item>
 											)}
 											{task.stats.hasOwnProperty("rejected") && (
