@@ -2,7 +2,7 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
-## [dev] DD/MM/YYYY
+## [1.0.0] 22/12/2021
 ### Added:
  - Missing Started and ETA info for tasks
  - Task guess info (guess base and guess mod) (#53)
