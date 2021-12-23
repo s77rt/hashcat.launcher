@@ -15,7 +15,7 @@ func (a *App) NewUI() error {
 		return err
 	}
 
-	a.UI, err = lorca.New(
+	ui, err := lorca.New(
 		"data:text/html,<html><head><title>hashcat.launcher</title></head><body>Loading...</body></html>",
 		tmpDir,
 		1080,
@@ -26,9 +26,11 @@ func (a *App) NewUI() error {
 		return err
 	}
 
-	a.UI.SetBounds(lorca.Bounds{
+	ui.SetBounds(lorca.Bounds{
 		WindowState: lorca.WindowStateMaximized,
 	})
+
+	a.UI = ui
 
 	return nil
 }

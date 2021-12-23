@@ -41,8 +41,8 @@ class Help extends Component {
 								inside a subfolder <Text code>/hashcat</Text>.
 							</Panel>
 							<Panel header="I added a file but it's not in the list" key="4">
-								After adding a file, go to Settings and click on Rescan
-								to rescan and load new added files.
+								Try perform a manual scan.
+								Go to Settings then click on Rescan.
 							</Panel>
 							<Panel header="What is the difference between an idle task and a queued task" key="5">
 								An idle task have a priority that is less than zero

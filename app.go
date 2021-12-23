@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/zserge/lorca"
 )
 
@@ -15,8 +16,9 @@ var (
 )
 
 type App struct {
-	Server net.Listener
-	UI     lorca.UI
+	Server  net.Listener
+	UI      lorca.UI
+	Watcher *fsnotify.Watcher
 
 	HashcatDir string
 
@@ -39,6 +41,12 @@ type App struct {
 	TaskPreProcessCallback  func(TaskUpdate)
 	TaskPostProcessCallback func(TaskUpdate)
 	TaskDeleteCallback      func(string)
+
+	WatcherHashcatCallback      func()
+	WatcherHashesCallback       func()
+	WatcherDictionariesCallback func()
+	WatcherRulesCallback        func()
+	WatcherMasksCallback        func()
 }
 
 func (a *App) Init() error {
@@ -109,6 +117,27 @@ func (a *App) Init() error {
 	}
 	a.TaskDeleteCallback = func(taskID string) {
 		a.UI.Eval(`eventBus.dispatch("taskDelete",` + MarshalJSONS(taskID) + `)`)
+	}
+
+	a.WatcherHashcatCallback = func() {
+		a.Hashcat.LoadAlgorithms()
+		a.UI.Eval(`data.getAlgorithms()`)
+	}
+	a.WatcherHashesCallback = func() {
+		a.ScanHashes()
+		a.UI.Eval(`data.getHashes()`)
+	}
+	a.WatcherDictionariesCallback = func() {
+		a.ScanDictionaries()
+		a.UI.Eval(`data.getDictionaries()`)
+	}
+	a.WatcherRulesCallback = func() {
+		a.ScanRules()
+		a.UI.Eval(`data.getRules()`)
+	}
+	a.WatcherMasksCallback = func() {
+		a.ScanMasks()
+		a.UI.Eval(`data.getMasks()`)
 	}
 
 	if err := a.Bundle(); err != nil {

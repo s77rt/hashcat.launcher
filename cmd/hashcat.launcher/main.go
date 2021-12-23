@@ -33,6 +33,11 @@ func main() {
 
 	app.RestrictUI()
 
+	if err := app.NewWatcher(); err != nil {
+		panic(err)
+	}
+	defer app.Watcher.Close()
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 	select {
