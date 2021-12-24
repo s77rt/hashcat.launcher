@@ -3,6 +3,8 @@ import { Layout, PageHeader, Badge, Input, message, Modal, Statistic, Row, Col, 
 import { FileOutlined, AimOutlined, ToolOutlined, ExportOutlined, ExperimentOutlined, SyncOutlined } from '@ant-design/icons';
 
 import CapJs from './lib/capjs';
+import hex2a from './lib/hex2a';
+import filename from './lib/filename';
 
 const { Content } = Layout;
 const { Dragger } = Upload;
@@ -19,13 +21,15 @@ class Tools extends Component {
 		this.onClickOpenCapConverterTool = this.onClickOpenCapConverterTool.bind(this);
 		this.onOkCapConverterTool = this.onOkCapConverterTool.bind(this);
 		this.onCancelCapConverterTool = this.onCancelCapConverterTool.bind(this);
-		this.onChangecapConverterToolInput = this.onChangecapConverterToolInput.bind(this);
+		this.onChangeCapConverterToolInput = this.onChangeCapConverterToolInput.bind(this);
+		this.onChangeCapConverterToolSave = this.onChangeCapConverterToolSave.bind(this);
 
 		this.state = {
 			capConverterToolIsOpen: false,
 			capConverterToolStatus: "idle",
 			capConverterToolOutput: null,
-			capConverterToolError: null
+			capConverterToolError: null,
+			capConverterToolSave: true
 		}
 	}
 
@@ -47,11 +51,16 @@ class Tools extends Component {
 		})
 	}
 
-	onChangecapConverterToolInput(e) {
+	onChangeCapConverterToolInput(e) {
 		var fileList = e.fileList;
 
 		if (fileList.length === 0)
 			return;
+
+		if (this.state.capConverterToolSave && typeof window.GOsaveHash !== "function") {
+			message.error("GOsaveHash is not a function");
+			return;
+		}
 
 		this.setState({
 			capConverterToolStatus: "processing",
@@ -74,11 +83,35 @@ class Tools extends Component {
 				
 				const hcwpax = (myCap.Getf('hcwpax'));
 				if (hcwpax.length > 0) {
-					this.setState({
-						capConverterToolStatus: "success",
-						capConverterToolOutput: hcwpax,
-						capConverterToolError: null
-					});
+					if (this.state.capConverterToolSave) {
+						const parts = hcwpax.split("*");
+						const bssid = parts[3].toUpperCase().replace(/.{2}(?!$)/g, '$&-');
+						const essid = hex2a(parts[5]) || "NOESSID";
+						window.GOsaveHash(btoa(hcwpax), essid+" ("+bssid+").hcwpax").then(
+							response => {
+								message.success("Saved hash as "+filename(response));
+								this.setState({
+									capConverterToolStatus: "success",
+									capConverterToolOutput: hcwpax,
+									capConverterToolError: null
+								});
+							},
+							error => {
+								message.warning("Unable to save hash, " + error);
+								this.setState({
+									capConverterToolStatus: "success",
+									capConverterToolOutput: hcwpax,
+									capConverterToolError: null
+								});
+							}
+						);
+					} else {
+						this.setState({
+							capConverterToolStatus: "success",
+							capConverterToolOutput: hcwpax,
+							capConverterToolError: null
+						});
+					}
 				} else {
 					this.setState({
 						capConverterToolStatus: "error",
@@ -89,6 +122,12 @@ class Tools extends Component {
 			}
 			reader.readAsArrayBuffer(file);
 		});
+	}
+
+	onChangeCapConverterToolSave(e) {
+		this.setState({
+			capConverterToolSave: e.target.checked
+		})
 	}
 
 	render() {
@@ -115,17 +154,27 @@ class Tools extends Component {
 							>
 								<Row gutter={[16, 14]}>
 									<Col span={24}>
-										<Upload
-											accept=".cap,.pcap,.pcapng,.cap.gz,.pcap.gz,.pcapng.gz"
-											maxCount={1}
-											showUploadList={false}
-											onChange={this.onChangecapConverterToolInput}
-											beforeUpload={() => {return false;}}
-										>
-											<Button type="primary">
-												Choose a capture file
-											</Button>
-										</Upload>
+										<Space>
+											<Upload
+												accept=".cap,.pcap,.pcapng,.cap.gz,.pcap.gz,.pcapng.gz"
+												maxCount={1}
+												showUploadList={false}
+												onChange={this.onChangeCapConverterToolInput}
+												disabled={this.state.capConverterToolStatus === "processing"}
+												beforeUpload={() => {return false;}}
+											>
+												<Button type="primary">
+													Choose a capture file
+												</Button>
+											</Upload>
+											<Checkbox
+												checked={this.state.capConverterToolSave}
+												onChange={this.onChangeCapConverterToolSave}
+												disabled={this.state.capConverterToolStatus === "processing"}
+											>
+												Save output to hashes
+											</Checkbox>
+										</Space>
 									</Col>
 									<Col span={24}>
 										<Paragraph>

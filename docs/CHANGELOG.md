@@ -5,6 +5,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 ## [dev] DD/MM/YYYY
 ### Added:
  - Directory watcher (to auto load new added files) (#67)
+ - Option to save cap to hcwpax output to hashes
 
 ### Changed:
  - Moved default extra arguments to general (#66)

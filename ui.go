@@ -153,8 +153,12 @@ func (a *App) BindUI() {
 		return a.Hashcat.Benchmark(hashMode)
 	})
 
-	a.UI.Bind("GOexportConfig", func(config interface{}) error {
+	a.UI.Bind("GOexportConfig", func(config interface{}) (string, error) {
 		return a.ExportConfig(config)
+	})
+
+	a.UI.Bind("GOsaveHash", func(hash []byte, filename string) (string, error) {
+		return a.SaveHash(hash, filename)
 	})
 
 	a.UI.Bind("GOsaveDialog", func() (string, error) {

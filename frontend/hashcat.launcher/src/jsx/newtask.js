@@ -18,6 +18,8 @@ import { getDictionaries } from './data/dictionaries';
 import { getRules } from './data/rules';
 import { getMasks } from './data/masks';
 
+import filename from './lib/filename';
+
 const { Content } = Layout;
 const { Option } = Select;
 const { Title } = Typography;
@@ -28,10 +30,6 @@ const { Step } = Steps;
 const maxRules = 4;
 const maskIncrementMin = 1;
 const maskIncrementMax = 16;
-
-function filename(path) {
-	return path.split('\\').pop().split('/').pop();
-}
 
 function maskLength(mask) {
 	if (typeof(mask) !== "string")
