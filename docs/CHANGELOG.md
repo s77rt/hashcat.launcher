@@ -6,6 +6,9 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 ### Added:
  - Directory watcher (to auto load new added files) (#67)
 
+### Changed:
+ - Moved default extra arguments to general (#66)
+
 ## [1.0.0] 22/12/2021
 ### Added:
  - Missing Started and ETA info for tasks

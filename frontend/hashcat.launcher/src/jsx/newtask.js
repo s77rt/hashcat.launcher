@@ -86,10 +86,12 @@ const initialConfig = {
 
 	hash: undefined,
 
+	quiet: true,
+	disablePotFile: true,
+	disableLogFile: true,
 	enableOptimizedKernel: true,
 	enableSlowerCandidateGenerators: false,
 	removeFoundHashes: false,
-	disablePotFile: false,
 	ignoreUsernames: false,
 	disableSelfTest: false,
 	ignoreWarnings: false,
@@ -105,7 +107,7 @@ const initialConfig = {
 	markovClassic: false,
 	markovThreshold: 0,
 
-	extraArguments: ["--quiet", "--potfile-disable", "--logfile-disable"],
+	extraArguments: [],
 
 	statusTimer: 20,
 
@@ -146,10 +148,12 @@ class NewTask extends Component {
 
 		this.onChangeHash = this.onChangeHash.bind(this);
 
+		this.onChangeQuiet = this.onChangeQuiet.bind(this);
+		this.onChangeDisablePotFile = this.onChangeDisablePotFile.bind(this);
+		this.onChangeDisableLogFile = this.onChangeDisableLogFile.bind(this);
 		this.onChangeEnableOptimizedKernel = this.onChangeEnableOptimizedKernel.bind(this);
 		this.onChangeEnableSlowerCandidateGenerators = this.onChangeEnableSlowerCandidateGenerators.bind(this);
 		this.onChangeRemoveFoundHashes = this.onChangeRemoveFoundHashes.bind(this);
-		this.onChangeDisablePotFile = this.onChangeDisablePotFile.bind(this);
 		this.onChangeIgnoreUsernames = this.onChangeIgnoreUsernames.bind(this);
 		this.onChangeDisableSelfTest = this.onChangeDisableSelfTest.bind(this);
 		this.onChangeIgnoreWarnings = this.onChangeIgnoreWarnings.bind(this);
@@ -217,6 +221,24 @@ class NewTask extends Component {
 		});
 	}
 
+	onChangeQuiet(e) {
+		this.setState({
+			quiet: e.target.checked
+		});
+	}
+
+	onChangeDisablePotFile(e) {
+		this.setState({
+			disablePotFile: e.target.checked
+		});
+	}
+
+	onChangeDisableLogFile(e) {
+		this.setState({
+			disableLogFile: e.target.checked
+		});
+	}
+
 	onChangeEnableOptimizedKernel(e) {
 		this.setState({
 			enableOptimizedKernel: e.target.checked
@@ -232,12 +254,6 @@ class NewTask extends Component {
 	onChangeRemoveFoundHashes(e) {
 		this.setState({
 			removeFoundHashes: e.target.checked
-		});
-	}
-
-	onChangeDisablePotFile(e) {
-		this.setState({
-			disablePotFile: e.target.checked
 		});
 	}
 
@@ -503,10 +519,12 @@ class NewTask extends Component {
 
 				hash: this.state.hash,
 
+				quiet: this.state.quiet,
+				disablePotFile: this.state.disablePotFile,
+				disableLogFile: this.state.disableLogFile,
 				enableOptimizedKernel: this.state.enableOptimizedKernel,
 				enableSlowerCandidateGenerators: this.state.enableSlowerCandidateGenerators,
 				removeFoundHashes: this.state.removeFoundHashes,
-				disablePotFile: this.state.disablePotFile,
 				ignoreUsernames: this.state.ignoreUsernames,
 				disableSelfTest: this.state.disableSelfTest,
 				ignoreWarnings: this.state.ignoreWarnings,
@@ -1444,6 +1462,30 @@ class NewTask extends Component {
 												<Row gutter={[18, 16]}>
 													<Col>
 														<Checkbox
+															checked={this.state.quiet}
+															onChange={this.onChangeQuiet}
+														>
+															Quiet
+														</Checkbox>
+													</Col>
+													<Col>
+														<Checkbox
+															checked={this.state.disablePotFile}
+															onChange={this.onChangeDisablePotFile}
+														>
+															Disable Pot File
+														</Checkbox>
+													</Col>
+													<Col>
+														<Checkbox
+															checked={this.state.disableLogFile}
+															onChange={this.onChangeDisableLogFile}
+														>
+															Disable Log File
+														</Checkbox>
+													</Col>
+													<Col>
+														<Checkbox
 															checked={this.state.enableOptimizedKernel}
 															onChange={this.onChangeEnableOptimizedKernel}
 														>
@@ -1464,14 +1506,6 @@ class NewTask extends Component {
 															onChange={this.onChangeRemoveFoundHashes}
 														>
 															Remove found hashes
-														</Checkbox>
-													</Col>
-													<Col>
-														<Checkbox
-															checked={this.state.disablePotFile}
-															onChange={this.onChangeDisablePotFile}
-														>
-															Disable Pot File
 														</Checkbox>
 													</Col>
 													<Col>

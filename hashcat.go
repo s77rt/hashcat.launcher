@@ -118,10 +118,12 @@ type HashcatArgs struct {
 
 	Hash *string `json:"hash"` // File
 
+	Quiet                           *bool `json:"quiet"`
+	DisablePotFile                  *bool `json:"disablePotFile"`
+	DisableLogFile                  *bool `json:"disableLogFile"`
 	EnableOptimizedKernel           *bool `json:"enableOptimizedKernel"`
 	EnableSlowerCandidateGenerators *bool `json:"enableSlowerCandidateGenerators"`
 	RemoveFoundHashes               *bool `json:"removeFoundHashes"`
-	DisablePotFile                  *bool `json:"disablePotFile"`
 	IgnoreUsernames                 *bool `json:"ignoreUsernames"`
 	DisableSelfTest                 *bool `json:"disableSelfTest"`
 	IgnoreWarnings                  *bool `json:"ignoreWarnings"`
@@ -184,6 +186,18 @@ func (ha *HashcatArgs) Build() (args []string, err error) {
 
 	args = append(args, []string{"--status", "--status-json", fmt.Sprintf("--status-timer=%d", *ha.StatusTimer)}...)
 
+	if ha.Quiet != nil && *ha.Quiet == true {
+		args = append(args, "--quiet")
+	}
+
+	if ha.DisablePotFile != nil && *ha.DisablePotFile == true {
+		args = append(args, "--potfile-disable")
+	}
+
+	if ha.DisableLogFile != nil && *ha.DisableLogFile == true {
+		args = append(args, "--logfile-disable")
+	}
+
 	if ha.EnableOptimizedKernel != nil && *ha.EnableOptimizedKernel == true {
 		args = append(args, "-O")
 	}
@@ -194,10 +208,6 @@ func (ha *HashcatArgs) Build() (args []string, err error) {
 
 	if ha.RemoveFoundHashes != nil && *ha.RemoveFoundHashes == true {
 		args = append(args, "--remove")
-	}
-
-	if ha.DisablePotFile != nil && *ha.DisablePotFile == true {
-		args = append(args, "--potfile-disable")
 	}
 
 	if ha.IgnoreUsernames != nil && *ha.IgnoreUsernames == true {
