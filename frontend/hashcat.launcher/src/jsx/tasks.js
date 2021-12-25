@@ -539,7 +539,7 @@ class Tasks extends Component {
 								onSelect={this.onSelect}
 								selectedKeys={[taskKey]}
 								style={{
-									height: 'calc(100vh - 195px)',
+									height: 'calc(100vh - 205px)',
 									paddingRight: '.5rem',
 									overflow: 'auto',
 									background: '#0a0a0a',
@@ -834,7 +834,7 @@ class Tasks extends Component {
 									<Col span={8}>
 										<CodeOutlined /> Terminal
 										<pre style={{
-											height: 'calc(100vh - 395px)',
+											height: 'calc(100vh - 405px)',
 											overflow: 'auto',
 											padding: '.5rem',
 											margin: '0',
