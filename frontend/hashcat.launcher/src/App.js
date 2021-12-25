@@ -2,11 +2,15 @@ import './App.css';
 import 'antd/dist/antd.dark.css';
 
 import React, { Component } from "react";
-import { message, Row, Col, Statistic, Button, Layout, Tabs, Typography, Menu } from 'antd';
+import { Alert, Tooltip, message, Row, Col, Statistic, Button, Layout, Tabs, Typography, Menu } from 'antd';
 import { QuestionCircleOutlined, InfoCircleOutlined, DeploymentUnitOutlined, RocketOutlined, ToolOutlined, UserOutlined, HomeOutlined, PlusOutlined, SettingOutlined, UnorderedListOutlined, QuestionOutlined } from '@ant-design/icons';
 
 import data from "./jsx/data/data";
+
+import { getAlgorithms } from './jsx/data/algorithms';
+
 import EventBus from "./jsx/eventbus/EventBus";
+
 import NewTask from './jsx/newtask';
 import Settings from './jsx/settings';
 import Tools from './jsx/tools';
@@ -43,7 +47,9 @@ class App extends Component {
 
 		this.state = {
 			version: undefined,
-			currentView: "New Task"
+			currentView: "New Task",
+
+			isLoadedHashcat: undefined
 		}
 	}
 
@@ -89,12 +95,18 @@ class App extends Component {
 			TasksStats._delete(taskID);
 			EventBus.dispatch("tasksUpdate");
 		});
+		EventBus.on("dataUpdate", () => {
+			this.setState({
+				isLoadedHashcat: Object.keys(getAlgorithms()).length > 0
+			});
+		});
 		this.init();
 	}
 
 	componentWillUnmount() {
 		EventBus.remove("taskUpdate");
 		EventBus.remove("taskDelete");
+		EventBus.remove("dataUpdate");
 	}
 
 	render() {
@@ -161,6 +173,25 @@ class App extends Component {
 					</Header>
 
 					<div style={{ marginTop: '64px'}}></div>
+
+					{this.state.isLoadedHashcat === false && (
+						<Alert
+							type="warning"
+							message={
+								<Tooltip
+									title={
+										<>
+											hashcat is expected to be in the same directory as hashcat.launcher
+											inside a subfolder <Text code>/hashcat</Text>
+										</>
+									}
+								>
+									hashcat not found
+								</Tooltip>
+							}
+							banner
+						/>
+					)}
 
 					<div
 						style={{ display: this.state.currentView === "New Task" ? "block" : "none" }}
