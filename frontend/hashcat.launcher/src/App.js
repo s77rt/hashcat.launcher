@@ -62,7 +62,7 @@ class App extends Component {
 					});
 				},
 				error => {
-					message.error("Failed to get version"  + " " + error);
+					message.warning("Failed to get version"  + " " + error);
 				}
 			);
 		}
@@ -70,7 +70,7 @@ class App extends Component {
 			window.GOrestoreTasks().then(
 				() => null,
 				error => {
-					message.error("Failed to restore tasks" + " " + error);
+					message.warning("Failed to restore tasks" + " " + error);
 				}
 			);
 		}
