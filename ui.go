@@ -161,6 +161,18 @@ func (a *App) BindUI() {
 		return a.SaveHash(hash, filename)
 	})
 
+	a.UI.Bind("GOsettingsCurrentTaskCounter", func() int {
+		return a.Settings.CurrentTaskCounter()
+	})
+
+	a.UI.Bind("GOsettingsNextTaskCounter", func() int {
+		return a.Settings.NextTaskCounter()
+	})
+
+	a.UI.Bind("GOsettingsResetTaskCounter", func() int {
+		return a.Settings.ResetTaskCounter()
+	})
+
 	a.UI.Bind("GOsaveDialog", func() (string, error) {
 		return dialog.File().Save()
 	})

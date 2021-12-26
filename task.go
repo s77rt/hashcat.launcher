@@ -12,11 +12,8 @@ import (
 	"time"
 
 	"github.com/s77rt/hashcat.launcher/pkg/ansi"
-	"github.com/s77rt/hashcat.launcher/pkg/random"
 	"github.com/s77rt/hashcat.launcher/pkg/subprocess"
 )
-
-const DefaultTaskIDLength = 9
 
 type Task struct {
 	ID        string                `json:"id"`
@@ -121,7 +118,7 @@ func (a *App) TaskExists(taskID string) bool {
 
 func (a *App) newTaskID() (taskID string) {
 	for {
-		taskID = random.String(DefaultTaskIDLength)
+		taskID = fmt.Sprintf("Task #%d", a.Settings.NextTaskCounter())
 		if !a.TaskExists(taskID) {
 			break
 		}

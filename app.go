@@ -20,6 +20,8 @@ type App struct {
 	UI      lorca.UI
 	Watcher *fsnotify.Watcher
 
+	Dir string
+
 	HashcatDir string
 
 	HashesDir       string
@@ -47,6 +49,8 @@ type App struct {
 	WatcherDictionariesCallback func()
 	WatcherRulesCallback        func()
 	WatcherMasksCallback        func()
+
+	Settings *Settings
 }
 
 func (a *App) Init() error {
@@ -55,9 +59,9 @@ func (a *App) Init() error {
 		return err
 	}
 
-	exeDir, _ := filepath.Split(exe)
+	a.Dir, _ = filepath.Split(exe)
 
-	a.HashcatDir = filepath.Join(exeDir, "hashcat")
+	a.HashcatDir = filepath.Join(a.Dir, "hashcat")
 	err = os.MkdirAll(a.HashcatDir, 0o755)
 	if err != nil {
 		return err
@@ -87,7 +91,7 @@ func (a *App) Init() error {
 		return err
 	}
 
-	a.ExportedDir = filepath.Join(exeDir, "exported")
+	a.ExportedDir = filepath.Join(a.Dir, "exported")
 	err = os.MkdirAll(a.ExportedDir, 0o755)
 	if err != nil {
 		return err
@@ -140,6 +144,10 @@ func (a *App) Init() error {
 		a.UI.Eval(`data.getMasks()`)
 	}
 
+	if err := a.LoadSettings(); err != nil {
+		log.Println(err)
+	}
+
 	if err := a.Bundle(); err != nil {
 		log.Println(err)
 	}
@@ -148,6 +156,10 @@ func (a *App) Init() error {
 }
 
 func (a *App) Clean() error {
+	if err := a.SaveSettings(); err != nil {
+		log.Println(err)
+	}
+
 	return nil
 }
 
