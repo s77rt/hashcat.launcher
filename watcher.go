@@ -20,7 +20,7 @@ func (a *App) NewWatcher() error {
 				if !ok {
 					return
 				}
-				if event.Op&fsnotify.Create != fsnotify.Create && event.Op&fsnotify.Write != fsnotify.Write && event.Op&fsnotify.Remove != fsnotify.Remove && event.Op&fsnotify.Rename != fsnotify.Rename {
+				if event.Op&fsnotify.Create != fsnotify.Create && event.Op&fsnotify.Remove != fsnotify.Remove && event.Op&fsnotify.Rename != fsnotify.Rename {
 					continue
 				}
 				if event.Name == a.Hashcat.BinaryFile {

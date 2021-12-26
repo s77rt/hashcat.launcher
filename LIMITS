@@ -1,0 +1,2 @@
+- File watcher does not watch folders recursivly
+- File watcher does not follow symlinks
