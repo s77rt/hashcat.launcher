@@ -8,6 +8,9 @@ import (
 func fileWalk(dir string) ([]string, error) {
 	files := []string{}
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		if f == nil {
+			return nil
+		}
 		if f.IsDir() {
 			return nil
 		}
