@@ -11,6 +11,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 ### Changed:
  - Moved default extra arguments to general (#66)
  - Aborted status color to yellow (#71)
+ - Finished tasks can be started again
 
 ## [1.0.0] 22/12/2021
 ### Added:

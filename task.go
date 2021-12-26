@@ -26,7 +26,7 @@ type Task struct {
 }
 
 func (task *Task) Start() error {
-	if task.Process.Process != nil {
+	if task.Process.Status == subprocess.SubprocessStatusRunning {
 		return errors.New("Task has been started already")
 	}
 
@@ -35,7 +35,7 @@ func (task *Task) Start() error {
 }
 
 func (task *Task) Refresh() error {
-	if task.Process.Process == nil {
+	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
 	}
 
@@ -47,7 +47,7 @@ func (task *Task) Refresh() error {
 	return nil
 }
 func (task *Task) Pause() error {
-	if task.Process.Process == nil {
+	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
 	}
 
@@ -59,7 +59,7 @@ func (task *Task) Pause() error {
 	return nil
 }
 func (task *Task) Resume() error {
-	if task.Process.Process == nil {
+	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
 	}
 
@@ -71,7 +71,7 @@ func (task *Task) Resume() error {
 	return nil
 }
 func (task *Task) Checkpoint() error {
-	if task.Process.Process == nil {
+	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
 	}
 
@@ -83,7 +83,7 @@ func (task *Task) Checkpoint() error {
 	return nil
 }
 func (task *Task) Skip() error {
-	if task.Process.Process == nil {
+	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
 	}
 
@@ -95,7 +95,7 @@ func (task *Task) Skip() error {
 	return nil
 }
 func (task *Task) Quit() error {
-	if task.Process.Process == nil {
+	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
 	}
 
