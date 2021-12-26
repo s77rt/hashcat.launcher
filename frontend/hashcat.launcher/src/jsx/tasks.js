@@ -530,7 +530,7 @@ class Tasks extends Component {
 					title="Tasks"
 				/>
 				<Content style={{ padding: '16px 24px' }}>
-					<Row gutter={16}>
+					<Row gutter={16} className="height-100 tree-height-100">
 						<Col span={5}>
 							<Tree
 								showIcon
@@ -539,7 +539,7 @@ class Tasks extends Component {
 								onSelect={this.onSelect}
 								selectedKeys={[taskKey]}
 								style={{
-									height: 'calc(100vh - 205px)',
+									height: '100%',
 									paddingRight: '.5rem',
 									overflow: 'auto',
 									background: '#0a0a0a',
@@ -549,299 +549,309 @@ class Tasks extends Component {
 						</Col>
 						<Col span={19}>
 							{task ? (
-								<Row gutter={[16, 14]}>
-									<Col span={24}>
-										<PageHeader
-											title={task.id}
-											tags={
-												task.stats.hasOwnProperty("status") ? (	
-													HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
-														<Tag color="warning">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-													) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
-														<Tag color="processing">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-													) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
-														<Tag color="error">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-													) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
-														<Tag color="success">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-													) : HASHCAT_STATUS_BADGE_PINK.indexOf(task.stats["status"]) > -1 ? (
-														<Tag color="pink">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-													) : (
-														<Tag color="default">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
-													)
-												) : null
-											}
-											style={{ padding: 0 }}
-											extra={
-												<Form layout="inline">
-													<Form.Item
-														label="Priority"
-													>
-														<InputNumber
-															min={-1}
-															max={999}
-															value={task.priority}
-															onChange={this.onChangePriority}
-															readOnly={this.state.isReadOnlyPriority}
-															bordered={false}
-														/>
-													</Form.Item>
-													<Button
-														icon={<ControlOutlined />}
-														onClick={this.onClickArguments}
-														style={{ marginRight: '1rem' }}
-													>
-														Arguments
-													</Button>
-													<Popconfirm
-														placement="topRight"
-														title="Are you sure you want to delete this task?"
-														onConfirm={this.onClickDelete}
-														okText="Yes"
-														cancelText="No"
-													>
+								<Row gutter={[16, 14]} className="height-100" style={{ flexDirection: "column" }}>
+									<Col flex="0 0 auto">
+										<Row gutter={[16, 14]}>
+											<Col span={24}>
+												<PageHeader
+													title={task.id}
+													tags={
+														task.stats.hasOwnProperty("status") ? (	
+															HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
+																<Tag color="warning">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+															) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
+																<Tag color="processing">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+															) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
+																<Tag color="error">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+															) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
+																<Tag color="success">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+															) : HASHCAT_STATUS_BADGE_PINK.indexOf(task.stats["status"]) > -1 ? (
+																<Tag color="pink">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+															) : (
+																<Tag color="default">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+															)
+														) : null
+													}
+													style={{ padding: 0 }}
+													extra={
+														<Form layout="inline">
+															<Form.Item
+																label="Priority"
+															>
+																<InputNumber
+																	min={-1}
+																	max={999}
+																	value={task.priority}
+																	onChange={this.onChangePriority}
+																	readOnly={this.state.isReadOnlyPriority}
+																	bordered={false}
+																/>
+															</Form.Item>
+															<Button
+																icon={<ControlOutlined />}
+																onClick={this.onClickArguments}
+																style={{ marginRight: '1rem' }}
+															>
+																Arguments
+															</Button>
+															<Popconfirm
+																placement="topRight"
+																title="Are you sure you want to delete this task?"
+																onConfirm={this.onClickDelete}
+																okText="Yes"
+																cancelText="No"
+															>
+																<Button
+																	type="danger"
+																	icon={<DeleteOutlined />}
+																	loading={this.state.isLoadingDelete}
+																>
+																	Delete
+																</Button>
+															</Popconfirm>
+														</Form>
+													}
+												/>
+											</Col>
+											<Col span={24}>
+												{task.stats.hasOwnProperty("progress") ? (
+													<Progress type="line" percent={Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100)} />
+												) : (
+													<Progress type="line" percent={0} />
+												)}
+											</Col>
+											<Col span={24}>
+												<Row gutter={[12, 10]}>
+													<Col>
 														<Button
-															type="danger"
-															icon={<DeleteOutlined />}
-															loading={this.state.isLoadingDelete}
+															type="primary"
+															icon={<PlayCircleOutlined />}
+															onClick={this.onClickStart}
+															loading={this.state.isLoadingStart}
 														>
-															Delete
+															Start
 														</Button>
-													</Popconfirm>
-												</Form>
-											}
-										/>
-									</Col>
-									<Col span={24}>
-										{task.stats.hasOwnProperty("progress") ? (
-											<Progress type="line" percent={Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100)} />
-										) : (
-											<Progress type="line" percent={0} />
-										)}
-									</Col>
-									<Col span={24}>
-										<Row gutter={[12, 10]}>
-											<Col>
-												<Button
-													type="primary"
-													icon={<PlayCircleOutlined />}
-													onClick={this.onClickStart}
-													loading={this.state.isLoadingStart}
-												>
-													Start
-												</Button>
-											</Col>
-											<Col>
-												<Button
-													icon={<ReloadOutlined />}
-													onClick={this.onClickRefresh}
-													loading={this.state.isLoadingRefresh}
-												>
-													Refresh
-												</Button>
-											</Col>
-											<Col>
-												<Button
-													icon={<PauseOutlined />}
-													onClick={this.onClickPause}
-													loading={this.state.isLoadingPause}
-												>
-													Pause
-												</Button>
-											</Col>
-											<Col>
-												<Button
-													icon={<CaretRightOutlined />}
-													onClick={this.onClickResume}
-													loading={this.state.isLoadingResume}
-												>
-													Resume
-												</Button>
-											</Col>
-											<Col>
-												<Button
-													icon={<EnvironmentOutlined />}
-													onClick={this.onClickCheckpoint}
-													loading={this.state.isLoadingCheckpoint}
-												>
-													Checkpoint
-												</Button>
-											</Col>
-											<Col>
-												<Button
-													icon={<StepForwardOutlined />}
-													onClick={this.onClickSkip}
-													loading={this.state.isLoadingSkip}
-												>
-													Skip
-												</Button>
-											</Col>
-											<Col>
-												<Popconfirm
-													placement="topRight"
-													title="Are you sure you want to quit this task?"
-													onConfirm={this.onClickQuit}
-													okText="Yes"
-													cancelText="No"
-												>
-													<Button
-														type="danger"
-														icon={<CloseOutlined />}
-														loading={this.state.isLoadingQuit}
-													>
-														Quit
-													</Button>
-												</Popconfirm>
+													</Col>
+													<Col>
+														<Button
+															icon={<ReloadOutlined />}
+															onClick={this.onClickRefresh}
+															loading={this.state.isLoadingRefresh}
+														>
+															Refresh
+														</Button>
+													</Col>
+													<Col>
+														<Button
+															icon={<PauseOutlined />}
+															onClick={this.onClickPause}
+															loading={this.state.isLoadingPause}
+														>
+															Pause
+														</Button>
+													</Col>
+													<Col>
+														<Button
+															icon={<CaretRightOutlined />}
+															onClick={this.onClickResume}
+															loading={this.state.isLoadingResume}
+														>
+															Resume
+														</Button>
+													</Col>
+													<Col>
+														<Button
+															icon={<EnvironmentOutlined />}
+															onClick={this.onClickCheckpoint}
+															loading={this.state.isLoadingCheckpoint}
+														>
+															Checkpoint
+														</Button>
+													</Col>
+													<Col>
+														<Button
+															icon={<StepForwardOutlined />}
+															onClick={this.onClickSkip}
+															loading={this.state.isLoadingSkip}
+														>
+															Skip
+														</Button>
+													</Col>
+													<Col>
+														<Popconfirm
+															placement="topRight"
+															title="Are you sure you want to quit this task?"
+															onConfirm={this.onClickQuit}
+															okText="Yes"
+															cancelText="No"
+														>
+															<Button
+																type="danger"
+																icon={<CloseOutlined />}
+																loading={this.state.isLoadingQuit}
+															>
+																Quit
+															</Button>
+														</Popconfirm>
+													</Col>
+												</Row>
 											</Col>
 										</Row>
 									</Col>
-									<Col span={16}>
-										<Descriptions
-											column={2}
-											layout="horizontal"
-											bordered
-										>
-											{task.stats.hasOwnProperty("status") && (
-												<Descriptions.Item label="Status" span={2}>
-													{HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
-														<Badge status="warning" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-													) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
-														<Badge status="processing" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-													) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
-														<Badge status="error" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-													) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
-														<Badge status="success" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-													) : HASHCAT_STATUS_BADGE_PINK.indexOf(task.stats["status"]) > -1 ? (
-														<Badge color="pink" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-													) : (
-														<Badge status="default" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
-													)}
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("target") && (
-												<Descriptions.Item label="Target" span={2}>
-													{task.stats["target"]}
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("progress") && (
-												<Descriptions.Item label="Progress" span={2}>
-													{task.stats["progress"][0] + " / " + task.stats["progress"][1] + " (" + Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100) + "%)"}
-													{task.stats.hasOwnProperty("guess") && (
-														<Tooltip title={
-															<Descriptions bordered size="small" column={1} layout="horizontal">
-																{task.stats.guess.guess_base !== null ? (
-																	<Descriptions.Item label="Guess Base">{task.stats.guess.guess_base} ({task.stats.guess.guess_base_offset}/{task.stats.guess.guess_base_count})</Descriptions.Item>
-																) : (
-																	<Descriptions.Item label="Guess Base">-</Descriptions.Item>
-																)}
-																{task.stats.guess.guess_mod !== null ? (
-																	<Descriptions.Item label="Guess Mod">{task.stats.guess.guess_mod} ({task.stats.guess.guess_mod_offset}/{task.stats.guess.guess_mod_count})</Descriptions.Item>
-																) : (
-																	<Descriptions.Item label="Guess Mod">-</Descriptions.Item>
-																)}
-															</Descriptions>
-														}>
-															<InfoCircleOutlined style={{ marginLeft: ".5rem" }} />
-														</Tooltip>
-													)}
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("rejected") && (
-												<Descriptions.Item label="Rejected" span={1}>
-													{task.stats["rejected"]}
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("restore_point") && (
-												<Descriptions.Item label="Restore point" span={1}>
-													{task.stats["restore_point"]}
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("recovered_hashes") && (
-												<Descriptions.Item label="Recovered hashes" span={1}>
-													{task.stats["recovered_hashes"][0] + " / " + task.stats["recovered_hashes"][1] + " (" + Math.trunc((task.stats["recovered_hashes"][0] / task.stats["recovered_hashes"][1])*100) + "%)"}
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("recovered_salts") && (
-												<Descriptions.Item label="Recovered salts" span={1}>
-													{task.stats["recovered_salts"][0] + " / " + task.stats["recovered_salts"][1] + " (" + Math.trunc((task.stats["recovered_salts"][0] / task.stats["recovered_salts"][1])*100) + "%)"}
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("devices") && (
-												<Descriptions.Item label="Speed" span={2}>
-													{humanizeSpeed(totalSpeed(task.stats["devices"]))}
-													<Tooltip title={
-														<Table
-															columns={[
-																{
-																	title: 'ID',
-																	dataIndex: 'id',
-																	key: 'ID'
-																},
-																{
-																	title: 'Speed',
-																	dataIndex: 'speed',
-																	key: 'Speed'
-																},
-																{
-																	title: 'Temp',
-																	dataIndex: 'temp',
-																	key: 'Temp'
-																},
-																{
-																	title: 'Util',
-																	dataIndex: 'util',
-																	key: 'Util'
-																}
-															]}
-															dataSource={task.stats["devices"].map(device =>
-																({
-																	key: device.device_id,
-																	id: device.device_id,
-																	speed: humanizeSpeed(device.speed),
-																	temp: device.hasOwnProperty("temp") ? device.temp + " °C": "-",
-																	util: device.util + "%",
-																})
+									<Col flex="1 1 auto">
+										<Row gutter={[16, 14]} className="height-100">
+											<Col span={16}>
+												<Descriptions
+													column={2}
+													layout="horizontal"
+													bordered
+												>
+													{task.stats.hasOwnProperty("status") && (
+														<Descriptions.Item label="Status" span={2}>
+															{HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
+																<Badge status="warning" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+															) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
+																<Badge status="processing" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+															) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
+																<Badge status="error" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+															) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
+																<Badge status="success" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+															) : HASHCAT_STATUS_BADGE_PINK.indexOf(task.stats["status"]) > -1 ? (
+																<Badge color="pink" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+															) : (
+																<Badge status="default" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
 															)}
-															size="small"
-															pagination={false}
-															style={{ overflow: 'auto' }}
-														/>
-													}>
-														<InfoCircleOutlined style={{ marginLeft: ".5rem" }} />
-													</Tooltip>
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("time_start") && (
-												<Descriptions.Item label="Started" span={1}>
-													<Tooltip title={moment.unix(task.stats["time_start"]).format("MMMM Do YYYY, HH:mm")}>
-														{moment.unix(task.stats["time_start"]).fromNow()}
-													</Tooltip>
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("estimated_stop") && (
-												<Descriptions.Item label="ETA" span={1}>
-													<Tooltip title={moment.unix(task.stats["estimated_stop"]).format("MMMM Do YYYY, HH:mm")}>
-														{moment.unix(task.stats["estimated_stop"]).fromNow()}
-													</Tooltip>
-												</Descriptions.Item>
-											)}
-											{task.stats.hasOwnProperty("session") && (
-												<Descriptions.Item label="Session" span={2}>
-													{task.stats["session"]}
-												</Descriptions.Item>
-											)}
-										</Descriptions>
-									</Col>
-									<Col span={8}>
-										<CodeOutlined /> Terminal
-										<pre style={{
-											height: 'calc(100vh - 405px)',
-											overflow: 'auto',
-											padding: '.5rem',
-											margin: '0',
-											border: '1px solid #303030'
-										}}>
-											{task.journal.map(j => j.message + "\n")}
-										</pre>
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("target") && (
+														<Descriptions.Item label="Target" span={2}>
+															{task.stats["target"]}
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("progress") && (
+														<Descriptions.Item label="Progress" span={2}>
+															{task.stats["progress"][0] + " / " + task.stats["progress"][1] + " (" + Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100) + "%)"}
+															{task.stats.hasOwnProperty("guess") && (
+																<Tooltip title={
+																	<Descriptions bordered size="small" column={1} layout="horizontal">
+																		{task.stats.guess.guess_base !== null ? (
+																			<Descriptions.Item label="Guess Base">{task.stats.guess.guess_base} ({task.stats.guess.guess_base_offset}/{task.stats.guess.guess_base_count})</Descriptions.Item>
+																		) : (
+																			<Descriptions.Item label="Guess Base">-</Descriptions.Item>
+																		)}
+																		{task.stats.guess.guess_mod !== null ? (
+																			<Descriptions.Item label="Guess Mod">{task.stats.guess.guess_mod} ({task.stats.guess.guess_mod_offset}/{task.stats.guess.guess_mod_count})</Descriptions.Item>
+																		) : (
+																			<Descriptions.Item label="Guess Mod">-</Descriptions.Item>
+																		)}
+																	</Descriptions>
+																}>
+																	<InfoCircleOutlined style={{ marginLeft: ".5rem" }} />
+																</Tooltip>
+															)}
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("rejected") && (
+														<Descriptions.Item label="Rejected" span={1}>
+															{task.stats["rejected"]}
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("restore_point") && (
+														<Descriptions.Item label="Restore point" span={1}>
+															{task.stats["restore_point"]}
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("recovered_hashes") && (
+														<Descriptions.Item label="Recovered hashes" span={1}>
+															{task.stats["recovered_hashes"][0] + " / " + task.stats["recovered_hashes"][1] + " (" + Math.trunc((task.stats["recovered_hashes"][0] / task.stats["recovered_hashes"][1])*100) + "%)"}
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("recovered_salts") && (
+														<Descriptions.Item label="Recovered salts" span={1}>
+															{task.stats["recovered_salts"][0] + " / " + task.stats["recovered_salts"][1] + " (" + Math.trunc((task.stats["recovered_salts"][0] / task.stats["recovered_salts"][1])*100) + "%)"}
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("devices") && (
+														<Descriptions.Item label="Speed" span={2}>
+															{humanizeSpeed(totalSpeed(task.stats["devices"]))}
+															<Tooltip title={
+																<Table
+																	columns={[
+																		{
+																			title: 'ID',
+																			dataIndex: 'id',
+																			key: 'ID'
+																		},
+																		{
+																			title: 'Speed',
+																			dataIndex: 'speed',
+																			key: 'Speed'
+																		},
+																		{
+																			title: 'Temp',
+																			dataIndex: 'temp',
+																			key: 'Temp'
+																		},
+																		{
+																			title: 'Util',
+																			dataIndex: 'util',
+																			key: 'Util'
+																		}
+																	]}
+																	dataSource={task.stats["devices"].map(device =>
+																		({
+																			key: device.device_id,
+																			id: device.device_id,
+																			speed: humanizeSpeed(device.speed),
+																			temp: device.hasOwnProperty("temp") ? device.temp + " °C": "-",
+																			util: device.util + "%",
+																		})
+																	)}
+																	size="small"
+																	pagination={false}
+																	style={{ overflow: 'auto' }}
+																/>
+															}>
+																<InfoCircleOutlined style={{ marginLeft: ".5rem" }} />
+															</Tooltip>
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("time_start") && (
+														<Descriptions.Item label="Started" span={1}>
+															<Tooltip title={moment.unix(task.stats["time_start"]).format("MMMM Do YYYY, HH:mm")}>
+																{moment.unix(task.stats["time_start"]).fromNow()}
+															</Tooltip>
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("estimated_stop") && (
+														<Descriptions.Item label="ETA" span={1}>
+															<Tooltip title={moment.unix(task.stats["estimated_stop"]).format("MMMM Do YYYY, HH:mm")}>
+																{moment.unix(task.stats["estimated_stop"]).fromNow()}
+															</Tooltip>
+														</Descriptions.Item>
+													)}
+													{task.stats.hasOwnProperty("session") && (
+														<Descriptions.Item label="Session" span={2}>
+															{task.stats["session"]}
+														</Descriptions.Item>
+													)}
+												</Descriptions>
+											</Col>
+											<Col span={8}>
+												<div className="height-100" style={{ display: "flex", flexDirection: "column" }}>
+												<span><CodeOutlined /> Terminal</span>
+												<pre style={{
+													flex: '1 0 auto',
+													overflow: 'auto',
+													padding: '.5rem',
+													margin: '0',
+													border: '1px solid #303030'
+												}}>
+													{task.journal.map(j => j.message + "\n")}
+												</pre>
+												</div>
+											</Col>
+										</Row>
 									</Col>
 								</Row>
 							) : (

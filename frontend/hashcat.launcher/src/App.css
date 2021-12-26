@@ -26,3 +26,11 @@
   border: 1px dashed #1d1d1d;
   border-radius: 2px;
 }
+
+.height-100 {
+  height: 100%;
+}
+
+.tree-height-100 .ant-tree {
+  height: 100%;
+}

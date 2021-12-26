@@ -200,7 +200,11 @@ class App extends Component {
 					</div>
 
 					<div
-						style={{ display: this.state.currentView === "Tasks" ? "block" : "none" }}
+						style={{
+							display: this.state.currentView === "Tasks" ? "flex" : "none",
+							flexDirection: "column",
+							flex: "1 0 auto"
+						}}
 					>
 						{this.tasksView}
 					</div>
