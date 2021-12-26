@@ -76,9 +76,10 @@ const HASHCAT_STATUS_MESSAGES = {
 
 const HASHCAT_STATUS_BADGE_WARNING = [HASHCAT_STATUS_PAUSED];
 const HASHCAT_STATUS_BADGE_PROCESSING = [HASHCAT_STATUS_RUNNING];
-const HASHCAT_STATUS_BADGE_ERROR = [HASHCAT_STATUS_ABORTED, HASHCAT_STATUS_ABORTED_CHECKPOINT, HASHCAT_STATUS_ABORTED_RUNTIME, HASHCAT_STATUS_ABORTED_FINISH, HASHCAT_STATUS_QUIT, HASHCAT_STATUS_ERROR];
+const HASHCAT_STATUS_BADGE_ERROR = [HASHCAT_STATUS_QUIT, HASHCAT_STATUS_ERROR];
 const HASHCAT_STATUS_BADGE_SUCCESS = [HASHCAT_STATUS_CRACKED];
 const HASHCAT_STATUS_BADGE_PINK = [HASHCAT_STATUS_EXHAUSTED];
+const HASHCAT_STATUS_BADGE_YELLOW = [HASHCAT_STATUS_ABORTED, HASHCAT_STATUS_ABORTED_CHECKPOINT, HASHCAT_STATUS_ABORTED_RUNTIME, HASHCAT_STATUS_ABORTED_FINISH];
 
 const PROCESS_STATUS_NOTSTARTED = 0,
 	PROCESS_STATUS_RUNNING = 1,
@@ -490,6 +491,8 @@ class Tasks extends Component {
 							<Badge status="success" />
 						) : HASHCAT_STATUS_BADGE_PINK.indexOf(task.stats["status"]) > -1 ? (
 							<Badge color="pink" />
+						) : HASHCAT_STATUS_BADGE_YELLOW.indexOf(task.stats["status"]) > -1 ? (
+							<Badge color="yellow" />
 						) : (
 							<Badge status="default" />
 						)
@@ -567,6 +570,8 @@ class Tasks extends Component {
 																<Tag color="success">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
 															) : HASHCAT_STATUS_BADGE_PINK.indexOf(task.stats["status"]) > -1 ? (
 																<Tag color="pink">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+															) : HASHCAT_STATUS_BADGE_YELLOW.indexOf(task.stats["status"]) > -1 ? (
+																<Tag color="yellow">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
 															) : (
 																<Tag color="default">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
 															)
@@ -718,6 +723,8 @@ class Tasks extends Component {
 																<Badge status="success" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
 															) : HASHCAT_STATUS_BADGE_PINK.indexOf(task.stats["status"]) > -1 ? (
 																<Badge color="pink" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+															) : HASHCAT_STATUS_BADGE_YELLOW.indexOf(task.stats["status"]) > -1 ? (
+																<Badge color="yellow" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
 															) : (
 																<Badge status="default" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
 															)}
