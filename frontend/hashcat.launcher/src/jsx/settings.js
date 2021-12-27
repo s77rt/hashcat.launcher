@@ -108,7 +108,7 @@ class Settings extends Component {
 	}
 
 	componentDidMount() {
-		EventBus.on("dataUpdate", () => {
+		EventBus.on("dataUpdate", "Settings", () => {
 			this.setState({
 				_dictionaries: getDictionaries(),
 				_rules: getRules(),
@@ -120,7 +120,7 @@ class Settings extends Component {
 	}
 
 	componentWillUnmount() {
-		EventBus.remove("dataUpdate");
+		EventBus.remove("dataUpdate", "Settings");
 	}
 
 	render() {

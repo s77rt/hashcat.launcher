@@ -87,15 +87,15 @@ class App extends Component {
 	}
 
 	componentDidMount() {
-		EventBus.on("taskUpdate", (taskUpdate) => {
+		EventBus.on("taskUpdate", "App", (taskUpdate) => {
 			TasksStats._update(taskUpdate);
 			EventBus.dispatch("tasksUpdate");
 		});
-		EventBus.on("taskDelete", (taskID) => {
+		EventBus.on("taskDelete", "App", (taskID) => {
 			TasksStats._delete(taskID);
 			EventBus.dispatch("tasksUpdate");
 		});
-		EventBus.on("dataUpdate", () => {
+		EventBus.on("dataUpdate", "App", () => {
 			this.setState({
 				isLoadedHashcat: Object.keys(getAlgorithms()).length > 0
 			});
@@ -104,9 +104,9 @@ class App extends Component {
 	}
 
 	componentWillUnmount() {
-		EventBus.remove("taskUpdate");
-		EventBus.remove("taskDelete");
-		EventBus.remove("dataUpdate");
+		EventBus.remove("taskUpdate", "App");
+		EventBus.remove("taskDelete", "App");
+		EventBus.remove("dataUpdate", "App");
 	}
 
 	render() {

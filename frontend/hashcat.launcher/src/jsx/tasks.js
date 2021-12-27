@@ -513,7 +513,7 @@ class Tasks extends Component {
 	}
 
 	componentDidMount() {
-		EventBus.on("tasksUpdate", () => {
+		EventBus.on("tasksUpdate", "Tasks", () => {
 			this.reBuildData();
 		});
 
@@ -521,7 +521,7 @@ class Tasks extends Component {
 	}
 
 	componentWillUnmount() {
-		EventBus.remove("tasksUpdate");
+		EventBus.remove("tasksUpdate", "Tasks");
 	}
 
 	render() {

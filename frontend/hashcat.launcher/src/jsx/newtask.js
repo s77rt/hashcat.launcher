@@ -715,7 +715,7 @@ class NewTask extends Component {
 	}
 
 	componentDidMount() {
-		EventBus.on("dataUpdate", () => {
+		EventBus.on("dataUpdate", "NewTask", () => {
 			this.setState({
 				_dictionaries: getDictionaries(),
 				_rules: getRules(),
@@ -727,7 +727,7 @@ class NewTask extends Component {
 	}
 
 	componentWillUnmount() {
-		EventBus.remove("dataUpdate");
+		EventBus.remove("dataUpdate", "NewTask");
 	}
 
 	render() {
