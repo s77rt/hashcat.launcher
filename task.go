@@ -22,6 +22,7 @@ type Task struct {
 	Priority  int64                 `json:"priority"`
 }
 
+// Start() starts the task
 func (task *Task) Start() error {
 	if task.Process.Status == subprocess.SubprocessStatusRunning {
 		return errors.New("Task has been started already")
@@ -31,6 +32,7 @@ func (task *Task) Start() error {
 	return nil
 }
 
+// Refresh() asks for a status update
 func (task *Task) Refresh() error {
 	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
@@ -43,6 +45,8 @@ func (task *Task) Refresh() error {
 	}
 	return nil
 }
+
+// Pause() pauses the task
 func (task *Task) Pause() error {
 	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
@@ -55,6 +59,8 @@ func (task *Task) Pause() error {
 	}
 	return nil
 }
+
+// Resume() resumes the task
 func (task *Task) Resume() error {
 	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
@@ -67,6 +73,8 @@ func (task *Task) Resume() error {
 	}
 	return nil
 }
+
+// Checkpoint() asks to exit on the next checkpoint
 func (task *Task) Checkpoint() error {
 	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
@@ -79,6 +87,8 @@ func (task *Task) Checkpoint() error {
 	}
 	return nil
 }
+
+// Skip() skp current guess base
 func (task *Task) Skip() error {
 	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
@@ -91,6 +101,8 @@ func (task *Task) Skip() error {
 	}
 	return nil
 }
+
+// Quit() quit the task
 func (task *Task) Quit() error {
 	if task.Process.Status != subprocess.SubprocessStatusRunning {
 		return errors.New("Task has not been started yet")
@@ -101,6 +113,18 @@ func (task *Task) Quit() error {
 	} else {
 		io.WriteString(task.Process.StdinStream, "q")
 	}
+	return nil
+}
+
+// SwitchToRestoreMode() changes the task's arguments to use --restore
+// https://hashcat.net/wiki/doku.php?id=restore
+func (task *Task) SwitchToRestoreMode() error {
+	if task.Process.Status == subprocess.SubprocessStatusRunning {
+		return errors.New("Task is running")
+	}
+
+	task.Process.Args = []string{fmt.Sprintf("--session=%s", task.ID), "--restore"}
+
 	return nil
 }
 
@@ -170,6 +194,10 @@ func (a *App) NewTask(args HashcatArgs, priority int64) (err error) {
 			})
 		},
 		func() {
+			restoreFilePath := filepath.Join(a.HashcatDir, fmt.Sprintf("%s.restore", task.ID))
+			if _, err := os.Stat(restoreFilePath); err == nil {
+				task.SwitchToRestoreMode()
+			}
 			a.TaskPostProcessCallback(TaskUpdate{
 				Task:      *task,
 				Timestamp: time.Now().UnixNano(),

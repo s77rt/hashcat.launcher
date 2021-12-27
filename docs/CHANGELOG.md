@@ -14,6 +14,9 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
  - Finished tasks can be started again
  - Task ID is now based on an incremental number
 
+### Fixed:
+ - Unable to resume new tasks that just hit checkpont (#74)
+
 ## [1.0.0] 22/12/2021
 ### Added:
  - Missing Started and ETA info for tasks
