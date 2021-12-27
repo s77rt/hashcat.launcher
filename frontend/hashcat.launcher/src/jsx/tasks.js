@@ -534,7 +534,7 @@ class Tasks extends Component {
 				/>
 				<Content style={{ padding: '16px 24px' }}>
 					<Row gutter={16} className="height-100 tree-height-100">
-						<Col span={5}>
+						<Col className="max-height-100" span={5}>
 							<Tree
 								showIcon
 								blockNode
@@ -550,9 +550,9 @@ class Tasks extends Component {
 								}}
 							/>
 						</Col>
-						<Col span={19}>
+						<Col className="max-height-100" span={19}>
 							{task ? (
-								<Row gutter={[16, 14]} className="height-100" style={{ flexDirection: "column" }}>
+								<Row gutter={[16, 14]} className="height-100" style={{ flexDirection: "column", flexWrap: "nowrap" }}>
 									<Col flex="0 0 auto">
 										<Row gutter={[16, 14]}>
 											<Col span={24}>
@@ -705,7 +705,7 @@ class Tasks extends Component {
 									</Col>
 									<Col flex="1 1 auto">
 										<Row gutter={[16, 14]} className="height-100">
-											<Col span={16}>
+											<Col className="max-height-100" span={16}>
 												<Descriptions
 													column={2}
 													layout="horizontal"
@@ -844,11 +844,11 @@ class Tasks extends Component {
 													)}
 												</Descriptions>
 											</Col>
-											<Col span={8}>
+											<Col className="max-height-100" span={8}>
 												<div className="height-100" style={{ display: "flex", flexDirection: "column" }}>
 												<span><CodeOutlined /> Terminal</span>
 												<pre style={{
-													flex: '1 0 auto',
+													flex: 'auto',
 													overflow: 'auto',
 													padding: '.5rem',
 													margin: '0',

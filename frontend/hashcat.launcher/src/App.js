@@ -111,7 +111,7 @@ class App extends Component {
 
 	render() {
 		return (
-			<Layout style={{ minHeight: "100vh" }}>
+			<Layout>
 				<Sider
 					style={{
 						overflow: 'auto',
@@ -144,8 +144,10 @@ class App extends Component {
 						</Menu.Item>
 					</Menu>
 				</Sider>
+
 				<div style={{ marginLeft: '80px'}}></div>
-				<Layout>
+
+				<Layout style={{ height: "100vh" }}>
 					<Header
 						style={{
 							display: 'flex',
@@ -176,6 +178,7 @@ class App extends Component {
 
 					{this.state.isLoadedHashcat === false && (
 						<Alert
+							style={{ maxHeight: "38px" }}
 							type="warning"
 							message={
 								<Tooltip
@@ -203,7 +206,8 @@ class App extends Component {
 						style={{
 							display: this.state.currentView === "Tasks" ? "flex" : "none",
 							flexDirection: "column",
-							flex: "1 0 auto"
+							flex: "1 0 auto",
+							maxHeight: this.state.isLoadedHashcat === false ? "calc(100% - 64px - 38px)" : "calc(100% - 64px)"
 						}}
 					>
 						{this.tasksView}
