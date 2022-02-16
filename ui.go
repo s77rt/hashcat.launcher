@@ -3,21 +3,15 @@ package hashcatlauncher
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/ncruces/zenity"
 	"github.com/zserge/lorca"
 )
 
 func (a *App) NewUI() error {
-	tmpDir, err := ioutil.TempDir("", "hashcat.launcher")
-	if err != nil {
-		return err
-	}
-
 	ui, err := lorca.New(
 		"data:text/html,<html><head><title>hashcat.launcher</title></head><body>Loading...</body></html>",
-		tmpDir,
+		"",
 		1080,
 		720,
 		[]string{"--class=hashcat.launcher"}...,
