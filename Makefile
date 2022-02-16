@@ -39,21 +39,20 @@ build-frontend:
 build-linux:
 	@echo "Building hashcat.launcher for Linux"
 	@mkdir -p $(BIN_DIR_LINUX)
-	GOOS=linux GOARCH=amd64 go build -ldflags $(LD_FLAGS_LINUX) -o $(BIN_DIR_LINUX)$(PROJECT_NAME) $(CMD_DIR)$(PROJECT_NAME)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags $(LD_FLAGS_LINUX) -o $(BIN_DIR_LINUX)$(PROJECT_NAME) $(CMD_DIR)$(PROJECT_NAME)
 	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_linux.zip $(BIN_DIR_LINUX)$(PROJECT_NAME)
 
 build-windows:
 	@echo "Building hashcat.launcher for Windows"
 	@mkdir -p $(BIN_DIR_WINDOWS)
 	rsrc -arch amd64 -ico $(RESOURCES_DIR)Icon.ico -o $(CMD_DIR)$(PROJECT_NAME)/rsrc_windows_amd64.syso
-	GOOS=windows GOARCH=amd64 go build -ldflags $(LD_FLAGS_WINDOWS) -o $(BIN_DIR_WINDOWS)$(PROJECT_NAME).exe $(CMD_DIR)$(PROJECT_NAME)
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags $(LD_FLAGS_WINDOWS) -o $(BIN_DIR_WINDOWS)$(PROJECT_NAME).exe $(CMD_DIR)$(PROJECT_NAME)
 	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_windows.zip $(BIN_DIR_WINDOWS)$(PROJECT_NAME).exe
 
 build-mac:
 	@echo "Building hashcat.launcher for macOS"
 	@mkdir -p $(BIN_DIR_MAC)
-	GOOS=darwin GOARCH=amd64 go build -ldflags $(LD_FLAGS_MAC) -o $(BIN_DIR_MAC)$(PROJECT_NAME) $(CMD_DIR)$(PROJECT_NAME)
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags $(LD_FLAGS_MAC) -o $(BIN_DIR_MAC)$(PROJECT_NAME) $(CMD_DIR)$(PROJECT_NAME)
 	@zip -j $(BIN_DIR)$(PROJECT_NAME)_$(GIT_TAG)_mac.zip $(BIN_DIR_MAC)$(PROJECT_NAME)
 
-#build: build-linux build-windows build-mac
-build: build-frontend build-linux build-windows
+build: build-frontend build-linux build-windows build-mac

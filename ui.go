@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/sqweek/dialog"
+	"github.com/ncruces/zenity"
 	"github.com/zserge/lorca"
 )
 
@@ -174,7 +174,7 @@ func (a *App) BindUI() {
 	})
 
 	a.UI.Bind("GOsaveDialog", func() (string, error) {
-		return dialog.File().Save()
+		return zenity.SelectFileSave(zenity.ConfirmOverwrite())
 	})
 }
 
