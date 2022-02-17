@@ -8,6 +8,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 
 ### Fixed:
  - remove tmp folder on exit (#89)
+ - duplicated info (session name) (#81)
 
 ## [1.1.0] 27/12/2021
 ### Added:

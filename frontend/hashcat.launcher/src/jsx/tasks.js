@@ -837,11 +837,6 @@ class Tasks extends Component {
 															</Tooltip>
 														</Descriptions.Item>
 													)}
-													{task.stats.hasOwnProperty("session") && (
-														<Descriptions.Item label="Session" span={2}>
-															{task.stats["session"]}
-														</Descriptions.Item>
-													)}
 												</Descriptions>
 											</Col>
 											<Col className="max-height-100" span={8}>
