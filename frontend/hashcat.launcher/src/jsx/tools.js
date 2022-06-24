@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { Layout, PageHeader, Badge, Input, message, Modal, Statistic, Row, Col, Card, Select, Typography, Upload, Button, Space, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import { FileOutlined, AimOutlined, ToolOutlined, ExportOutlined, ExperimentOutlined, SyncOutlined } from '@ant-design/icons';
 
+import Pluralize from 'pluralize';
+
 import CapJs from './lib/capjs';
 import hex2a from './lib/hex2a';
 import filename from './lib/filename';
@@ -84,10 +86,17 @@ class Tools extends Component {
 				const hcwpax = (myCap.Getf('hcwpax'));
 				if (hcwpax.length > 0) {
 					if (this.state.capConverterToolSave) {
-						const parts = hcwpax.split("*");
-						const bssid = parts[3].toUpperCase().replace(/.{2}(?!$)/g, '$&-');
-						const essid = hex2a(parts[5]) || "NOESSID";
-						window.GOsaveHash(btoa(hcwpax), essid+" ("+bssid+").hcwpax").then(
+						const numNetworks = hcwpax.trim().split('\n').length;
+						var outputFileName;
+						if (numNetworks === 1) {
+							const parts = hcwpax.split("*");
+							const bssid = parts[3].toUpperCase().replace(/.{2}(?!$)/g, '$&-');
+							const essid = hex2a(parts[5]) || "NOESSID";
+							outputFileName = essid+" ("+bssid+").hcwpax";
+						} else {
+							outputFileName = numNetworks+ " Networks.hcwpax";
+						}
+						window.GOsaveHash(btoa(hcwpax), outputFileName).then(
 							response => {
 								message.success("Saved hash as "+filename(response));
 								this.setState({
@@ -183,7 +192,7 @@ class Tools extends Component {
 											) : this.state.capConverterToolStatus === "processing" ? (
 												<Badge status="processing" text="Processing" />
 											) : this.state.capConverterToolStatus === "success" ? (
-												<Badge status="success" text="Success" />
+												<Badge status="success" text={"Success ("+Pluralize("network", this.state.capConverterToolOutput.trim().split('\n').length, true)+")"} />
 											) : this.state.capConverterToolStatus === "error" ? (
 												this.state.capConverterToolError ? (
 													<Badge status="error" text={this.state.capConverterToolError} />
@@ -194,11 +203,25 @@ class Tools extends Component {
 												<Badge status="default" text="Unknown Status" />
 											)}
 											{this.state.capConverterToolOutput &&
+												<>
 												<pre>
 													<Text code copyable ellipsis>
 														{this.state.capConverterToolOutput}
 													</Text>
 												</pre>
+												{this.state.capConverterToolOutput.trim().split('\n').length > 1 &&
+													<>
+													<Divider>Separated hashes</Divider>
+													<pre>
+														{this.state.capConverterToolOutput.trim().split('\n').map(wpahash => (
+															<Text code copyable ellipsis>
+																{wpahash}
+															</Text>
+														))}
+													</pre>
+													</>
+												}
+												</>
 											}
 										</Paragraph>
 									</Col>
