@@ -8,6 +8,8 @@ require (
 	github.com/zserge/lorca v0.1.10
 )
 
+replace github.com/zserge/lorca => github.com/s77rt/lorca v0.1.11-0.20220706135919-b517a3250761
+
 require (
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/dchest/jsmin v0.0.0-20160823214000-faeced883947 // indirect

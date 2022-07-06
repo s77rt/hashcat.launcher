@@ -10,6 +10,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
  - remove tmp folder on exit (#89)
  - duplicated info (session name) (#81)
  - cap to hcwpax tool's output name is only based on one wpa even if there is many (#78)
+ - removed 'Chrome is being controlled by automated test software' message (#92)
 
 ## [1.1.0] 27/12/2021
 ### Added:
