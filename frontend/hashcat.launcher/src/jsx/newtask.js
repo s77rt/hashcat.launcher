@@ -596,7 +596,7 @@ class NewTask extends Component {
 				try {
 					const config = JSON.parse(e.target.result);
 					this.importConfig(config);
-					message.success("Imported!");
+					message.success("Imported! (" + filename(file.name) + ")");
 				} catch (e) {
 					message.error(e.toString());
 				}
@@ -625,7 +625,7 @@ class NewTask extends Component {
 		}, () => {
 			window.GOexportConfig(this.exportConfig()).then(
 				response => {
-					message.success("Exported!");
+					message.success("Exported! (" + filename(response) + ")");
 					this.setState({isLoadingExportConfig: false});
 				},
 				error => {
