@@ -1,3 +1,5 @@
+import { withTranslation } from 'react-i18next';
+
 import React, { Component } from "react";
 import { Layout, PageHeader, Badge, Input, message, Modal, Statistic, Row, Col, Card, Select, Typography, Upload, Button, Space, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import { FileOutlined, AimOutlined, ToolOutlined, ExportOutlined, ExperimentOutlined, SyncOutlined } from '@ant-design/icons';
@@ -98,7 +100,7 @@ class Tools extends Component {
 						}
 						window.GOsaveHash(btoa(hcwpax), outputFileName).then(
 							response => {
-								message.success("Saved hash as "+filename(response));
+								message.success(this.props.t("tools.cap_to_hcwpax.save_hash_success") + " " + filename(response));
 								this.setState({
 									capConverterToolStatus: "success",
 									capConverterToolOutput: hcwpax,
@@ -106,7 +108,7 @@ class Tools extends Component {
 								});
 							},
 							error => {
-								message.warning("Unable to save hash, " + error);
+								message.warning(this.props.t("tools.cap_to_hcwpax.save_hash_error") + ", " + error);
 								this.setState({
 									capConverterToolStatus: "success",
 									capConverterToolOutput: hcwpax,
@@ -140,23 +142,26 @@ class Tools extends Component {
 	}
 
 	render() {
+		const LANG = this.props.t;
 		return (
 			<>
 				<PageHeader
-					title="Tools"
+					title={LANG('tools.title')}
 				/>
 				<Content style={{ padding: '16px 24px' }}>
 					<Row gutter={[16, 14]}>
 						<Col>
 							<Card
-								title="Convert cap to hcwpax"
-								extra={<Button type="link" style={{ padding: '0' }} onClick={this.onClickOpenCapConverterTool}>Open Tool</Button>}
+								title={LANG('tools.cap_to_hcwpax.title')}
+								extra={<Button type="link" style={{ padding: '0' }} onClick={this.onClickOpenCapConverterTool}>{LANG('tools.cap_to_hcwpax.open_tool')}</Button>}
 							>
-								<p>Convert a capture file to hcwpax format</p>
-								<p>Accept a .cap, .pcap or .pcapng file and returns a hash for hashcat mode 22000</p>
+								<p>{LANG('tools.cap_to_hcwpax.description.part1')}</p>
+								<p>{LANG('tools.cap_to_hcwpax.description.part2')}</p>
 							</Card>
 							<Modal
-								title="Convert cap to hcwpax"
+								title={LANG('tools.cap_to_hcwpax.title')}
+								okText={LANG('tools.cap_to_hcwpax.modal_ok')}
+								cancelText={LANG('tools.cap_to_hcwpax.modal_cancel')}
 								visible={this.state.capConverterToolIsOpen}
 								onOk={this.onOkCapConverterTool}
 								onCancel={this.onCancelCapConverterTool}
@@ -173,7 +178,7 @@ class Tools extends Component {
 												beforeUpload={() => {return false;}}
 											>
 												<Button type="primary">
-													Choose a capture file
+													{LANG('tools.cap_to_hcwpax.choose_capture_file')}
 												</Button>
 											</Upload>
 											<Checkbox
@@ -181,26 +186,26 @@ class Tools extends Component {
 												onChange={this.onChangeCapConverterToolSave}
 												disabled={this.state.capConverterToolStatus === "processing"}
 											>
-												Save output to hashes
+												{LANG('tools.cap_to_hcwpax.save_output_to_hashes')}
 											</Checkbox>
 										</Space>
 									</Col>
 									<Col span={24}>
 										<Paragraph>
 											{this.state.capConverterToolStatus === "idle" ? (
-												<Badge status="default" text="Idle" />
+												<Badge status="default" text={LANG('tools.cap_to_hcwpax.idle')} />
 											) : this.state.capConverterToolStatus === "processing" ? (
-												<Badge status="processing" text="Processing" />
+												<Badge status="processing" text={LANG('tools.cap_to_hcwpax.processing')} />
 											) : this.state.capConverterToolStatus === "success" ? (
-												<Badge status="success" text={"Success ("+Pluralize("network", this.state.capConverterToolOutput.trim().split('\n').length, true)+")"} />
+												<Badge status="success" text={LANG('tools.cap_to_hcwpax.success') + " ("+Pluralize("network", this.state.capConverterToolOutput.trim().split('\n').length, true)+")"} />
 											) : this.state.capConverterToolStatus === "error" ? (
 												this.state.capConverterToolError ? (
 													<Badge status="error" text={this.state.capConverterToolError} />
 												) : (
-													<Badge status="error" text="Unknown Error" />
+													<Badge status="error" text={LANG('tools.cap_to_hcwpax.unknown_error')} />
 												)
 											) : (
-												<Badge status="default" text="Unknown Status" />
+												<Badge status="default" text={LANG('tools.cap_to_hcwpax.unknown_status')} />
 											)}
 											{this.state.capConverterToolOutput &&
 												<>
@@ -211,7 +216,7 @@ class Tools extends Component {
 												</pre>
 												{this.state.capConverterToolOutput.trim().split('\n').length > 1 &&
 													<>
-													<Divider>Separated hashes</Divider>
+													<Divider>{LANG('tools.cap_to_hcwpax.separated_hashes')}</Divider>
 													<pre>
 														{this.state.capConverterToolOutput.trim().split('\n').map(wpahash => (
 															<Text code copyable ellipsis>
@@ -235,4 +240,4 @@ class Tools extends Component {
 	}
 }
 
-export default Tools;
+export default withTranslation()(Tools);

@@ -1,3 +1,5 @@
+import { withTranslation } from 'react-i18next';
+
 import React, { Component } from "react";
 import { Layout, PageHeader, message, Statistic, Row, Col, Card, Select, Typography, Upload, Button, Space, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import { FileOutlined, AimOutlined, ToolOutlined, ExportOutlined, ExperimentOutlined, SyncOutlined } from '@ant-design/icons';
@@ -12,27 +14,29 @@ const { Step } = Steps;
 
 class About extends Component {
 	render() {
+		const LANG = this.props.t;
 		return (
 			<>
 				<PageHeader
-					title="About"
+					title={LANG('about.title')}
 				/>
 				<Content style={{ padding: '16px 24px' }}>
 					<Typography>
 							<Paragraph>
-									hashcat.launcher is a cross-platform app that run and control hashcat
+								{LANG('about.paragraph1')}
 							</Paragraph>
 							<Paragraph>
-									it is designed to make it easier to use hashcat offering a friendly graphical user interface
+								{LANG('about.paragraph2')}
 							</Paragraph>
-							<Title level={5}>Contribute</Title>
-									<Link target="_blank" href="https://github.com/s77rt/hashcat.launcher/issues/new/">Report a bug / Request a feature</Link>
-							<Title level={5}>License</Title>
+							<Title level={5}>{LANG('about.contribute')}</Title>
+									<Link target="_blank" href="https://github.com/s77rt/hashcat.launcher/issues/new/">{LANG('about.report_a_bug') + " / " + LANG('about.request_a_feature')}</Link>
+							<Title level={5}>{LANG('about.license')}</Title>
 							<Paragraph>
-									hashcat.launcher is licensed under the MIT License
+								{LANG('about.license_paragraph')}
 							</Paragraph>
+							<Title level={5}>{LANG('about.copyright')}</Title>
 							<Paragraph>
-									Copyright &copy; 2021 Abdelhafidh Belalia (s77rt)
+								{LANG('about.copyright')} &copy; {new Date().getFullYear()} Abdelhafidh Belalia (s77rt)
 							</Paragraph>
 					</Typography>
 				</Content>
@@ -41,4 +45,4 @@ class About extends Component {
 	}
 }
 
-export default About;
+export default withTranslation()(About);

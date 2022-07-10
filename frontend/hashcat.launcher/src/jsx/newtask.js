@@ -1,3 +1,5 @@
+import { withTranslation } from 'react-i18next';
+
 import React, { Component } from "react";
 import { Modal, Layout, PageHeader, Descriptions, Table, InputNumber, message, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import {
@@ -546,7 +548,7 @@ class NewTask extends Component {
 				outputFormat: this.state.outputFormat,
 			}, this.state.priority).then(
 				response => {
-					message.success("Task has been created successfully!");
+					message.success(this.props.t('newtask.task_success'));
 					this.setState({isLoadingCreateTask: false});
 					if (!this.state.preserveTaskConfig)
 						this.resetInitialConfig();
@@ -596,7 +598,7 @@ class NewTask extends Component {
 				try {
 					const config = JSON.parse(e.target.result);
 					this.importConfig(config);
-					message.success("Imported! (" + filename(file.name) + ")");
+					message.success(this.props.t('newtask.import_success') + " (" + filename(file.name) + ")");
 				} catch (e) {
 					message.error(e.toString());
 				}
@@ -625,7 +627,7 @@ class NewTask extends Component {
 		}, () => {
 			window.GOexportConfig(this.exportConfig()).then(
 				response => {
-					message.success("Exported! (" + filename(response) + ")");
+					message.success(this.props.t('newtask.export_success') + " (" + filename(response) + ")");
 					this.setState({isLoadingExportConfig: false});
 				},
 				error => {
@@ -648,7 +650,8 @@ class NewTask extends Component {
 			window.GOhashcatDevices().then(
 				response => {
 					Modal.info({
-						title: 'Devices',
+						title: this.props.t('newtask.devices'),
+						okText: this.props.t('newtask.devices_modal_ok'),
 						content: (
 							<pre style={{
 								maxHeight: '300px',
@@ -680,7 +683,7 @@ class NewTask extends Component {
 
 		const algorithm = this.state.algorithm;
 		if (typeof(algorithm) !== "number") {
-			message.error("No algorithm is selected");
+			message.error(this.props.t('newtask.no_algorithm_error'));
 			return;
 		}
 
@@ -690,7 +693,8 @@ class NewTask extends Component {
 			window.GOhashcatBenchmark(algorithm).then(
 				response => {
 					Modal.info({
-						title: 'Benchmark',
+						title: this.props.t('newtask.benchmark'),
+						okText: this.props.t('newtask.benchmark_modal_ok'),
 						content: (
 							<pre style={{
 								maxHeight: '300px',
@@ -731,10 +735,11 @@ class NewTask extends Component {
 	}
 
 	render() {
+		const LANG = this.props.t;
 		return (
 			<>
 				<PageHeader
-					title="New Task"
+					title={LANG('newtask.title')}
 					extra={[
 						<Upload
 							key="Import Config"
@@ -749,7 +754,7 @@ class NewTask extends Component {
 								icon={<ImportOutlined />}
 								loading={this.state.isLoadingImportConfig}
 							>
-								Import Config
+								{LANG('newtask.import_config')}
 							</Button>
 						</Upload>,
 						<Button
@@ -759,7 +764,7 @@ class NewTask extends Component {
 							onClick={this.onClickExportConfig}
 							loading={this.state.isLoadingExportConfig}
 						>
-							Export Config
+							{LANG('newtask.export_config')}
 						</Button>
 					]}
 				/>
@@ -767,11 +772,11 @@ class NewTask extends Component {
 					<Row gutter={[16]}>
 						<Col span={4}>
 							<Steps direction="vertical" current={this.state.step} onChange={this.onChangeStep}>
-								<Step title="Target" icon={<AimOutlined />} description="Select Target" />
-								<Step title="Attack" icon={<ToolOutlined />} description="Configure Attack" />
-								<Step title="Advanced" icon={<ExperimentOutlined />} description="Advanced Options" />
-								<Step title="Output" icon={<ExportOutlined />} description="Set Output" />
-								<Step title="Finalize" icon={<FileDoneOutlined />} description="Review and Finalize" />
+								<Step title={LANG('newtask.target')} icon={<AimOutlined />} description={LANG('newtask.select_target')} />
+								<Step title={LANG('newtask.attack')} icon={<ToolOutlined />} description={LANG('newtask.configure_attack')} />
+								<Step title={LANG('newtask.advanced')} icon={<ExperimentOutlined />} description={LANG('newtask.advanced_options')} />
+								<Step title={LANG('newtask.output')} icon={<ExportOutlined />} description={LANG('newtask.set_output')} />
+								<Step title={LANG('newtask.finalize')} icon={<FileDoneOutlined />} description={LANG('newtask.review_and_finalize')} />
 							</Steps>
 						</Col>
 						<Col span={20}>
@@ -779,13 +784,13 @@ class NewTask extends Component {
 								{this.state.step === 0 ? (
 									<Form layout="vertical">
 										<Form.Item
-											label="Hash"
+											label={LANG('newtask.hash')}
 										>
 											<Select
 												showSearch
 												style={{ width: "100%" }}
 												size="large"
-												placeholder="Select Hash"
+												placeholder={LANG('newtask.select_hash')}
 												value={this.state.hash}
 												onChange={this.onChangeHash}
 												filterOption={(input, option) =>
@@ -799,13 +804,13 @@ class NewTask extends Component {
 											</Select>
 										</Form.Item>
 										<Form.Item
-											label="Algorithm"
+											label={LANG('newtask.algorithm')}
 										>
 											<Select
 												showSearch
 												style={{ width: "100%" }}
 												size="large"
-												placeholder="Select Algorithm"
+												placeholder={LANG('newtask.select_algorithm')}
 												value={this.state.algorithm}
 												onChange={this.onChangeAlgorithm}
 												filterOption={(input, option) =>
@@ -822,28 +827,28 @@ class NewTask extends Component {
 								) : this.state.step === 1 ? (
 									<Form layout="vertical" requiredMark="optional">
 										<Form.Item
-											label="Attack Mode"
+											label={LANG('newtask.attack_mode')}
 											required
 										>
 											<Radio.Group value={this.state.attackMode} onChange={this.onChangeAttackMode}>
-												<Radio value={0}>Dictionary Attack</Radio>
-												<Radio value={1}>Combinator Attack</Radio>
-												<Radio value={3}>Mask Attack</Radio>
-												<Radio value={6}>Hybrid1 (Dictionary + Mask)</Radio>
-												<Radio value={7}>Hybrid2 (Mask + Dictionary)</Radio>
+												<Radio value={0}>{LANG('newtask.dictionary_attack')}</Radio>
+												<Radio value={1}>{LANG('newtask.combinator_attack')}</Radio>
+												<Radio value={3}>{LANG('newtask.mask_attack')}</Radio>
+												<Radio value={6}>{LANG('newtask.hybrid1_attack')}</Radio>
+												<Radio value={7}>{LANG('newtask.Hybrid2_attack')}</Radio>
 											</Radio.Group>
 										</Form.Item>
 											{this.state.attackMode === 0 ? (
 												<>
 													<Form.Item
-														label="Dictionaries"
+														label={LANG('newtask.dictionaries')}
 														required
 													>
 														<Select
 															mode="multiple"
 															allowClear
 															style={{ width: '100%' }}
-															placeholder="Select Dictionaries"
+															placeholder={LANG('newtask.select_dictionaries')}
 															size="large"
 															onChange={this.onChangeDictionaries}
 															value={this.state.dictionaries}
@@ -858,13 +863,13 @@ class NewTask extends Component {
 														</Select>
 													</Form.Item>
 													<Form.Item
-														label="Rules"
+														label={LANG('newtask.rules')}
 													>
 														<Select
 															mode="multiple"
 															allowClear
 															style={{ width: '100%' }}
-															placeholder={"Select Rules [max. "+maxRules+"]"}
+															placeholder={LANG('newtask.select_rules') + " [" + LANG('newtask.max_short') + " " + maxRules + "]"}
 															size="large"
 															onChange={this.onChangeRules}
 															value={this.state.rules}
@@ -885,14 +890,14 @@ class NewTask extends Component {
 														<Row>
 															<Col span={24}>
 																<Form.Item
-																	label="Left Dictionary"
+																	label={LANG('newtask.left_dictionary')}
 																	required
 																>
 																	<Select
 																		showSearch
 																		allowClear
 																		style={{ width: '100%' }}
-																		placeholder="Select Left Dictionary"
+																		placeholder={LANG('newtask.select_left_dictionary')}
 																		size="large"
 																		onChange={this.onChangeLeftDictionary}
 																		value={this.state.leftDictionary}
@@ -909,12 +914,12 @@ class NewTask extends Component {
 															</Col>
 															<Col span={24}>
 																<Form.Item
-																	label="Left Rule"
+																	label={LANG('newtask.left_rule')}
 																>
 																	<Input
 																		allowClear
 																		style={{ width: '100%' }}
-																		placeholder="Set Left Rule"
+																		placeholder={LANG('newtask.set_left_rule')}
 																		size="large"
 																		onChange={this.onChangeLeftRule}
 																		value={this.state.leftRule}
@@ -927,14 +932,14 @@ class NewTask extends Component {
 														<Row>
 															<Col span={24}>
 																<Form.Item
-																	label="Right Dictionary"
+																	label={LANG('newtask.right_dictionary')}
 																	required
 																>
 																	<Select
 																		showSearch
 																		allowClear
 																		style={{ width: '100%' }}
-																		placeholder="Select Right Dictionary"
+																		placeholder={LANG('newtask.select_right_dictionary')}
 																		size="large"
 																		onChange={this.onChangeRightDictionary}
 																		value={this.state.rightDictionary}
@@ -951,12 +956,12 @@ class NewTask extends Component {
 															</Col>
 															<Col span={24}>
 																<Form.Item
-																	label="Right Rule"
+																	label={LANG('newtask.right_rule')}
 																>
 																	<Input
 																		allowClear
 																		style={{ width: '100%' }}
-																		placeholder="Set Right Rule"
+																		placeholder={LANG('newtask.set_right_rule')}
 																		size="large"
 																		onChange={this.onChangeRightRule}
 																		value={this.state.rightRule}
@@ -971,13 +976,13 @@ class NewTask extends Component {
 													<Col span={12}>
 														{this.state.maskInputType === "text" ? (
 															<Form.Item
-																label="Mask"
+																label={LANG('newtask.mask')}
 																required
 															>
 																<Input
 																	allowClear
 																	style={{ width: '100%' }}
-																	placeholder="Set Mask"
+																	placeholder={LANG('newtask.set_mask')}
 																	size="large"
 																	onChange={this.onChangeMask}
 																	value={this.state.mask}
@@ -990,18 +995,18 @@ class NewTask extends Component {
 																	style={{ padding: '0' }}
 																	onClick={() => this.onChangeMaskInputType({type: "file"})}
 																>
-																	Use .hcmask file instead
+																	{LANG('newtask.use_hcmask_file_instead')}
 																</Button>
 															</Form.Item>
 														) : this.state.maskInputType === "file" ? (
 															<Form.Item
-																label="Mask"
+																label={LANG('newtask.mask')}
 																required
 															>
 																<Select
 																	allowClear
 																	style={{ width: '100%' }}
-																	placeholder="Select Mask"
+																	placeholder={LANG('newtask.select_mask')}
 																	size="large"
 																	onChange={this.onChangeMaskFile}
 																	value={this.state.maskFile}
@@ -1019,18 +1024,18 @@ class NewTask extends Component {
 																	style={{ padding: '0' }}
 																	onClick={() => this.onChangeMaskInputType({type: "text"})}
 																>
-																	Use mask text instead
+																	{LANG('newtask.use_mask_text_instead')}
 																</Button>
 															</Form.Item>
-														) : "unsupported mask input type" }
+														) : LANG('newtask.unsupported_mask_input_type') }
 														<Form.Item
-															label="Mask increment mode"
+															label={LANG('newtask.mask_increment_mode')}
 														>
 															<Checkbox
 																checked={this.state.enableMaskIncrementMode}
 																onChange={this.onChangeEnableMaskIncrementMode}
 															>
-																Enable
+																{LANG('newtask.enable')}
 															</Checkbox>
 															<InputNumber
 																disabled={!this.state.enableMaskIncrementMode}
@@ -1050,48 +1055,48 @@ class NewTask extends Component {
 													</Col>
 													<Col span={12}>
 														<Form.Item
-															label="Custom charset 1"
+															label={LANG('newtask.custom_charset_1')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 1"
+																placeholder={LANG('newtask.set_custom_charset_1')}
 																size="large"
 																onChange={this.onChangeCustomCharset1}
 																value={this.state.customCharset1}
 															/>
 														</Form.Item>
 														<Form.Item
-															label="Custom charset 2"
+															label={LANG('newtask.custom_charset_2')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 2"
+																placeholder={LANG('newtask.set_custom_charset_2')}
 																size="large"
 																onChange={this.onChangeCustomCharset2}
 																value={this.state.customCharset2}
 															/>
 														</Form.Item>
 														<Form.Item
-															label="Custom charset 3"
+															label={LANG('newtask.custom_charset_3')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 3"
+																placeholder={LANG('newtask.set_custom_charset_3')}
 																size="large"
 																onChange={this.onChangeCustomCharset3}
 																value={this.state.customCharset3}
 															/>
 														</Form.Item>
 														<Form.Item
-															label="Custom charset 4"
+															label={LANG('newtask.custom_charset_4')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 4"
+																placeholder={LANG('newtask.set_custom_charset_4')}
 																size="large"
 																onChange={this.onChangeCustomCharset4}
 																value={this.state.customCharset4}
@@ -1105,14 +1110,14 @@ class NewTask extends Component {
 														<Row gutter={[18, 16]}>
 															<Col span={12}>
 																<Form.Item
-																	label="Dictionary"
+																	label={LANG('newtask.dictionary')}
 																	required
 																>
 																	<Select
 																		showSearch
 																		allowClear
 																		style={{ width: '100%' }}
-																		placeholder="Select Dictionary"
+																		placeholder={LANG('newtask.select_dictionary')}
 																		size="large"
 																		onChange={this.onChangeLeftDictionary}
 																		value={this.state.leftDictionary}
@@ -1129,12 +1134,12 @@ class NewTask extends Component {
 															</Col>
 															<Col span={12}>
 																<Form.Item
-																	label="Rule"
+																	label={LANG('newtask.rule')}
 																>
 																	<Input
 																		allowClear
 																		style={{ width: '100%' }}
-																		placeholder="Set Rule"
+																		placeholder={LANG('newtask.set_rule')}
 																		size="large"
 																		onChange={this.onChangeLeftRule}
 																		value={this.state.leftRule}
@@ -1146,13 +1151,13 @@ class NewTask extends Component {
 													<Col span={12}>
 														{this.state.maskInputType === "text" ? (
 															<Form.Item
-																label="Mask"
+																label={LANG('newtask.mask')}
 																required
 															>
 																<Input
 																	allowClear
 																	style={{ width: '100%' }}
-																	placeholder="Set Mask"
+																	placeholder={LANG('newtask.set_mask')}
 																	size="large"
 																	onChange={this.onChangeMask}
 																	value={this.state.mask}
@@ -1165,18 +1170,18 @@ class NewTask extends Component {
 																	style={{ padding: '0' }}
 																	onClick={() => this.onChangeMaskInputType({type: "file"})}
 																>
-																	Use .hcmask file instead
+																	{LANG('newtask.use_hcmask_file_instead')}
 																</Button>
 															</Form.Item>
 														) : this.state.maskInputType === "file" ? (
 															<Form.Item
-																label="Mask"
+																label={LANG('newtask.mask')}
 																required
 															>
 																<Select
 																	allowClear
 																	style={{ width: '100%' }}
-																	placeholder="Select Mask"
+																	placeholder={LANG('newtask.select_mask')}
 																	size="large"
 																	onChange={this.onChangeMaskFile}
 																	value={this.state.maskFile}
@@ -1194,18 +1199,18 @@ class NewTask extends Component {
 																	style={{ padding: '0' }}
 																	onClick={() => this.onChangeMaskInputType({type: "text"})}
 																>
-																	Use mask text instead
+																	{LANG('newtask.use_mask_text_instead')}
 																</Button>
 															</Form.Item>
-														) : "unsupported mask input type" }
+														) : LANG('newtask.unsupported_mask_input_type') }
 														<Form.Item
-															label="Mask increment mode"
+															label={LANG('newtask.mask_increment_mode')}
 														>
 															<Checkbox
 																checked={this.state.enableMaskIncrementMode}
 																onChange={this.onChangeEnableMaskIncrementMode}
 															>
-																Enable
+																{LANG('newtask.enable')}
 															</Checkbox>
 															<InputNumber
 																disabled={!this.state.enableMaskIncrementMode}
@@ -1225,48 +1230,48 @@ class NewTask extends Component {
 													</Col>
 													<Col span={12}>
 														<Form.Item
-															label="Custom charset 1"
+															label={LANG('newtask.custom_charset_1')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 1"
+																placeholder={LANG('newtask.set_custom_charset_1')}
 																size="large"
 																onChange={this.onChangeCustomCharset1}
 																value={this.state.customCharset1}
 															/>
 														</Form.Item>
 														<Form.Item
-															label="Custom charset 2"
+															label={LANG('newtask.custom_charset_2')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 2"
+																placeholder={LANG('newtask.set_custom_charset_2')}
 																size="large"
 																onChange={this.onChangeCustomCharset2}
 																value={this.state.customCharset2}
 															/>
 														</Form.Item>
 														<Form.Item
-															label="Custom charset 3"
+															label={LANG('newtask.custom_charset_3')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 3"
+																placeholder={LANG('newtask.set_custom_charset_3')}
 																size="large"
 																onChange={this.onChangeCustomCharset3}
 																value={this.state.customCharset3}
 															/>
 														</Form.Item>
 														<Form.Item
-															label="Custom charset 4"
+															label={LANG('newtask.custom_charset_4')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 4"
+																placeholder={LANG('newtask.set_custom_charset_4')}
 																size="large"
 																onChange={this.onChangeCustomCharset4}
 																value={this.state.customCharset4}
@@ -1279,13 +1284,13 @@ class NewTask extends Component {
 													<Col span={12}>
 														{this.state.maskInputType === "text" ? (
 															<Form.Item
-																label="Mask"
+																label={LANG('newtask.mask')}
 																required
 															>
 																<Input
 																	allowClear
 																	style={{ width: '100%' }}
-																	placeholder="Set Mask"
+																	placeholder={LANG('newtask.set_mask')}
 																	size="large"
 																	onChange={this.onChangeMask}
 																	value={this.state.mask}
@@ -1298,18 +1303,18 @@ class NewTask extends Component {
 																	style={{ padding: '0' }}
 																	onClick={() => this.onChangeMaskInputType({type: "file"})}
 																>
-																	Use .hcmask file instead
+																	{LANG('newtask.use_hcmask_file_instead')}
 																</Button>
 															</Form.Item>
 														) : this.state.maskInputType === "file" ? (
 															<Form.Item
-																label="Mask"
+																label={LANG('newtask.mask')}
 																required
 															>
 																<Select
 																	allowClear
 																	style={{ width: '100%' }}
-																	placeholder="Select Mask"
+																	placeholder={LANG('newtask.select_mask')}
 																	size="large"
 																	onChange={this.onChangeMaskFile}
 																	value={this.state.maskFile}
@@ -1327,18 +1332,18 @@ class NewTask extends Component {
 																	style={{ padding: '0' }}
 																	onClick={() => this.onChangeMaskInputType({type: "text"})}
 																>
-																	Use mask text instead
+																	{LANG('newtask.use_mask_text_instead')}
 																</Button>
 															</Form.Item>
-														) : "unsupported mask input type" }
+														) : LANG('newtask.unsupported_mask_input_type') }
 														<Form.Item
-															label="Mask increment mode"
+															label={LANG('newtask.mask_increment_mode')}
 														>
 															<Checkbox
 																checked={this.state.enableMaskIncrementMode}
 																onChange={this.onChangeEnableMaskIncrementMode}
 															>
-																Enable
+																{LANG('newtask.enable')}
 															</Checkbox>
 															<InputNumber
 																disabled={!this.state.enableMaskIncrementMode}
@@ -1358,48 +1363,48 @@ class NewTask extends Component {
 													</Col>
 													<Col span={12}>
 														<Form.Item
-															label="Custom charset 1"
+															label={LANG('newtask.custom_charset_1')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 1"
+																placeholder={LANG('newtask.set_custom_charset_1')}
 																size="large"
 																onChange={this.onChangeCustomCharset1}
 																value={this.state.customCharset1}
 															/>
 														</Form.Item>
 														<Form.Item
-															label="Custom charset 2"
+															label={LANG('newtask.custom_charset_2')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 2"
+																placeholder={LANG('newtask.set_custom_charset_2')}
 																size="large"
 																onChange={this.onChangeCustomCharset2}
 																value={this.state.customCharset2}
 															/>
 														</Form.Item>
 														<Form.Item
-															label="Custom charset 3"
+															label={LANG('newtask.custom_charset_3')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 3"
+																placeholder={LANG('newtask.set_custom_charset_3')}
 																size="large"
 																onChange={this.onChangeCustomCharset3}
 																value={this.state.customCharset3}
 															/>
 														</Form.Item>
 														<Form.Item
-															label="Custom charset 4"
+															label={LANG('newtask.custom_charset_4')}
 														>
 															<Input
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Set Custom charset 4"
+																placeholder={LANG('newtask.set_custom_charset_4')}
 																size="large"
 																onChange={this.onChangeCustomCharset4}
 																value={this.state.customCharset4}
@@ -1410,14 +1415,14 @@ class NewTask extends Component {
 														<Row gutter={[18, 16]}>
 															<Col span={12}>
 																<Form.Item
-																	label="Dictionary"
+																	label={LANG('newtask.dictionary')}
 																	required
 																>
 																	<Select
 																		showSearch
 																		allowClear
 																		style={{ width: '100%' }}
-																		placeholder="Select Dictionary"
+																		placeholder={LANG('newtask.select_dictionary')}
 																		size="large"
 																		onChange={this.onChangeRightDictionary}
 																		value={this.state.rightDictionary}
@@ -1434,12 +1439,12 @@ class NewTask extends Component {
 															</Col>
 															<Col span={12}>
 																<Form.Item
-																	label="Rule"
+																	label={LANG('newtask.rule')}
 																>
 																	<Input
 																		allowClear
 																		style={{ width: '100%' }}
-																		placeholder="Set Rule"
+																		placeholder={LANG('newtask.set_rule')}
 																		size="large"
 																		onChange={this.onChangeRightRule}
 																		value={this.state.rightRule}
@@ -1450,20 +1455,20 @@ class NewTask extends Component {
 													</Col>
 												</Row>
 											) : (
-												"Select Attack Mode"
+												LANG('newtask.select_attack_mode')
 											)}
 									</Form>
 								) : this.state.step === 2 ? (
 									<Form layout="vertical">
 										<Collapse ghost onChange={this.onChangeAdvancedOptionsCollapse} activeKey={this.state.advancedOptionsCollapse}>
-											<Panel header="General" key="General">
+											<Panel header={LANG('newtask.general')} key="General">
 												<Row gutter={[18, 16]}>
 													<Col>
 														<Checkbox
 															checked={this.state.quiet}
 															onChange={this.onChangeQuiet}
 														>
-															Quiet
+															{LANG('newtask.quiet')}
 														</Checkbox>
 													</Col>
 													<Col>
@@ -1471,7 +1476,7 @@ class NewTask extends Component {
 															checked={this.state.disablePotFile}
 															onChange={this.onChangeDisablePotFile}
 														>
-															Disable Pot File
+															{LANG('newtask.disable_pot_file')}
 														</Checkbox>
 													</Col>
 													<Col>
@@ -1479,7 +1484,7 @@ class NewTask extends Component {
 															checked={this.state.disableLogFile}
 															onChange={this.onChangeDisableLogFile}
 														>
-															Disable Log File
+															{LANG('newtask.disable_log_file')}
 														</Checkbox>
 													</Col>
 													<Col>
@@ -1487,7 +1492,7 @@ class NewTask extends Component {
 															checked={this.state.enableOptimizedKernel}
 															onChange={this.onChangeEnableOptimizedKernel}
 														>
-															Enable optimized kernel
+															{LANG('newtask.enable_optimized_kernel')}
 														</Checkbox>
 													</Col>
 													<Col>
@@ -1495,7 +1500,7 @@ class NewTask extends Component {
 															checked={this.state.enableSlowerCandidateGenerators}
 															onChange={this.onChangeEnableSlowerCandidateGenerators}
 														>
-															Enable slower candidate generators
+															{LANG('newtask.enable_slower_candidate_generators')}
 														</Checkbox>
 													</Col>
 													<Col>
@@ -1503,7 +1508,7 @@ class NewTask extends Component {
 															checked={this.state.removeFoundHashes}
 															onChange={this.onChangeRemoveFoundHashes}
 														>
-															Remove found hashes
+															{LANG('newtask.remove_found_hashes')}
 														</Checkbox>
 													</Col>
 													<Col>
@@ -1511,7 +1516,7 @@ class NewTask extends Component {
 															checked={this.state.ignoreUsernames}
 															onChange={this.onChangeIgnoreUsernames}
 														>
-															Ignore Usernames
+															{LANG('newtask.ignore_usernames')}
 														</Checkbox>
 													</Col>
 													<Col>
@@ -1519,7 +1524,7 @@ class NewTask extends Component {
 															checked={this.state.disableSelfTest}
 															onChange={this.onChangeDisableSelfTest}
 														>
-															Disable self-test (Not Recommended)
+															{LANG('newtask.disable_self-test') + " (" + LANG('newtask.not_recommended')+ ")"}
 														</Checkbox>
 													</Col>
 													<Col>
@@ -1527,22 +1532,22 @@ class NewTask extends Component {
 															checked={this.state.ignoreWarnings}
 															onChange={this.onChangeIgnoreWarnings}
 														>
-															Ignore warnings (Not Recommended)
+															{LANG('newtask.ignore_warnings') + " (" + LANG('newtask.not_recommended')+ ")"}
 														</Checkbox>
 													</Col>
 												</Row>
 											</Panel>
-											<Panel header="Devices" key="Devices">
+											<Panel header={LANG('newtask.devices')} key="Devices">
 												<Row gutter={[18, 16]}>
 													<Col span={8}>
 														<Form.Item
-															label="Devices IDs"
+															label={LANG('newtask.devices_ids')}
 														>
 															<Select
 																mode="multiple"
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Select Devices IDs"
+																placeholder={LANG('newtask.select_devices_ids')}
 																size="large"
 																onChange={this.onChangeDevicesIDs}
 																value={this.state.devicesIDs}
@@ -1559,13 +1564,13 @@ class NewTask extends Component {
 													</Col>
 													<Col span={8}>
 														<Form.Item
-															label="Devices Types"
+															label={LANG('newtask.devices_types')}
 														>
 															<Select
 																mode="multiple"
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Select Devices Types"
+																placeholder={LANG('newtask.select_devices_types')}
 																size="large"
 																onChange={this.onChangeDevicesTypes}
 																value={this.state.devicesTypes}
@@ -1582,27 +1587,27 @@ class NewTask extends Component {
 													</Col>
 													<Col span={8}>
 														<Form.Item
-															label="Workload Profile"
+															label={LANG('newtask.workload_profile')}
 															tooltip={
 																<Table
 																	columns={[
 																		{
-																			title: 'Performance',
+																			title: LANG('newtask.performance'),
 																			dataIndex: 'performance',
 																			key: 'Performance'
 																		},
 																		{
-																			title: 'Runtime',
+																			title: LANG('newtask.runtime'),
 																			dataIndex: 'runtime',
 																			key: 'Runtime'
 																		},
 																		{
-																			title: 'Power Consumption',
+																			title: LANG('newtask.power_consumption'),
 																			dataIndex: 'powerConsumption',
 																			key: 'Power Consumption'
 																		},
 																		{
-																			title: 'Desktop Impact',
+																			title: LANG('newtask.desktop_impact'),
 																			dataIndex: 'desktopImpact',
 																			key: 'Desktop Impact'
 																		}
@@ -1610,31 +1615,31 @@ class NewTask extends Component {
 																	dataSource={[
 																		{
 																			key: '1',
-																			performance: 'Low',
+																			performance: LANG('newtask.low'),
 																			runtime: '2 ms',
-																			powerConsumption: 'Low',
-																			desktopImpact: 'Minimal'
+																			powerConsumption: LANG('newtask.low'),
+																			desktopImpact: LANG('newtask.minimal')
 																		},
 																		{
 																			key: '2',
-																			performance: 'Default',
+																			performance: LANG('newtask.default'),
 																			runtime: '12 ms',
-																			powerConsumption: 'Economic',
-																			desktopImpact: 'Noticeable'
+																			powerConsumption: LANG('newtask.economic'),
+																			desktopImpact: LANG('newtask.noticeable')
 																		},
 																		{
 																			key: '3',
-																			performance: 'High',
+																			performance: LANG('newtask.high'),
 																			runtime: '96 ms',
-																			powerConsumption: 'High',
-																			desktopImpact: 'Unresponsive'
+																			powerConsumption: LANG('newtask.high'),
+																			desktopImpact: LANG('newtask.unresponsive')
 																		},
 																		{
 																			key: '4',
-																			performance: 'Nightmare',
+																			performance: LANG('newtask.nightmare'),
 																			runtime: '480 ms',
-																			powerConsumption: 'Insane',
-																			desktopImpact: 'Headless'
+																			powerConsumption: LANG('newtask.insane'),
+																			desktopImpact: LANG('newtask.headless')
 																		}
 																	]}
 																	size="small"
@@ -1646,7 +1651,7 @@ class NewTask extends Component {
 															<Select
 																allowClear
 																style={{ width: '100%' }}
-																placeholder="Select Workload Profile"
+																placeholder={LANG('newtask.select_workload_profile')}
 																size="large"
 																onChange={this.onChangeWorkloadProfile}
 																value={this.state.workloadProfile}
@@ -1655,10 +1660,10 @@ class NewTask extends Component {
 																	String(option.children).toLowerCase().indexOf(input.toLowerCase()) >= 0
 																}
 															>
-																<Option value={1} key={1}>Low</Option>
-																<Option value={2} key={2}>Default</Option>
-																<Option value={3} key={3}>High</Option>
-																<Option value={4} key={4}>Nightmare</Option>
+																<Option value={1} key={1}>{LANG('newtask.low')}</Option>
+																<Option value={2} key={2}>{LANG('newtask.default')}</Option>
+																<Option value={3} key={3}>{LANG('newtask.high')}</Option>
+																<Option value={4} key={4}>{LANG('newtask.nightmare')}</Option>
 															</Select>
 														</Form.Item>
 													</Col>
@@ -1669,7 +1674,7 @@ class NewTask extends Component {
 															loading={this.state.isLoadingDevicesInfo}
 															onClick={this.onClickDevicesInfo}
 														>
-															Devices Info
+															{LANG('newtask.devices_info')}
 														</Button>
 													</Col>
 													<Col>
@@ -1677,19 +1682,19 @@ class NewTask extends Component {
 															loading={this.state.isLoadingBenchmark}
 															onClick={this.onClickBenchmark}
 														>
-															Benchmark
+															{LANG('newtask.benchmark')}
 														</Button>
 													</Col>
 												</Row>
 											</Panel>
-											<Panel header="Markov" key="Markov">
+											<Panel header={LANG('newtask.markov')} key="Markov">
 												<Row gutter={[18, 16]}>
 													<Col>
 														<Checkbox
 															checked={this.state.markovDisable}
 															onChange={this.onChangeMarkovDisable}
 														>
-															Disables markov-chains, emulates classic brute-force
+															{LANG('newtask.disable_markov-chains')}
 														</Checkbox>
 													</Col>
 													<Col>
@@ -1697,14 +1702,14 @@ class NewTask extends Component {
 															checked={this.state.markovClassic}
 															onChange={this.onChangeMarkovClassic}
 														>
-															Enables classic markov-chains, no per-position
+															{LANG('newtask.enable_classic_markov-chains')}
 														</Checkbox>
 													</Col>
 													<Col span={24}>
 														<Row gutter={[18, 16]}>
 															<Col span={8}>
 																<Form.Item
-																	label="Threshold X when to stop accepting new markov-chains"
+																	label={LANG('newtask.markov_threshold')}
 																>
 																	<InputNumber
 																		value={this.state.markovThreshold}
@@ -1716,26 +1721,26 @@ class NewTask extends Component {
 													</Col>
 												</Row>
 											</Panel>
-											<Panel header="Monitor" key="Monitor">
+											<Panel header={LANG('newtask.monitor')} key="Monitor">
 												<Row gutter={[18, 16]}>
 													<Col>
 														<Checkbox
 															checked={this.state.disableMonitor}
 															onChange={this.onChangeDisableMonitor}
 														>
-															Disable Monitor
+															{LANG('newtask.disable_monitor')}
 														</Checkbox>
 													</Col>
 													<Col span={24}>
 														<Row gutter={[18, 16]}>
 															<Col span={8}>
 																<Form.Item
-																	label="Temp Abort (°C)"
+																	label={LANG('newtask.temp_abort')}
 																>
 																	<Select
 																		allowClear
 																		style={{ width: '100%' }}
-																		placeholder="Select Temp Abort (°C)"
+																		placeholder={LANG('newtask.select_temp_abort')}
 																		size="large"
 																		onChange={this.onChangeTempAbort}
 																		value={this.state.tempAbort}
@@ -1761,28 +1766,28 @@ class NewTask extends Component {
 													</Col>
 												</Row>
 											</Panel>
-											<Panel header="Extra Arguments" key="Extra Arguments">
+											<Panel header={LANG('newtask.extra_arguments')} key="Extra Arguments">
 												<Form.Item
-													label="Extra Arguments"
+													label={LANG('newtask.extra_arguments')}
 												>
 													<Input
 														allowClear
 														style={{ width: '100%' }}
-														placeholder="Set Extra Arguments"
+														placeholder={LANG('newtask.set_extra_arguments')}
 														size="large"
 														onChange={this.onChangeExtraArguments}
 														value={this.state.extraArguments.join(" ")}
 													/>
 												</Form.Item>
 											</Panel>
-											<Panel header="Misc" key="Misc">
+											<Panel header={LANG('newtask.misc')} key="Misc">
 												<Form.Item
-													label="Status Timer"
+													label={LANG('newtask.status_timer')}
 												>
 													<Select
 														allowClear
 														style={{ width: '100%' }}
-														placeholder="Select Status Timer"
+														placeholder={LANG('newtask.select_status_timer')}
 														size="large"
 														onChange={this.onChangeStatusTimer}
 														value={this.state.statusTimer}
@@ -1791,14 +1796,14 @@ class NewTask extends Component {
 															String(option.children).toLowerCase().indexOf(input.toLowerCase()) >= 0
 														}
 													>
-														<Option value={10} key={10}>10 Seconds</Option>
-														<Option value={20} key={20}>20 Seconds</Option>
-														<Option value={30} key={30}>30 Seconds</Option>
-														<Option value={45} key={45}>45 Seconds</Option>
-														<Option value={60} key={60}>60 Seconds</Option>
-														<Option value={90} key={90}>90 Seconds</Option>
-														<Option value={120} key={120}>120 Seconds</Option>
-														<Option value={300} key={300}>300 Seconds</Option>
+														<Option value={10} key={10}>{"10 " + LANG('newtask.seconds')}</Option>
+														<Option value={20} key={20}>{"20 " + LANG('newtask.seconds')}</Option>
+														<Option value={30} key={30}>{"30 " + LANG('newtask.seconds')}</Option>
+														<Option value={45} key={45}>{"45 " + LANG('newtask.seconds')}</Option>
+														<Option value={60} key={60}>{"60 " + LANG('newtask.seconds')}</Option>
+														<Option value={90} key={90}>{"90 " + LANG('newtask.seconds')}</Option>
+														<Option value={120} key={120}>{"120 " + LANG('newtask.seconds')}</Option>
+														<Option value={300} key={300}>{"300 " + LANG('newtask.seconds')}</Option>
 													</Select>
 												</Form.Item>
 											</Panel>
@@ -1807,7 +1812,7 @@ class NewTask extends Component {
 								) : this.state.step === 3 ? (
 									<Form layout="vertical">
 										<Form.Item
-											label="Output File"
+											label={LANG('newtask.output_file')}
 											extra={this.state.outputFile ? this.state.outputFile : null}
 										>
 											<Button
@@ -1815,17 +1820,17 @@ class NewTask extends Component {
 												onClick={this.onChangeOutputFile}
 												loading={this.state.isLoadingSetOutputFile}
 											>
-												Set Output File
+												{LANG('newtask.set_output_file')}
 											</Button>
 										</Form.Item>
 										<Form.Item
-											label="Output Format"
+											label={LANG('newtask.output_format')}
 										>
 											<Select
 												mode="multiple"
 												allowClear
 												style={{ width: '100%' }}
-												placeholder="Select Output Format"
+												placeholder={LANG('newtask.select_output_format')}
 												size="large"
 												onChange={this.onChangeOutputFormat}
 												value={this.state.outputFormat}
@@ -1834,12 +1839,12 @@ class NewTask extends Component {
 													String(option.children).toLowerCase().indexOf(input.toLowerCase()) >= 0
 												}
 											>
-												<Option value={1} key={1}>hash[:salt]</Option>
-												<Option value={2} key={2}>plain</Option>
-												<Option value={3} key={3}>hex_plain</Option>
-												<Option value={4} key={4}>crack_pos</Option>
-												<Option value={5} key={5}>timestamp absolute</Option>
-												<Option value={6} key={6}>timestamp relative</Option>
+												<Option value={1} key={1}>{LANG('newtask.output_format_1')}</Option>
+												<Option value={2} key={2}>{LANG('newtask.output_format_2')}</Option>
+												<Option value={3} key={3}>{LANG('newtask.output_format_3')}</Option>
+												<Option value={4} key={4}>{LANG('newtask.output_format_4')}</Option>
+												<Option value={5} key={5}>{LANG('newtask.output_format_5')}</Option>
+												<Option value={6} key={6}>{LANG('newtask.output_format_6')}</Option>
 											</Select>
 										</Form.Item>
 									</Form>
@@ -1847,12 +1852,12 @@ class NewTask extends Component {
 									<Space direction="vertical">
 										<Form layout="vertical">
 											<Form.Item
-												label="Priority"
+												label={LANG('newtask.priority')}
 												tooltip={
 													<Typography>
-														Tasks are started automatically in a descending order of priority.
+														{LANG('newtask.priority_tooltip.part1')}
 													<br />
-														Set to -1 to disable auto-start.
+														{LANG('newtask.priority_tooltip.part2')}
 													</Typography>
 												}
 											>
@@ -1872,13 +1877,13 @@ class NewTask extends Component {
 												onClick={this.onClickCreateTask}
 												loading={this.state.isLoadingCreateTask}
 											>
-												Create Task
+												{LANG('newtask.create_task')}
 											</Button>
 												<Checkbox
 													checked={this.state.preserveTaskConfig}
 													onChange={this.onChangePreserveTaskConfig}
 												>
-													Preserve task config
+													{LANG('newtask.preserve_task_config')}
 												</Checkbox>
 										</Space>
 									</Space>
@@ -1892,4 +1897,4 @@ class NewTask extends Component {
 	}
 }
 
-export default NewTask;
+export default withTranslation()(NewTask);

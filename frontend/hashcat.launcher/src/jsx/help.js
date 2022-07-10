@@ -1,3 +1,5 @@
+import { withTranslation } from 'react-i18next';
+
 import React, { Component } from "react";
 import { Layout, PageHeader, message, Statistic, Row, Col, Card, Select, Typography, Upload, Button, Space, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import { FileOutlined, AimOutlined, ToolOutlined, ExportOutlined, ExperimentOutlined, SyncOutlined } from '@ant-design/icons';
@@ -12,47 +14,45 @@ const { Step } = Steps;
 
 class Help extends Component {
 	render() {
+		const LANG = this.props.t;
 		return (
 			<>
 				<PageHeader
-					title="Help"
+					title={LANG('help.title')}
 				/>
 				<Content style={{ padding: '16px 24px' }}>
 					<Typography>
-						<Title level={5}>Frequently Asked Questions</Title>
+						<Title level={5}>{LANG('help.faq_long')}</Title>
 						<Collapse bordered={false}>
-							<Panel header="What hashcat versions are supported" key="1">
-								hashcat.launcher supports hashcat v6.2.1 and higher.
+							<Panel header={LANG('help.question_hashcat_supported_versions')} key="1">
+								{LANG('help.answer_hashcat_supported_versions')}
 							</Panel>
-							<Panel header="How to add hashes, dictionaries, etc..." key="2">
-								Files are expected to be in the following folders:
+							<Panel header={LANG('help.question_add_files')} key="2">
+								{LANG('help.answer_add_files.part1')}
 								<ul>
-									<li>Hashes: <Text code>/hashcat/hashes</Text></li>
-									<li>Dictionaries: <Text code>/hashcat/dictionaries</Text></li>
-									<li>Rules: <Text code>/hashcat/rules</Text></li>
-									<li>Masks: <Text code>/hashcat/masks</Text></li>
+									<li>{LANG('help.answer_add_files.hashes') + ": "} <Text code>/hashcat/hashes</Text></li>
+									<li>{LANG('help.answer_add_files.dictionaries') + ": "} <Text code>/hashcat/dictionaries</Text></li>
+									<li>{LANG('help.answer_add_files.rules') + ": "} <Text code>/hashcat/rules</Text></li>
+									<li>{LANG('help.answer_add_files.masks') + ": "} <Text code>/hashcat/masks</Text></li>
 								</ul>
 							</Panel>
-							<Panel header="Algorithms list is empty" key="3">
-								Algorithms get loaded automatically and depends on hashcat.
-								Make sure hashcat exists then go to Settings and click on Rescan.
+							<Panel header={LANG('help.question_empty_algorithms_list')} key="3">
+								{LANG('help.answer_empty_algorithms_list.part1') + " " + LANG('help.answer_empty_algorithms_list.part2')}
 								<br />
-								hashcat is expected to be in the same directory as hashcat.launcher
-								inside a subfolder <Text code>/hashcat</Text>.
+								{LANG('help.answer_empty_algorithms_list.part3') + " " + LANG('help.answer_empty_algorithms_list.part4')} <Text code>/hashcat</Text>.
 							</Panel>
-							<Panel header="I added a file but it's not in the list" key="4">
-								Try perform a manual scan.
-								Go to Settings then click on Rescan.
+							<Panel header={LANG('help.question_added_file_but_not_listed')} key="4">
+								{LANG('help.answer_added_file_but_not_listed.part1') + " " + LANG('help.answer_added_file_but_not_listed.part2')}
 							</Panel>
-							<Panel header="What is the difference between an idle task and a queued task" key="5">
-								An idle task have a priority that is less than zero
+							<Panel header={LANG('help.question_difference_idle_vs_queued')} key="5">
+								{LANG('help.answer_difference_idle_vs_queued.part1')}
 								<br />
-								while, a queued task have a priority that is equal or greater than zero.
+								{LANG('help.answer_difference_idle_vs_queued.part2')}
 								<br />
 								<br />
-								An idle task can only be started manually
+								{LANG('help.answer_difference_idle_vs_queued.part3')}
 								<br />
-								while, a queued task can be started manually or automatically.
+								{LANG('help.answer_difference_idle_vs_queued.part4')}
 							</Panel>
 						</Collapse>
 					</Typography>
@@ -62,4 +62,4 @@ class Help extends Component {
 	}
 }
 
-export default Help;
+export default withTranslation()(Help);

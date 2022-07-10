@@ -1,3 +1,5 @@
+import { withTranslation } from 'react-i18next';
+
 import React, { Component } from "react";
 import { Tooltip, Layout, PageHeader, Popconfirm, Tag, List, InputNumber, Table, Modal, message, Progress, Badge, Descriptions, Tree, Row, Col, Card, Select, Typography, Upload, Button, Space, Input, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
 import {
@@ -28,7 +30,7 @@ import {
 import EventBus from "./eventbus/EventBus";
 import TasksStats from './stats/tasks';
 
-import moment from "moment"
+import moment from "moment/min/moment-with-locales"
 
 const { Content } = Layout;
 const { Dragger } = Upload;
@@ -56,22 +58,22 @@ const HASHCAT_STATUS_INIT             = 0,
 	HASHCAT_STATUS_ABORTED_FINISH     = 14,
 	HASHCAT_STATUS_AUTODETECT         = 16;
 
-const HASHCAT_STATUS_MESSAGES = {
-	[HASHCAT_STATUS_INIT]               : "Init",
-	[HASHCAT_STATUS_AUTOTUNE]           : "Autotune",
-	[HASHCAT_STATUS_SELFTEST]           : "Selftest",
-	[HASHCAT_STATUS_RUNNING]            : "Running",
-	[HASHCAT_STATUS_PAUSED]             : "Paused",
-	[HASHCAT_STATUS_EXHAUSTED]          : "Exhausted",
-	[HASHCAT_STATUS_CRACKED]            : "Cracked",
-	[HASHCAT_STATUS_ABORTED]            : "Aborted",
-	[HASHCAT_STATUS_QUIT]               : "Quit",
-	[HASHCAT_STATUS_BYPASS]             : "Bypass",
-	[HASHCAT_STATUS_ABORTED_CHECKPOINT] : "Aborted (Checkpoint)",
-	[HASHCAT_STATUS_ABORTED_RUNTIME]    : "Aborted (Runtime)",
-	[HASHCAT_STATUS_ERROR]              : "Error",
-	[HASHCAT_STATUS_ABORTED_FINISH]     : "Aborted (Finish)",
-	[HASHCAT_STATUS_AUTODETECT]         : "Autodetect"
+const HASHCAT_STATUS_KEYS = {
+	[HASHCAT_STATUS_INIT]               : "init",
+	[HASHCAT_STATUS_AUTOTUNE]           : "autotune",
+	[HASHCAT_STATUS_SELFTEST]           : "selftest",
+	[HASHCAT_STATUS_RUNNING]            : "running",
+	[HASHCAT_STATUS_PAUSED]             : "paused",
+	[HASHCAT_STATUS_EXHAUSTED]          : "exhausted",
+	[HASHCAT_STATUS_CRACKED]            : "cracked",
+	[HASHCAT_STATUS_ABORTED]            : "aborted",
+	[HASHCAT_STATUS_QUIT]               : "quit",
+	[HASHCAT_STATUS_BYPASS]             : "bypass",
+	[HASHCAT_STATUS_ABORTED_CHECKPOINT] : "aborted_checkpoint",
+	[HASHCAT_STATUS_ABORTED_RUNTIME]    : "aborted_runtime",
+	[HASHCAT_STATUS_ERROR]              : "error",
+	[HASHCAT_STATUS_ABORTED_FINISH]     : "aborted_finish",
+	[HASHCAT_STATUS_AUTODETECT]         : "autodetect"
 };
 
 const HASHCAT_STATUS_BADGE_WARNING = [HASHCAT_STATUS_PAUSED];
@@ -167,7 +169,7 @@ class Tasks extends Component {
 	onClickStart() {
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
@@ -192,7 +194,7 @@ class Tasks extends Component {
 	onClickRefresh() {
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
@@ -217,7 +219,7 @@ class Tasks extends Component {
 	onClickPause() {
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
@@ -242,7 +244,7 @@ class Tasks extends Component {
 	onClickResume() {
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
@@ -267,7 +269,7 @@ class Tasks extends Component {
 	onClickCheckpoint() {
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
@@ -292,7 +294,7 @@ class Tasks extends Component {
 	onClickSkip() {
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
@@ -317,7 +319,7 @@ class Tasks extends Component {
 	onClickQuit() {
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
@@ -345,7 +347,7 @@ class Tasks extends Component {
 
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
@@ -377,12 +379,13 @@ class Tasks extends Component {
 	onClickArguments() {
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
 		Modal.info({
-			title: 'Arguments',
+			title: this.props.t('tasks.arguments'),
+			okText: this.props.t('tasks.arguments_modal_ok'),
 			content: (
 				<div style={{ maxHeight: '300px', overflow: 'auto' }}>
 					<Text code copyable>
@@ -396,7 +399,7 @@ class Tasks extends Component {
 	onClickDelete() {
 		const task = this.state.task;
 		if (!task) {
-			message.error("no task is selected");
+			message.error(this.props.t('tasks.no_task_error'));
 			return;
 		}
 
@@ -423,28 +426,28 @@ class Tasks extends Component {
 		var data = [
 			{
 				key: "Idle",
-				title: "Idle",
+				title: this.props.t('tasks.idle'),
 				selectable: false,
 				icon: <LineOutlined />,
 				children: []
 			},
 			{
 				key: "Queued",
-				title: "Queued",
+				title: this.props.t('tasks.queued'),
 				selectable: false,
 				icon: <ClockCircleOutlined />,
 				children: []
 			},
 			{
 				key: "In Progress",
-				title: "In Progress",
+				title: this.props.t('tasks.in_progress'),
 				selectable: false,
 				icon: <FireOutlined />,
 				children: []
 			},
 			{
 				key: "Finished",
-				title: "Finished",
+				title: this.props.t('tasks.finished'),
 				selectable: false,
 				icon: <CheckCircleOutlined />,
 				children: []
@@ -468,7 +471,7 @@ class Tasks extends Component {
 					break;
 				default:
 					category = data[0];
-					message.warning("unrecognized process status");
+					message.warning(this.props.t('tasks.unrecognized_process_status'));
 			}
 			category.children.push({
 				key: task.id,
@@ -525,12 +528,13 @@ class Tasks extends Component {
 	}
 
 	render() {
+		const LANG = this.props.t;
 		const { taskKey, task } = this.state;
 
 		return (
 			<>
 				<PageHeader
-					title="Tasks"
+					title={LANG('tasks.title')}
 				/>
 				<Content style={{ padding: '16px 24px' }}>
 					<Row gutter={16} className="height-100 tree-height-100">
@@ -561,19 +565,19 @@ class Tasks extends Component {
 													tags={
 														task.stats.hasOwnProperty("status") ? (	
 															HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
-																<Tag color="warning">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+																<Tag color="warning">{LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])}</Tag>
 															) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
-																<Tag color="processing">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+																<Tag color="processing">{LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])}</Tag>
 															) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
-																<Tag color="error">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+																<Tag color="error">{LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])}</Tag>
 															) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
-																<Tag color="success">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+																<Tag color="success">{LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])}</Tag>
 															) : HASHCAT_STATUS_BADGE_PINK.indexOf(task.stats["status"]) > -1 ? (
-																<Tag color="pink">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+																<Tag color="pink">{LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])}</Tag>
 															) : HASHCAT_STATUS_BADGE_YELLOW.indexOf(task.stats["status"]) > -1 ? (
-																<Tag color="yellow">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+																<Tag color="yellow">{LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])}</Tag>
 															) : (
-																<Tag color="default">{HASHCAT_STATUS_MESSAGES[task.stats["status"]]}</Tag>
+																<Tag color="default">{LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])}</Tag>
 															)
 														) : null
 													}
@@ -581,7 +585,7 @@ class Tasks extends Component {
 													extra={
 														<Form layout="inline">
 															<Form.Item
-																label="Priority"
+																label={LANG('tasks.priority')}
 															>
 																<InputNumber
 																	min={-1}
@@ -597,21 +601,21 @@ class Tasks extends Component {
 																onClick={this.onClickArguments}
 																style={{ marginRight: '1rem' }}
 															>
-																Arguments
+																{LANG('tasks.arguments')}
 															</Button>
 															<Popconfirm
 																placement="topRight"
-																title="Are you sure you want to delete this task?"
+																title={LANG('tasks.delete_confirm.message')}
 																onConfirm={this.onClickDelete}
-																okText="Yes"
-																cancelText="No"
+																okText={LANG('tasks.delete_confirm.yes')}
+																cancelText={LANG('tasks.delete_confirm.no')}
 															>
 																<Button
 																	type="danger"
 																	icon={<DeleteOutlined />}
 																	loading={this.state.isLoadingDelete}
 																>
-																	Delete
+																	{LANG('tasks.delete')}
 																</Button>
 															</Popconfirm>
 														</Form>
@@ -634,7 +638,7 @@ class Tasks extends Component {
 															onClick={this.onClickStart}
 															loading={this.state.isLoadingStart}
 														>
-															Start
+															{LANG('tasks.start')}
 														</Button>
 													</Col>
 													<Col>
@@ -643,7 +647,7 @@ class Tasks extends Component {
 															onClick={this.onClickRefresh}
 															loading={this.state.isLoadingRefresh}
 														>
-															Refresh
+															{LANG('tasks.refresh')}
 														</Button>
 													</Col>
 													<Col>
@@ -652,7 +656,7 @@ class Tasks extends Component {
 															onClick={this.onClickPause}
 															loading={this.state.isLoadingPause}
 														>
-															Pause
+															{LANG('tasks.pause')}
 														</Button>
 													</Col>
 													<Col>
@@ -661,7 +665,7 @@ class Tasks extends Component {
 															onClick={this.onClickResume}
 															loading={this.state.isLoadingResume}
 														>
-															Resume
+															{LANG('tasks.resume')}
 														</Button>
 													</Col>
 													<Col>
@@ -670,7 +674,7 @@ class Tasks extends Component {
 															onClick={this.onClickCheckpoint}
 															loading={this.state.isLoadingCheckpoint}
 														>
-															Checkpoint
+															{LANG('tasks.checkpoint')}
 														</Button>
 													</Col>
 													<Col>
@@ -679,23 +683,23 @@ class Tasks extends Component {
 															onClick={this.onClickSkip}
 															loading={this.state.isLoadingSkip}
 														>
-															Skip
+															{LANG('tasks.skip')}
 														</Button>
 													</Col>
 													<Col>
 														<Popconfirm
 															placement="topRight"
-															title="Are you sure you want to quit this task?"
+															title={LANG('tasks.quit_confirm.message')}
 															onConfirm={this.onClickQuit}
-															okText="Yes"
-															cancelText="No"
+															okText={LANG('tasks.quit_confirm.yes')}
+															cancelText={LANG('tasks.quit_confirm.no')}
 														>
 															<Button
 																type="danger"
 																icon={<CloseOutlined />}
 																loading={this.state.isLoadingQuit}
 															>
-																Quit
+																{LANG('tasks.quit')}
 															</Button>
 														</Popconfirm>
 													</Col>
@@ -712,44 +716,44 @@ class Tasks extends Component {
 													bordered
 												>
 													{task.stats.hasOwnProperty("status") && (
-														<Descriptions.Item label="Status" span={2}>
+														<Descriptions.Item label={LANG('tasks.status')} span={2}>
 															{HASHCAT_STATUS_BADGE_WARNING.indexOf(task.stats["status"]) > -1 ? (
-																<Badge status="warning" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+																<Badge status="warning" text={LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])} />
 															) : HASHCAT_STATUS_BADGE_PROCESSING.indexOf(task.stats["status"]) > -1 ? (
-																<Badge status="processing" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+																<Badge status="processing" text={LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])} />
 															) : HASHCAT_STATUS_BADGE_ERROR.indexOf(task.stats["status"]) > -1 ? (
-																<Badge status="error" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+																<Badge status="error" text={LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])} />
 															) : HASHCAT_STATUS_BADGE_SUCCESS.indexOf(task.stats["status"]) > -1 ? (
-																<Badge status="success" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+																<Badge status="success" text={LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])} />
 															) : HASHCAT_STATUS_BADGE_PINK.indexOf(task.stats["status"]) > -1 ? (
-																<Badge color="pink" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+																<Badge color="pink" text={LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])} />
 															) : HASHCAT_STATUS_BADGE_YELLOW.indexOf(task.stats["status"]) > -1 ? (
-																<Badge color="yellow" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+																<Badge color="yellow" text={LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])} />
 															) : (
-																<Badge status="default" text={HASHCAT_STATUS_MESSAGES[task.stats["status"]]} />
+																<Badge status="default" text={LANG('tasks.hashcat_messages.'+HASHCAT_STATUS_KEYS[task.stats["status"]])} />
 															)}
 														</Descriptions.Item>
 													)}
 													{task.stats.hasOwnProperty("target") && (
-														<Descriptions.Item label="Target" span={2}>
+														<Descriptions.Item label={LANG('tasks.target')} span={2}>
 															{task.stats["target"]}
 														</Descriptions.Item>
 													)}
 													{task.stats.hasOwnProperty("progress") && (
-														<Descriptions.Item label="Progress" span={2}>
+														<Descriptions.Item label={LANG('tasks.progress')} span={2}>
 															{task.stats["progress"][0] + " / " + task.stats["progress"][1] + " (" + Math.trunc((task.stats["progress"][0] / task.stats["progress"][1])*100) + "%)"}
 															{task.stats.hasOwnProperty("guess") && (
 																<Tooltip title={
 																	<Descriptions bordered size="small" column={1} layout="horizontal">
 																		{task.stats.guess.guess_base !== null ? (
-																			<Descriptions.Item label="Guess Base">{task.stats.guess.guess_base} ({task.stats.guess.guess_base_offset}/{task.stats.guess.guess_base_count})</Descriptions.Item>
+																			<Descriptions.Item label={LANG('tasks.guess_base')}>{task.stats.guess.guess_base} ({task.stats.guess.guess_base_offset}/{task.stats.guess.guess_base_count})</Descriptions.Item>
 																		) : (
-																			<Descriptions.Item label="Guess Base">-</Descriptions.Item>
+																			<Descriptions.Item label={LANG('tasks.guess_base')}>-</Descriptions.Item>
 																		)}
 																		{task.stats.guess.guess_mod !== null ? (
-																			<Descriptions.Item label="Guess Mod">{task.stats.guess.guess_mod} ({task.stats.guess.guess_mod_offset}/{task.stats.guess.guess_mod_count})</Descriptions.Item>
+																			<Descriptions.Item label={LANG('tasks.guess_mod')}>{task.stats.guess.guess_mod} ({task.stats.guess.guess_mod_offset}/{task.stats.guess.guess_mod_count})</Descriptions.Item>
 																		) : (
-																			<Descriptions.Item label="Guess Mod">-</Descriptions.Item>
+																			<Descriptions.Item label={LANG('tasks.guess_mod')}>-</Descriptions.Item>
 																		)}
 																	</Descriptions>
 																}>
@@ -759,48 +763,48 @@ class Tasks extends Component {
 														</Descriptions.Item>
 													)}
 													{task.stats.hasOwnProperty("rejected") && (
-														<Descriptions.Item label="Rejected" span={1}>
+														<Descriptions.Item label={LANG('tasks.rejected')} span={1}>
 															{task.stats["rejected"]}
 														</Descriptions.Item>
 													)}
 													{task.stats.hasOwnProperty("restore_point") && (
-														<Descriptions.Item label="Restore point" span={1}>
+														<Descriptions.Item label={LANG('tasks.restore_point')} span={1}>
 															{task.stats["restore_point"]}
 														</Descriptions.Item>
 													)}
 													{task.stats.hasOwnProperty("recovered_hashes") && (
-														<Descriptions.Item label="Recovered hashes" span={1}>
+														<Descriptions.Item label={LANG('tasks.recovered_hashes')} span={1}>
 															{task.stats["recovered_hashes"][0] + " / " + task.stats["recovered_hashes"][1] + " (" + Math.trunc((task.stats["recovered_hashes"][0] / task.stats["recovered_hashes"][1])*100) + "%)"}
 														</Descriptions.Item>
 													)}
 													{task.stats.hasOwnProperty("recovered_salts") && (
-														<Descriptions.Item label="Recovered salts" span={1}>
+														<Descriptions.Item label={LANG('tasks.recovered_salts')} span={1}>
 															{task.stats["recovered_salts"][0] + " / " + task.stats["recovered_salts"][1] + " (" + Math.trunc((task.stats["recovered_salts"][0] / task.stats["recovered_salts"][1])*100) + "%)"}
 														</Descriptions.Item>
 													)}
 													{task.stats.hasOwnProperty("devices") && (
-														<Descriptions.Item label="Speed" span={2}>
+														<Descriptions.Item label={LANG('tasks.speed')} span={2}>
 															{humanizeSpeed(totalSpeed(task.stats["devices"]))}
 															<Tooltip title={
 																<Table
 																	columns={[
 																		{
-																			title: 'ID',
+																			title: LANG('tasks.id'),
 																			dataIndex: 'id',
 																			key: 'ID'
 																		},
 																		{
-																			title: 'Speed',
+																			title: LANG('tasks.speed'),
 																			dataIndex: 'speed',
 																			key: 'Speed'
 																		},
 																		{
-																			title: 'Temp',
+																			title: LANG('tasks.temp'),
 																			dataIndex: 'temp',
 																			key: 'Temp'
 																		},
 																		{
-																			title: 'Util',
+																			title: LANG('tasks.util'),
 																			dataIndex: 'util',
 																			key: 'Util'
 																		}
@@ -824,14 +828,14 @@ class Tasks extends Component {
 														</Descriptions.Item>
 													)}
 													{task.stats.hasOwnProperty("time_start") && (
-														<Descriptions.Item label="Started" span={1}>
+														<Descriptions.Item label={LANG('tasks.started')} span={1}>
 															<Tooltip title={moment.unix(task.stats["time_start"]).format("MMMM Do YYYY, HH:mm")}>
 																{moment.unix(task.stats["time_start"]).fromNow()}
 															</Tooltip>
 														</Descriptions.Item>
 													)}
 													{task.stats.hasOwnProperty("estimated_stop") && (
-														<Descriptions.Item label="ETA" span={1}>
+														<Descriptions.Item label={LANG('tasks.eta')} span={1}>
 															<Tooltip title={moment.unix(task.stats["estimated_stop"]).format("MMMM Do YYYY, HH:mm")}>
 																{moment.unix(task.stats["estimated_stop"]).fromNow()}
 															</Tooltip>
@@ -841,7 +845,7 @@ class Tasks extends Component {
 											</Col>
 											<Col className="max-height-100" span={8}>
 												<div className="height-100" style={{ display: "flex", flexDirection: "column" }}>
-												<span><CodeOutlined /> Terminal</span>
+												<span><CodeOutlined /> {LANG('tasks.terminal')}</span>
 												<pre style={{
 													flex: 'auto',
 													overflow: 'auto',
@@ -857,7 +861,7 @@ class Tasks extends Component {
 									</Col>
 								</Row>
 							) : (
-								"No selected task."
+								LANG('tasks.no_selected_task')
 							)}
 						</Col>
 					</Row>
@@ -867,4 +871,4 @@ class Tasks extends Component {
 	}
 }
 
-export default Tasks;
+export default withTranslation()(Tasks);

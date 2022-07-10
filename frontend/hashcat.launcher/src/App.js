@@ -1,9 +1,14 @@
+import { withTranslation } from 'react-i18next';
+import i18n, { SupportedLanguages } from './i18n';
+
 import './App.css';
 import 'antd/dist/antd.dark.css';
 
 import React, { Component } from "react";
 import { Alert, Tooltip, message, Row, Col, Statistic, Button, Layout, Tabs, Typography, Menu } from 'antd';
 import { QuestionCircleOutlined, InfoCircleOutlined, DeploymentUnitOutlined, RocketOutlined, ToolOutlined, UserOutlined, HomeOutlined, PlusOutlined, SettingOutlined, UnorderedListOutlined, QuestionOutlined } from '@ant-design/icons';
+
+import moment from "moment/min/moment-with-locales"
 
 import data from "./jsx/data/data";
 
@@ -62,7 +67,7 @@ class App extends Component {
 					});
 				},
 				error => {
-					message.warning("Failed to get version"  + " " + error);
+					message.warning(this.props.t('version_error') + " " + error);
 				}
 			);
 		}
@@ -70,7 +75,26 @@ class App extends Component {
 			window.GOrestoreTasks().then(
 				() => null,
 				error => {
-					message.warning("Failed to restore tasks" + " " + error);
+					message.warning(this.props.t('tasks_restoration_error') + " " + error);
+				}
+			);
+		}
+		if (typeof window.GOsettingsCurrentLanguage === "function") {
+			window.GOsettingsCurrentLanguage().then(
+				response => {
+					if (SupportedLanguages.includes(response)) {
+						i18n.changeLanguage(response).then(
+							() => moment.locale(response),
+							error => {
+								message.warning("Unable to load language file" + " " + error);
+							}
+						);
+					} else {
+						message.warning("Unsupported language "+response);
+					}
+				},
+				error => {
+					message.warning("Unable to get current langauge"  + " " + error);
 				}
 			);
 		}
@@ -110,6 +134,7 @@ class App extends Component {
 	}
 
 	render() {
+		const LANG = this.props.t;
 		return (
 			<Layout>
 				<Sider
@@ -123,24 +148,24 @@ class App extends Component {
 				>
 					<Menu theme="dark" onSelect={this.onSelectMenu} defaultSelectedKeys={[this.state.currentView]} mode="inline">
 						<Menu.Item key="New Task" icon={<PlusOutlined />}>
-							New Task
+							{LANG('newtask.title')}
 						</Menu.Item>
 						<Menu.Item key="Tasks" icon={<UnorderedListOutlined />}>
-							Tasks
+							{LANG('tasks.title')}
 						</Menu.Item>
 						<Menu.Item key="Settings" icon={<SettingOutlined />}>
-							Settings
+							{LANG('settings.title')}
 						</Menu.Item>
 						<Menu.Divider />
 						<Menu.Item key="Tools" icon={<DeploymentUnitOutlined />}>
-							Tools
+							{LANG('tools.title')}
 						</Menu.Item>
 						<Menu.Divider />
 						<Menu.Item key="Help" icon={<QuestionCircleOutlined />}>
-							Help
+							{LANG('help.title')}
 						</Menu.Item>
 						<Menu.Item key="About" icon={<InfoCircleOutlined />}>
-							About
+							{LANG('about.title')}
 						</Menu.Item>
 					</Menu>
 				</Sider>
@@ -184,12 +209,11 @@ class App extends Component {
 								<Tooltip
 									title={
 										<>
-											hashcat is expected to be in the same directory as hashcat.launcher
-											inside a subfolder <Text code>/hashcat</Text>
+											{LANG('hashcat_not_loaded.tip.part1') + " " + LANG('hashcat_not_loaded.tip.part2')} <Text code>/hashcat</Text>.
 										</>
 									}
 								>
-									hashcat not found
+									{LANG('hashcat_not_loaded.error_message')}
 								</Tooltip>
 							}
 							banner
@@ -242,4 +266,4 @@ class App extends Component {
 	}
 }
 
-export default App;
+export default withTranslation()(App);

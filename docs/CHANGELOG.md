@@ -2,6 +2,10 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [dev] DD/MM/YYYY
+### Added:
+ - i18n support (#77)
+
 ## [1.1.1] 06/07/2022
 ### Changed:
  - Dialog handler

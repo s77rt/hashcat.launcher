@@ -11,7 +11,8 @@ import (
 type Settings struct {
 	mu *sync.Mutex
 
-	TaskCounter int `json:"taskCounter"`
+	TaskCounter int    `json:"taskCounter"`
+	Language    string `json:"language"`
 }
 
 func (settings *Settings) CurrentTaskCounter() int {
@@ -37,11 +38,29 @@ func (settings *Settings) ResetTaskCounter() int {
 	return settings.TaskCounter
 }
 
-var DefaultSettings = &Settings{}
+func (settings *Settings) CurrentLanguage() string {
+	settings.mu.Lock()
+	defer settings.mu.Unlock()
+
+	return settings.Language
+}
+
+func (settings *Settings) ChangeLanguage(lang string) error {
+	settings.mu.Lock()
+	defer settings.mu.Unlock()
+
+	settings.Language = lang
+	return nil
+}
+
+var DefaultSettings = &Settings{
+	mu: new(sync.Mutex),
+
+	Language: "en",
+}
 
 func (a *App) LoadSettings() error {
 	a.Settings = DefaultSettings
-	a.Settings.mu = new(sync.Mutex)
 
 	settingsFile := filepath.Join(a.Dir, "settings.json")
 	if _, err := os.Stat(settingsFile); err == nil {

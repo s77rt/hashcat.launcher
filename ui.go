@@ -167,6 +167,14 @@ func (a *App) BindUI() {
 		return a.Settings.ResetTaskCounter()
 	})
 
+	a.UI.Bind("GOsettingsCurrentLanguage", func() string {
+		return a.Settings.CurrentLanguage()
+	})
+
+	a.UI.Bind("GOsettingsChangeLanguage", func(lang string) error {
+		return a.Settings.ChangeLanguage(lang)
+	})
+
 	a.UI.Bind("GOsaveDialog", func() (string, error) {
 		return zenity.SelectFileSave(zenity.ConfirmOverwrite())
 	})

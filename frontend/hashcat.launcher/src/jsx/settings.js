@@ -1,8 +1,13 @@
+import { withTranslation } from 'react-i18next';
+import i18n, { SupportedLanguages } from '../i18n';
+
 import React, { Component } from "react";
 import { Popconfirm, Layout, PageHeader, message, Statistic, Row, Col, Card, Select, Typography, Upload, Button, Space, Form, Radio, Divider, Collapse, Checkbox, Tabs, Steps } from 'antd';
-import { FileOutlined, AimOutlined, ToolOutlined, ExportOutlined, ExperimentOutlined, SyncOutlined } from '@ant-design/icons';
+import { TranslationOutlined, FileOutlined, AimOutlined, ToolOutlined, ExportOutlined, ExperimentOutlined, SyncOutlined } from '@ant-design/icons';
 
 import EventBus from "./eventbus/EventBus";
+
+import moment from "moment/min/moment-with-locales"
 
 import data from "./data/data";
 import { getHashes } from './data/hashes';
@@ -26,6 +31,7 @@ class Settings extends Component {
 		this.onClickRescan = this.onClickRescan.bind(this);
 		this.onClickRefreshTaskCounter = this.onClickRefreshTaskCounter.bind(this);
 		this.onClickResetTaskCounter = this.onClickResetTaskCounter.bind(this);
+		this.onChangeLanguage = this.onChangeLanguage.bind(this);
 
 		this.state = {
 			taskCounter: "-",
@@ -107,6 +113,25 @@ class Settings extends Component {
 		})
 	}
 
+	onChangeLanguage(e) {
+		i18n.changeLanguage(e).then(
+			() => {
+				moment.locale(e);
+				if (typeof window.GOsettingsChangeLanguage === "function") {
+					window.GOsettingsChangeLanguage(e).then(
+						() => null,
+						error => {
+							message.error(error);
+						}
+					);
+				}
+			},
+			error => {
+				message.error(error);
+			}
+		);
+	}
+
 	componentDidMount() {
 		EventBus.on("dataUpdate", "Settings", () => {
 			this.setState({
@@ -124,27 +149,40 @@ class Settings extends Component {
 	}
 
 	render() {
+		const LANG = this.props.t;
 		return (
 			<>
 				<PageHeader
-					title="Settings"
+					title={LANG('settings.title')}
+					extra={[
+						<Select
+							suffixIcon={<TranslationOutlined />}
+							style={{textTransform: 'uppercase'}}
+							onChange={this.onChangeLanguage}
+							value={i18n.language}
+						>
+							{SupportedLanguages.map(lang =>
+								<Option style={{textTransform: 'uppercase'}} value={lang} key={lang}>{lang}</Option>
+							)}
+						</Select>					
+					]}
 				/>
 				<Content style={{ padding: '16px 24px' }}>
 					<Row gutter={[16, 14]}>
 						<Col span={12}>
-							<Statistic title="Hashes" value={this.state._hashes.length} />
+							<Statistic title={LANG('settings.hashes')} value={this.state._hashes.length} />
 						</Col>
 						<Col span={12}>
-							<Statistic title="Algorithms" value={Object.keys(this.state._algorithms).length} />
+							<Statistic title={LANG('settings.algorithms')} value={Object.keys(this.state._algorithms).length} />
 						</Col>
 						<Col span={12}>
-							<Statistic title="Dictionaries" value={this.state._dictionaries.length} />
+							<Statistic title={LANG('settings.dictionaries')} value={this.state._dictionaries.length} />
 						</Col>
 						<Col span={12}>
-							<Statistic title="Rules" value={this.state._rules.length} />
+							<Statistic title={LANG('settings.rules')} value={this.state._rules.length} />
 						</Col>
 						<Col span={12}>
-							<Statistic title="Masks" value={this.state._masks.length} />
+							<Statistic title={LANG('settings.masks')} value={this.state._masks.length} />
 						</Col>
 						<Col span={24}>
 							<Button
@@ -153,14 +191,14 @@ class Settings extends Component {
 								onClick={this.onClickRescan}
 								loading={this.state.isLoadingRescan}
 							>
-								Rescan
+								{LANG('settings.rescan')}
 							</Button>
 						</Col>
 					</Row>
 					<Row style={{ marginTop: "2rem" }} gutter={[16, 14]}>
 						<Col span={24}>
 							<Statistic
-								title="Task counter"
+								title={LANG('settings.task_counter')}
 								value={this.state.taskCounter}
 							/>
 							<Space>
@@ -170,21 +208,21 @@ class Settings extends Component {
 								onClick={this.onClickRefreshTaskCounter}
 								loading={this.state.isLoadingRefreshTaskCounter}
 							>
-								Refresh
+								{LANG('settings.refresh')}
 							</Button>
 							<Popconfirm
 								placement="topRight"
-								title="Are you sure you want to reset the task counter?"
+								title={LANG('settings.reset_counter_confirm.message')}
 								onConfirm={this.onClickResetTaskCounter}
-								okText="Yes"
-								cancelText="No"
+								okText={LANG('settings.reset_counter_confirm.yes')}
+								cancelText={LANG('settings.reset_counter_confirm.no')}
 							>
 								<Button
 									style={{ marginTop: 16 }}
 									type="danger"
 									loading={this.state.isLoadingResetTaskCounter}
 								>
-									Reset counter
+									{LANG('settings.reset_counter')}
 								</Button>
 							</Popconfirm>
 							</Space>
@@ -196,4 +234,4 @@ class Settings extends Component {
 	}
 }
 
-export default Settings;
+export default withTranslation()(Settings);

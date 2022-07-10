@@ -1,0 +1,342 @@
+{
+	"newtask": {
+		"title": "New Task",
+
+		"import_config": "Import Config",
+		"export_config": "Export Config",
+
+		"target": "Target",
+		"select_target": "Select Target",
+		"attack": "Attack",
+		"configure_attack": "Configure Attack",
+		"advanced": "Advanced",
+		"advanced_options": "Advanced Options",
+		"output": "Output",
+		"set_output": "Set Output",
+		"finalize": "Finalize",
+		"review_and_finalize": "Review and Finalize",
+
+		"hash": "Hash",
+		"select_hash": "Select Hash",
+		"algorithm": "Algorithm",
+		"select_algorithm": "Select Algorithm",
+
+		"attack_mode": "Attack Mode",
+		"select_attack_mode": "Select Attack Mode",
+		"dictionary_attack": "Dictionary Attack",
+		"combinator_attack": "Combinator Attack",
+		"mask_attack": "Mask Attack",
+		"hybrid1_attack": "Hybrid1 (Dictionary + Mask)",
+		"Hybrid2_attack": "Hybrid2 (Mask + Dictionary)",
+
+		"dictionaries": "Dictionaries",
+		"select_dictionaries": "Select Dictionaries",
+		"rules": "Rules",
+		"select_rules": "Select Rules",
+
+		"left_dictionary": "Left Dictionary",
+		"select_left_dictionary": "Select Left Dictionary",
+		"left_rule": "Left Rule",
+		"set_left_rule": "Set Left Rule",
+		"right_dictionary": "Right Dictionary",
+		"select_right_dictionary": "Select Right Dictionary",
+		"right_rule": "Right Rule",
+		"set_right_rule": "Set Right Rule",
+
+		"mask": "Mask",
+		"set_mask": "Set Mask",
+		"select_mask": "Select Mask",
+		"use_hcmask_file_instead": "Use .hcmask file instead",
+		"use_mask_text_instead": "Use mask text instead",
+		"unsupported_mask_input_type": "unsupported mask input type",
+		"mask_increment_mode": "Mask increment mode",
+		"custom_charset_1": "Custom charset 1",
+		"set_custom_charset_1": "Set Custom charset 1",
+		"custom_charset_2": "Custom charset 2",
+		"set_custom_charset_2": "Set Custom charset 2",
+		"custom_charset_3": "Custom charset 3",
+		"set_custom_charset_3": "Set Custom charset 3",
+		"custom_charset_4": "Custom charset 4",
+		"set_custom_charset_4": "Set Custom charset 4",
+
+		"dictionary": "Dictionary",
+		"select_dictionary": "Select Dictionary",
+		"rule": "Rule",
+		"set_rule": "Set Rule",
+
+		"general": "General",
+		"quiet": "Quiet",
+		"disable_pot_file": "Disable Pot File",
+		"disable_log_file": "Disable Log File",
+		"enable_optimized_kernel": "Enable optimized kernel",
+		"enable_slower_candidate_generators": "Enable slower candidate generators",
+		"remove_found_hashes": "Remove found hashes",
+		"ignore_usernames": "Ignore Usernames",
+		"disable_self-test": "Disable self-test",
+		"ignore_warnings": "Ignore warnings",
+
+		"devices": "Devices",
+		"devices_modal_ok": "OK",
+		"devices_ids": "Devices IDs",
+		"select_devices_ids": "Select Devices IDs",
+		"devices_types": "Devices Types",
+		"select_devices_types": "Select Devices Types",
+		"workload_profile": "Workload Profile",
+		"select_workload_profile": "Select Workload Profile",
+		"performance": "Performance",
+		"runtime": "Runtime",
+		"power_consumption": "Power Consumption",
+		"desktop_impact": "Desktop Impact",
+		"low": "Low",
+		"minimal": "Minimal",
+		"default": "Default",
+		"economic": "Economic",
+		"noticeable": "Noticeable",
+		"high": "High",
+		"unresponsive": "Unresponsive",
+		"nightmare": "Nightmare",
+		"insane": "Insane",
+		"headless": "Headless",
+		"devices_info": "Devices Info",
+		"benchmark": "Benchmark",
+		"benchmark_modal_ok": "OK",
+
+		"markov": "Markov",
+		"disable_markov-chains": "Disable markov-chains, emulates classic brute-force",
+		"enable_classic_markov-chains": "Enable classic markov-chains, no per-position",
+		"markov_threshold": "Threshold X when to stop accepting new markov-chains",
+
+		"monitor": "Monitor",
+		"disable_monitor": "Disable Monitor",
+		"temp_abort": "Temp Abort (°C)",
+		"select_temp_abort": "Select Temp Abort (°C)",
+
+		"extra_arguments": "Extra Arguments",
+		"set_extra_arguments": "Set Extra Arguments",
+
+		"misc": "Misc",
+		"status_timer": "Status Timer",
+		"select_status_timer": "Select Status Timer",
+
+		"output_file": "Output File",
+		"set_output_file": "Set Output File",
+		"output_format": "Output Format",
+		"select_output_format": "Select Output Format",
+		"output_format_1": "hash[:salt]",
+		"output_format_2": "plain",
+		"output_format_3": "hex_plain",
+		"output_format_4": "crack_pos",
+		"output_format_5": "timestamp absolute",
+		"output_format_6": "timestamp relative",
+
+		"priority": "Priority",
+		"priority_tooltip": {
+			"part1": "Tasks are started automatically in a descending order of priority.",
+			"part2": "Set to -1 to disable auto-start."
+		},
+		"create_task": "Create Task",
+		"preserve_task_config": "Preserve task config",
+
+		"task_success": "Task has been created successfully!",
+		"import_success": "Imported!",
+		"export_success": "Exported!",
+		"no_algorithm_error": "No algorithm is selected",
+
+		"optional": "optional",
+		"max_short": "Max.",
+		"max_long": "Maximum",
+		"enable": "Enable",
+		"recommended": "Recommended",
+		"not_recommended": "Not Recommended",
+		"seconds": "Seconds"
+	},
+
+	"tasks": {
+		"title": "Tasks",
+
+		"hashcat_messages": {
+			"init": "Init",
+			"autotune": "Autotune",
+			"selftest": "Selftest",
+			"running": "Running",
+			"paused": "Paused",
+			"exhausted": "Exhausted",
+			"cracked": "Cracked",
+			"aborted": "Aborted",
+			"quit": "Quit",
+			"bypass": "Bypass",
+			"aborted_checkpoint": "Aborted (Checkpoint)",
+			"aborted_runtime": "Aborted (Runtime)",
+			"error": "Error",
+			"aborted_finish": "Aborted (Finish)",
+			"autodetect": "Autodetect"
+		},
+
+		"idle": "Idle",
+		"queued": "Queued",
+		"in_progress": "In Progress",
+		"finished": "Finished",
+
+		"no_selected_task": "No selected task.",
+
+		"priority": "Priority",
+		"arguments": "Arguments",
+		"arguments_modal_ok": "OK",
+		"delete": "Delete",
+		"delete_confirm": {
+			"message": "Are you sure you want to delete this task?",
+			"yes": "Yes",
+			"no": "No"
+		},
+
+		"start": "Start",
+		"refresh": "Refresh",
+		"pause": "Pause",
+		"resume": "Resume",
+		"checkpoint": "Checkpoint",
+		"skip": "Skip",
+		"quit": "Quit",
+		"quit_confirm": {
+			"message": "Are you sure you want to quit this task?",
+			"yes": "Yes",
+			"no": "No"
+		},
+
+		"status": "Status",
+		"target": "Target",
+		"progress": "Progress",
+		"guess_base": "Guess Base",
+		"guess_mod": "Guess Mod",
+		"rejected": "Rejected",
+		"restore_point": "Restore point",
+		"recovered_hashes": "Recovered hashes",
+		"recovered_salts": "Recovered salts",
+		"speed": "Speed",
+		"id": "ID",
+		"temp": "Temp",
+		"util": "Util",
+		"started": "Started",
+		"eta": "ETA",
+		"terminal": "Terminal",
+
+		"no_task_error": "no task is selected",
+		"unrecognized_process_status": "unrecognized process status"
+	},
+
+	"settings": {
+		"title": "Settings",
+
+		"hashes": "Hashes",
+		"algorithms": "Algorithms",
+		"dictionaries": "Dictionaries",
+		"rules": "Rules",
+		"masks": "Masks",
+		"rescan": "Rescan",
+		"task_counter": "Task counter",
+		"refresh": "Refresh",
+		"reset_counter": "Reset counter",
+		"reset_counter_confirm": {
+			"message": "Are you sure you want to reset the task counter?",
+			"yes": "Yes",
+			"no": "No"
+		}
+	},
+
+	"tools": {
+		"title": "Tools",
+
+		"cap_to_hcwpax": {
+			"title": "Convert cap to hcwpax",
+			"description": {
+				"part1": "Convert a capture file to hcwpax format",
+				"part2": "Accept a .cap, .pcap or .pcapng file and returns a hash for hashcat mode 22000"
+			},
+			"open_tool": "Open Tool",
+
+			"modal_ok": "OK",
+			"modal_cancel": "Cancel",
+
+			"choose_capture_file": "Choose a capture file",
+			"save_output_to_hashes": "Save output to hashes",
+
+			"idle": "Idle",
+			"processing": "Processing",
+			"success": "Success",
+			"unknown_error": "Unknown Error",
+			"unknown_status": "Unknown Status",
+
+			"separated_hashes": "Separated hashes",
+
+			"save_hash_success": "Saved hash as",
+			"save_hash_error": "Unable to save hash"
+		}
+	},
+
+	"help": {
+		"title": "Help",
+
+		"faq_short": "F.A.Q",
+		"faq_long": "Frequently Asked Questions",
+
+		"question_hashcat_supported_versions": "What hashcat versions are supported",
+		"answer_hashcat_supported_versions": "hashcat.launcher supports hashcat v6.2.1 and higher.",
+
+		"question_add_files": "How to add hashes, dictionaries, etc...",
+		"answer_add_files": {
+			"part1": "Files are expected to be in the following folders:",
+			"hashes": "Hashes",
+			"dictionaries": "Dictionaries",
+			"rules": "Rules",
+			"masks": "Masks"
+		},
+
+		"question_empty_algorithms_list": "Algorithms list is empty",
+		"answer_empty_algorithms_list": {
+			"part1": "Algorithms get loaded automatically and depends on hashcat.",
+			"part2": "Make sure hashcat exists then go to Settings and click on Rescan.",
+			"part3": "hashcat is expected to be in the same directory as hashcat.launcher",
+			"part4": "inside a subfolder"
+		},
+
+		"question_added_file_but_not_listed": "I added a file but it's not in the list",
+		"answer_added_file_but_not_listed": {
+			"part1": "Try perform a manual scan.",
+			"part2": "Go to Settings then click on Rescan."
+		},
+
+		"question_difference_idle_vs_queued": "What is the difference between an idle task and a queued task",
+		"answer_difference_idle_vs_queued": {
+			"part1": "An idle task have a priority that is less than zero",
+			"part2": "while, a queued task have a priority that is equal or greater than zero.",
+			"part3": "An idle task can only be started manually",
+			"part4": "while, a queued task can be started manually or automatically."
+		}
+	},
+
+	"about": {
+		"title": "About",
+
+		"paragraph1": "hashcat.launcher is a cross-platform app that run and control hashcat",
+		"paragraph2": "it is designed to make it easier to use hashcat offering a friendly graphical user interface",
+
+		"contribute": "Contribute",
+		"report_a_bug": "Report a bug",
+		"request_a_feature": "Request a feature",
+
+		"license": "License",
+		"license_paragraph": "hashcat.launcher is licensed under the MIT License",
+
+		"copyright": "Copyright"
+	},
+
+	"version_error": "Unable to determine version",
+	"tasks_restoration_error": "Unable to restore tasks",
+
+	"hashcat_not_loaded": {
+		"tip": {
+			"part1": "hashcat is expected to be in the same directory as hashcat.launcher",
+			"part2": "inside a subfolder"
+		},
+		"error_message": "hashcat not found"
+	}
+}
