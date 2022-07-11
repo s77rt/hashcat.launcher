@@ -1065,6 +1065,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset1}
 																value={this.state.customCharset1}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 														<Form.Item
@@ -1077,6 +1078,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset2}
 																value={this.state.customCharset2}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 														<Form.Item
@@ -1089,6 +1091,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset3}
 																value={this.state.customCharset3}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 														<Form.Item
@@ -1101,6 +1104,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset4}
 																value={this.state.customCharset4}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 													</Col>
@@ -1241,6 +1245,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset1}
 																value={this.state.customCharset1}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 														<Form.Item
@@ -1253,6 +1258,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset2}
 																value={this.state.customCharset2}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 														<Form.Item
@@ -1265,6 +1271,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset3}
 																value={this.state.customCharset3}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 														<Form.Item
@@ -1277,6 +1284,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset4}
 																value={this.state.customCharset4}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 													</Col>
@@ -1375,6 +1383,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset1}
 																value={this.state.customCharset1}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 														<Form.Item
@@ -1387,6 +1396,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset2}
 																value={this.state.customCharset2}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 														<Form.Item
@@ -1399,6 +1409,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset3}
 																value={this.state.customCharset3}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 														<Form.Item
@@ -1411,6 +1422,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset4}
 																value={this.state.customCharset4}
+																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
 													</Col>
