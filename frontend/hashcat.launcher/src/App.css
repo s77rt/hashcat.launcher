@@ -38,3 +38,17 @@
 .tree-height-100 .ant-tree {
   height: 100%;
 }
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+.ant-input-affix-wrapper > input.ant-input:-webkit-autofill:focus{
+  -webkit-box-shadow: 0 0 0 30px #141414 inset !important;
+  border-radius: 0;
+  transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+}
+input:-webkit-autofill {
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.85) !important;
+  caret-color: rgba(255, 255, 255, 0.85);
+}

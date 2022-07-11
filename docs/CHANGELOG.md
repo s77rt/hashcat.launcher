@@ -5,6 +5,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 ## [dev] DD/MM/YYYY
 ### Added:
  - i18n support (#77)
+ - a dropdown with latest used masks (#43)
 
 ### Fixed:
  - Queue is not taking the first task added (#84)

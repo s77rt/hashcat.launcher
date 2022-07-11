@@ -188,6 +188,8 @@ class NewTask extends Component {
 		this.onClickDevicesInfo = this.onClickDevicesInfo.bind(this);
 		this.onClickBenchmark = this.onClickBenchmark.bind(this);
 
+		this.saverFormSubmitRef = React.createRef();
+
 		this.state = {
 			...initialConfig,
 
@@ -548,6 +550,7 @@ class NewTask extends Component {
 				outputFormat: this.state.outputFormat,
 			}, this.state.priority).then(
 				response => {
+					this.saveInputs();
 					message.success(this.props.t('newtask.task_success'));
 					this.setState({isLoadingCreateTask: false});
 					if (!this.state.preserveTaskConfig)
@@ -718,6 +721,10 @@ class NewTask extends Component {
 		});
 	}
 
+	saveInputs() {
+		this.saverFormSubmitRef.current.click();
+	};
+
 	componentDidMount() {
 		EventBus.on("dataUpdate", "NewTask", () => {
 			this.setState({
@@ -738,6 +745,20 @@ class NewTask extends Component {
 		const LANG = this.props.t;
 		return (
 			<>
+				<div style={{position: "absolute", zIndex: -1000}}>
+					<iframe name="💾" style={{display: "none"}} src="about:blank"></iframe>
+					<form target="💾" action="about:blank">
+						<input type="text" name="mask" value={this.state.mask || ''} readOnly />
+						<input type="text" name="leftRule" value={this.state.leftRule || ''} readOnly />
+						<input type="text" name="rightRule" value={this.state.rightRule || ''} readOnly />
+						<input type="text" name="customCharset1" value={this.state.customCharset1 || ''} readOnly />
+						<input type="text" name="customCharset2" value={this.state.customCharset2 || ''} readOnly />
+						<input type="text" name="customCharset3" value={this.state.customCharset3 || ''} readOnly />
+						<input type="text" name="customCharset4" value={this.state.customCharset4 || ''} readOnly />
+						<input type="text" name="extraArguments" value={this.state.extraArguments.join(" ") || ''} readOnly />
+						<input type="submit" ref={this.saverFormSubmitRef} />
+					</form>
+				</div>
 				<PageHeader
 					title={LANG('newtask.title')}
 					extra={[
@@ -923,6 +944,7 @@ class NewTask extends Component {
 																		size="large"
 																		onChange={this.onChangeLeftRule}
 																		value={this.state.leftRule}
+																		name="leftRule"
 																	/>
 																</Form.Item>
 															</Col>
@@ -965,6 +987,7 @@ class NewTask extends Component {
 																		size="large"
 																		onChange={this.onChangeRightRule}
 																		value={this.state.rightRule}
+																		name="rightRule"
 																	/>
 																</Form.Item>
 															</Col>
@@ -986,6 +1009,7 @@ class NewTask extends Component {
 																	size="large"
 																	onChange={this.onChangeMask}
 																	value={this.state.mask}
+																	name="mask"
 																	suffix={
 																		this.state.mask ? maskLength(this.state.mask) : undefined
 																	}
@@ -1065,6 +1089,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset1}
 																value={this.state.customCharset1}
+																name="customCharset1"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1078,6 +1103,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset2}
 																value={this.state.customCharset2}
+																name="customCharset2"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1091,6 +1117,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset3}
 																value={this.state.customCharset3}
+																name="customCharset3"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1104,6 +1131,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset4}
 																value={this.state.customCharset4}
+																name="customCharset4"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1148,6 +1176,7 @@ class NewTask extends Component {
 																		size="large"
 																		onChange={this.onChangeLeftRule}
 																		value={this.state.leftRule}
+																		name="leftRule"
 																	/>
 																</Form.Item>
 															</Col>
@@ -1166,6 +1195,7 @@ class NewTask extends Component {
 																	size="large"
 																	onChange={this.onChangeMask}
 																	value={this.state.mask}
+																	name="mask"
 																	suffix={
 																		this.state.mask ? maskLength(this.state.mask) : undefined
 																	}
@@ -1245,6 +1275,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset1}
 																value={this.state.customCharset1}
+																name="customCharset1"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1258,6 +1289,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset2}
 																value={this.state.customCharset2}
+																name="customCharset2"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1271,6 +1303,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset3}
 																value={this.state.customCharset3}
+																name="customCharset3"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1284,6 +1317,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset4}
 																value={this.state.customCharset4}
+																name="customCharset4"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1304,6 +1338,7 @@ class NewTask extends Component {
 																	size="large"
 																	onChange={this.onChangeMask}
 																	value={this.state.mask}
+																	name="mask"
 																	suffix={
 																		this.state.mask ? maskLength(this.state.mask) : undefined
 																	}
@@ -1383,6 +1418,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset1}
 																value={this.state.customCharset1}
+																name="customCharset1"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1396,6 +1432,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset2}
 																value={this.state.customCharset2}
+																name="customCharset2"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1409,6 +1446,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset3}
 																value={this.state.customCharset3}
+																name="customCharset3"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1422,6 +1460,7 @@ class NewTask extends Component {
 																size="large"
 																onChange={this.onChangeCustomCharset4}
 																value={this.state.customCharset4}
+																name="customCharset4"
 																disabled={!(this.state.maskInputType === "text")}
 															/>
 														</Form.Item>
@@ -1463,6 +1502,7 @@ class NewTask extends Component {
 																		size="large"
 																		onChange={this.onChangeRightRule}
 																		value={this.state.rightRule}
+																		name="rightRule"
 																	/>
 																</Form.Item>
 															</Col>
@@ -1792,6 +1832,7 @@ class NewTask extends Component {
 														size="large"
 														onChange={this.onChangeExtraArguments}
 														value={this.state.extraArguments.join(" ")}
+														name="extraArguments"
 													/>
 												</Form.Item>
 											</Panel>
@@ -1894,12 +1935,12 @@ class NewTask extends Component {
 											>
 												{LANG('newtask.create_task')}
 											</Button>
-												<Checkbox
-													checked={this.state.preserveTaskConfig}
-													onChange={this.onChangePreserveTaskConfig}
-												>
-													{LANG('newtask.preserve_task_config')}
-												</Checkbox>
+											<Checkbox
+												checked={this.state.preserveTaskConfig}
+												onChange={this.onChangePreserveTaskConfig}
+											>
+												{LANG('newtask.preserve_task_config')}
+											</Checkbox>
 										</Space>
 									</Space>
 								) : null }
