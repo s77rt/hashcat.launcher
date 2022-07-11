@@ -1004,6 +1004,7 @@ class NewTask extends Component {
 																required
 															>
 																<Select
+																	showSearch
 																	allowClear
 																	style={{ width: '100%' }}
 																	placeholder={LANG('newtask.select_mask')}
@@ -1179,6 +1180,7 @@ class NewTask extends Component {
 																required
 															>
 																<Select
+																	showSearch
 																	allowClear
 																	style={{ width: '100%' }}
 																	placeholder={LANG('newtask.select_mask')}
@@ -1312,6 +1314,7 @@ class NewTask extends Component {
 																required
 															>
 																<Select
+																	showSearch
 																	allowClear
 																	style={{ width: '100%' }}
 																	placeholder={LANG('newtask.select_mask')}
