@@ -16,10 +16,13 @@ import (
 )
 
 type Task struct {
-	ID        string                `json:"id"`
+	ID string `json:"id"`
+
 	Arguments []string              `json:"arguments"`
 	Process   subprocess.Subprocess `json:"process"`
-	Priority  int64                 `json:"priority"`
+
+	Priority     int64 `json:"priority"`
+	CreationTime int64 `json:"creationTime"`
 }
 
 // Start() starts the task
@@ -153,7 +156,8 @@ func (a *App) newTaskID() (taskID string) {
 
 func (a *App) NewTask(args HashcatArgs, priority int64) (err error) {
 	task := &Task{
-		ID: a.newTaskID(),
+		ID:           a.newTaskID(),
+		CreationTime: time.Now().UnixNano(),
 	}
 
 	args.Session = &task.ID
@@ -346,6 +350,9 @@ func (a *App) StartNextTask() {
 	}
 
 	sort.Slice(tasks, func(i, j int) bool {
+		if tasks[i].Priority == tasks[j].Priority {
+			return tasks[i].CreationTime < tasks[j].CreationTime
+		}
 		return tasks[i].Priority > tasks[j].Priority
 	})
 

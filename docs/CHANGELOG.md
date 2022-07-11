@@ -6,6 +6,9 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 ### Added:
  - i18n support (#77)
 
+### Fixed:
+ - Queue is not taking the first task added (#84)
+
 ## [1.1.1] 06/07/2022
 ### Changed:
  - Dialog handler
