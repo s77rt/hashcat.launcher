@@ -1,10 +1,12 @@
+// https://github.com/python/cpython/blob/1bc13df6281e72c6a5bbc5b2b6b17b95b829d14b/Lib/subprocess.py#L529
+
 export default function list2cmdline(seq) {
 	var result = [];
 	var needquote = false;
 	seq.forEach((arg) => {
 		var bs_buf = [];
 
-        // Add a space to separate this argument from the others
+		// Add a space to separate this argument from the others
 		if (result.length > 0)
 			result.push(' ');
 
