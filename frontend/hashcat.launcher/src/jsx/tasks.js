@@ -27,6 +27,8 @@ import {
 	EnvironmentOutlined
 } from '@ant-design/icons';
 
+import list2cmdline from './lib/list2cmdline';
+
 import EventBus from "./eventbus/EventBus";
 import TasksStats from './stats/tasks';
 
@@ -389,7 +391,7 @@ class Tasks extends Component {
 			content: (
 				<div style={{ maxHeight: '300px', overflow: 'auto' }}>
 					<Text code copyable>
-						{task.arguments.join(" ")}
+						{list2cmdline(task.arguments)}
 					</Text>
 				</div>
 			),

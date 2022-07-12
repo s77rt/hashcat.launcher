@@ -9,6 +9,7 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
 
 ### Fixed:
  - Queue is not taking the first task added (#84)
+ - session name is missing quotes because of space char (#87)
 
 ## [1.1.1] 06/07/2022
 ### Changed:
