@@ -5,7 +5,6 @@ it is designed to make it easier to use hashcat offering a friendly graphical us
 ## Getting Started
 
 ### Requirements
- - [hashcat](https://hashcat.net/hashcat/)
  - Chromium based browser (Chrome, Edge, etc...)
  - `zenity`, `qarma` or `matedialog` (Linux only)
  - `osascript` (macOS only)

@@ -7,6 +7,9 @@ All notable changes to this project (hashcat.launcher) will be documented in thi
  - i18n support (#77)
  - a dropdown with latest used masks (#43)
 
+### Changed:
+ - hashcat is now bundled with hashcat.launcher
+
 ### Fixed:
  - Queue is not taking the first task added (#84)
  - session name is missing quotes because of space char (#87)
