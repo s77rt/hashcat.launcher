@@ -9,6 +9,10 @@ import (
 )
 
 func (a *App) NewUI() error {
+	if lorca.LocateChrome() == "" {
+		return errors.New("Chrome browser not found")
+	}
+
 	ui, err := lorca.New(
 		"data:text/html,<html><head><title>hashcat.launcher</title></head><body>Loading...</body></html>",
 		"",
