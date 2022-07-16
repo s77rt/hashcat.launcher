@@ -2,7 +2,7 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
-## [dev] DD/MM/YYYY
+## [1.1.2] 16/17/2022
 ### Added:
  - i18n support (#77)
  - a dropdown with latest used masks (#43)
