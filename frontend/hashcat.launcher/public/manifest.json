@@ -3,6 +3,16 @@
     "short_name": "hashcat.launcher",
     "icons": [
         {
+            "src": "favicon-16x16.png",
+            "sizes": "16x16",
+            "type": "image/png"
+        },
+        {
+            "src": "favicon-32x32.png",
+            "sizes": "32x32",
+            "type": "image/png"
+        },
+        {
             "src": "android-chrome-36x36.png",
             "sizes": "36x36",
             "type": "image/png"
