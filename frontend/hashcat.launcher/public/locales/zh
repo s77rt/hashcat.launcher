@@ -1,0 +1,362 @@
+{
+	"newtask": {
+		"title": "新建任务",
+
+		"import_config": "导入配置",
+		"export_config": "导出配置",
+
+		"target": "目标",
+		"select_target": "选择目标",
+		"attack": "攻击",
+		"configure_attack": "配置攻击",
+		"advanced": "高级",
+		"advanced_options": "高级选项",
+		"output": "输出",
+		"set_output": "设置输出",
+		"finalize": "定稿",
+		"review_and_finalize": "审查并最终确定",
+
+		"hash": "哈希",
+		"select_hash": "选择哈希",
+		"algorithm": "算法",
+		"select_algorithm": "选择算法",
+
+		"attack_mode": "攻击模式",
+		"select_attack_mode": "选择攻击模式",
+		"dictionary_attack": "字典攻击",
+		"combinator_attack": "组合攻击",
+		"mask_attack": "掩码攻击",
+		"hybrid1_attack": "Hybrid1（字典+掩码）",
+		"Hybrid2_attack": "Hybrid2（掩码 + 字典）",
+
+		"dictionaries": "字典",
+		"select_dictionaries": "选择词典",
+		"rules": "规则",
+		"select_rules": "选择规则",
+
+		"left_dictionary": "左字典",
+		"select_left_dictionary": "设置左规则",
+		"left_rule": "左规则",
+		"set_left_rule": "设置左规则",
+		"right_dictionary": "右词典",
+		"select_right_dictionary": "选择右字典",
+		"right_rule": "右规则",
+		"set_right_rule": "设置右规则",
+
+		"mask": "掩码",
+		"set_mask": "设置掩码",
+		"select_mask": "选择掩码",
+		"use_hcmask_file_instead": "改用 .hcmask 文件",
+		"use_mask_text_instead": "使用掩码文本",
+		"unsupported_mask_input_type": "不支持的掩码输入类型",
+		"mask_increment_mode": "掩码增量模式",
+		"custom_charset_1": "自定义字符集 1 ",
+		"set_custom_charset_1": "设置自定义字符集 1 ",
+		"custom_charset_2": "自定义字符集 2 ",
+		"set_custom_charset_2": "设置自定义字符集 2 ",
+		"custom_charset_3": "自定义字符集 3 ",
+		"set_custom_charset_3": "设置自定义字符集 3 ",
+		"custom_charset_4": "自定义字符集 4 ",
+		"set_custom_charset_4": "设置自定义字符集 4 ",
+
+		"dictionary": "字典",
+		"select_dictionary": "选择字典",
+		"rule": "规则",
+		"set_rule": "设置规则",
+
+		"general": "一般",
+		"quiet": "安静",
+		"disable_pot_file": "禁用 Pot 文件",
+		"disable_log_file": "禁用日志文件",
+		"enable_optimized_kernel": "启用优化内核",
+		"enable_slower_candidate_generators": "启用较慢的候选生成器",
+		"remove_found_hashes": "删除找到的哈希",
+		"ignore_usernames": "忽略用户名",
+		"disable_self-test": "禁用自检",
+		"ignore_warnings": "忽略警告",
+
+		"devices": "设备",
+		"devices_modal_ok": "好的",
+		"devices_ids": "设备 ID ",
+		"select_devices_ids": "选择设备 ID ",
+		"devices_types": "设备类型",
+		"select_devices_types": "选择设备类型",
+		"workload_profile": "工作负载配置文件",
+		"select_workload_profile": "选择工作负载配置文件",
+		"performance": "性能",
+		"runtime": "运行时",
+		"power_consumption": "功耗",
+		"desktop_impact": "桌面影响",
+		"low": "低",
+		"minimal": "最小",
+		"default": "默认",
+		"economic": "经济",
+		"noticeable": "显著",
+		"high": "高",
+		"unresponsive": "反应迟钝",
+		"nightmare": "噩梦",
+		"insane": "疯狂",
+		"headless": "无头",
+		"devices_info": "设备信息",
+		"benchmark": "基准",
+		"benchmark_modal_ok": "好的",
+
+		"markov": "马尔科夫",
+		"disable_markov-chains": "禁用马尔科夫链，模拟经典的暴力破解",
+		"enable_classic_markov-chains": "启用经典马尔可夫链，无需按位置排列",
+		"markov_threshold": "停止接受新马尔可夫链的阈值 X",
+
+		"monitor": "监视器",
+		"disable_monitor": "禁用监视器",
+		"temp_abort": "温度中止（°C）",
+		"select_temp_abort": "选择温度中止（°C）",
+
+		"extra_arguments": "额外参数",
+		"set_extra_arguments": "设置额外参数",
+
+		"misc": "杂项",
+		"status_timer": "状态定时器",
+		"select_status_timer": "选择状态定时器",
+
+		"output_file": "输出文件",
+		"set_output_file": "设置输出文件",
+		"output_format": "输出格式",
+		"select_output_format": "选择输出格式",
+		"output_format_1": "哈希[：盐]",
+		"output_format_2": "普通",
+		"output_format_3": "hex_plain",
+		"output_format_4": "crack_pos",
+		"output_format_5": "时间戳绝对",
+		"output_format_6": "时间戳相对",
+
+		"priority": "优先级",
+		"priority_tooltip": {
+			"part1": "任务按优先级降序自动启动",
+			"part2": "设置为 -1 禁用自动启动"
+		},
+		"create_task": "创建任务",
+		"preserve_task_config": "保留任务配置",
+
+		"task_success": "任务创建成功!",
+		"import_success": "导入了!",
+		"export_success": "已导出!",
+		"no_algorithm_error": "没有选择算法",
+
+		"optional": "可选",
+		"max_short": "最大",
+		"max_long": "最大值",
+		"enable": "启用",
+		"recommended": "推荐",
+		"not_recommended": "不推荐",
+		"seconds": "秒"
+	},
+
+	"tasks": {
+		"title": "任务",
+
+		"hashcat_messages": {
+			"init": "初始化",
+			"autotune": "自动调谐",
+			"selftest": "自测",
+			"running": "运行",
+			"paused": "暂停",
+			"exhausted": "精疲力竭",
+			"cracked": "破解",
+			"aborted": "中止",
+			"quit": "退出",
+			"bypass": "绕过",
+			"aborted_checkpoint": "中止（检查点）",
+			"aborted_runtime": "中止（运行时）",
+			"error": "错误",
+			"aborted_finish": "中止（完成）",
+			"autodetect": "自动检测"
+		},
+
+		"idle": "空闲",
+		"queued": "排队",
+		"in_progress": "进行中",
+		"finished": "完成",
+
+		"no_selected_task": "没有选择的任务",
+
+		"priority": "优先级",
+		"arguments": "参数",
+		"arguments_modal_ok": "好",
+		"delete": "删除",
+		"delete_confirm": {
+			"message": "你确定要删除这个任务吗？",
+			"yes": "是",
+			"no": "否"
+		},
+
+		"start": "开始",
+		"refresh": "刷新",
+		"pause": "暂停",
+		"resume": "恢复",
+		"checkpoint": "检查点",
+		"skip": "跳过",
+		"quit": "退出",
+		"quit_confirm": {
+			"message": "你确定要退出这个任务吗？",
+			"yes": "是",
+			"no": "否"
+		},
+
+		"status": "状态",
+		"target": "目标",
+		"progress": "进展",
+		"guess_base": "猜测基础",
+		"guess_mod": "猜测模组",
+		"rejected": "拒绝",
+		"restore_point": "恢复点",
+		"recovered_hashes": "恢复哈希",
+		"recovered_salts": "恢复刺激",
+		"speed": "速度",
+		"id": "ID",
+		"temp": "温度",
+		"util": "实用程序",
+		"started": "开始",
+		"eta": "ETA",
+		"terminal": "终端",
+
+		"no_task_error": "没有选择任务",
+		"unrecognized_process_status": "无法识别的进程状态"
+	},
+
+	"settings": {
+		"title": "设置",
+
+		"hashes": "哈希",
+		"algorithms": "算法",
+		"dictionaries": "字典",
+		"rules": "规则",
+		"masks": "掩码",
+		"rescan": "重新扫描",
+		"task_counter": "任务计数器",
+		"refresh": "刷新",
+		"reset_counter": "重置计数器",
+		"reset_counter_confirm": {
+			"message": "您确定要重置任务计数器吗？",
+			"yes": "是",
+			"no": "否"
+		}
+	},
+
+	"tools": {
+		"title": "工具",
+
+		"cap_to_hcwpax": {
+			"title": "将 cap 转换为 hcwpax ",
+			"description": {
+				"part1": "将捕获文件转换为 hcwpax 格式",
+				"part2": "接受 .cap、.pcap 或 .pcapng 文件并返回 hashcat 模式 22000 的哈希值"
+			},
+			"open_tool": "打开工具",
+
+			"modal_ok": "确定",
+			"modal_cancel": "取消",
+
+			"choose_capture_file": "选择一个捕获文件",
+			"save_output_to_hashes": "将输出保存到哈希",
+
+			"idle": "空闲",
+			"processing": "处理",
+			"success": "成功",
+			"unknown_error": "未知错误",
+			"unknown_status": "未知状态",
+
+			"separated_hashes": "分离的哈希",
+
+			"save_hash_success": "保存哈希为",
+			"save_hash_error": "无法保存哈希"
+		}
+	},
+
+	"help": {
+		"title": "帮助",
+
+		"faq_short": "常见问题",
+		"faq_long": "常见问题解答",
+
+		"question_hashcat_supported_versions": "支持哪些 hashcat 版本",
+		"answer_hashcat_supported_versions": "hashcat.launcher 支持 hashcat v6.2.1 及更高版本",
+
+		"question_add_files": "如何添加哈希、字典等...",
+		"answer_add_files": {
+			"part1": "文件应位于以下文件夹中：",
+			"hashes": "哈希",
+			"dictionaries": "字典",
+			"rules": "规则",
+			"masks": "掩码"
+		},
+
+		"question_empty_algorithms_list": "算法列表为空",
+		"answer_empty_algorithms_list": {
+			"part1": "算法会自动加载并依赖于 hashcat",
+			"part2": "确保 hashcat 存在，然后转到设置并单击重新扫描",
+			"part3": "hashcat 应该和 hashcat.launcher 在同一个目录中",
+			"part4": "在子文件夹内"
+		},
+
+		"question_added_file_but_not_listed": "我添加了一个文件，但它不在列表中",
+		"answer_added_file_but_not_listed": {
+			"part1": "尝试手动扫描",
+			"part2": "进入设置然后点击重新扫描."
+		},
+
+		"question_difference_idle_vs_queued": "空闲任务和排队任务有什么区别",
+		"answer_difference_idle_vs_queued": {
+			"part1": "一个空闲任务的优先级小于零",
+			"part2": "同时，队列任务的优先级等于或大于零",
+			"part3": "一个空闲任务只能手动启动",
+			"part4": "同时，队列中的任务可以手动启动也可以自动启动"
+		}
+	},
+
+	"about": {
+		"title": "关于",
+
+		"paragraph1": "hashcat.launcher 是一个运行和控制 hashcat 的跨平台应用",
+		"paragraph2": "它旨在让 hashcat 更容易使用，提供友好的图形用户界面",
+
+		"report_a_bug": "BUG反馈",
+		"request_a_feature": "请求功能",
+
+		"license": "许可",
+		"license_paragraph": "hashcat.launcher 在 MIT 许可证下获得许可",
+
+		"copyright": "版权所有"
+	},
+
+	"version_error": "无法确定版本",
+	"tasks_restoration_error": "无法恢复任务",
+
+	"hashcat_not_loaded": {
+		"tip": {
+			"part1": "hashcat 应该和 hashcat.launcher 在同一个目录中",
+			"part2": "在子文件夹内"
+		},
+		"error_message": "未找到 hashcat"
+	}
+}
+		"contribute": "贡献",
+		"report_a_bug": "BUG反馈",
+		"request_a_feature": "请求功能",
+
+		"license": "许可",
+		"license_paragraph": "hashcat.launcher 在 MIT 许可证下获得许可",
+
+		"copyright": "版权所有"
+	},
+
+	"version_error": "无法确定版本",
+	"tasks_restoration_error": "无法重新存储任务",
+
+	"hashcat_not_loaded": {
+		"tip": {
+			"part1": "hashcat 应该和 hashcat.launcher 在同一个目录中",
+			"part2": "在子文件夹"
+		},
+		"error_message": "未找到 hashcat"
+	}
+}
