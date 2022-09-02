@@ -796,6 +796,16 @@ class Tasks extends Component {
 																			key: 'ID'
 																		},
 																		{
+																			title: LANG('tasks.name'),
+																			dataIndex: 'name',
+																			key: 'Name'
+																		},
+																		{
+																			title: LANG('tasks.type'),
+																			dataIndex: 'type',
+																			key: 'Type'
+																		},
+																		{
 																			title: LANG('tasks.speed'),
 																			dataIndex: 'speed',
 																			key: 'Speed'
@@ -815,6 +825,8 @@ class Tasks extends Component {
 																		({
 																			key: device.device_id,
 																			id: device.device_id,
+																			name: device.hasOwnProperty("device_name") ? device.device_name : "-", /* ternary check for backward compatibility */
+																			type: device.hasOwnProperty("device_type") ? device.device_type : "-", /* ternary check for backward compatibility */
 																			speed: humanizeSpeed(device.speed),
 																			temp: device.hasOwnProperty("temp") ? device.temp + " °C": "-",
 																			util: device.util + "%",

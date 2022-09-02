@@ -188,6 +188,8 @@
         "recovered_salts": "Sales recuperadas",
         "speed": "Velocidad",
         "id": "IDENTIFICACIÓN",
+        "name": "Nombre",
+        "type": "Tipo",
         "temp": "Temperatura",
         "util": "útil",
         "started": "Empezado",

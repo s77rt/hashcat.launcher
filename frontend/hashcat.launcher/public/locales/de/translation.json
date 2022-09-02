@@ -188,6 +188,8 @@
         "recovered_salts": "Zurückgewonnene Salze",
         "speed": "Geschwindigkeit",
         "id": "ICH WÜRDE",
+        "name": "Name",
+        "type": "Typ",
         "temp": "Temp",
         "util": "Nützlich",
         "started": "Gestartet",

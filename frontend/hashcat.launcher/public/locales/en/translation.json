@@ -213,6 +213,8 @@
 		"recovered_salts": "Recovered salts",
 		"speed": "Speed",
 		"id": "ID",
+		"name": "Name",
+		"type": "Type",
 		"temp": "Temp",
 		"util": "Util",
 		"started": "Started",

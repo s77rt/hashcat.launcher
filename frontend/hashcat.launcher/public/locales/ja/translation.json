@@ -188,6 +188,8 @@
         "recovered_salts": "回収された塩",
         "speed": "スピード",
         "id": "ID",
+        "name": "名前",
+        "type": "種類",
         "temp": "臨時雇用者",
         "util": "Util",
         "started": "開始",

@@ -116,7 +116,10 @@ class Settings extends Component {
 	onChangeLanguage(e) {
 		i18n.changeLanguage(e).then(
 			() => {
-				moment.locale(e);
+				if (e === "zh")
+					moment.locale("zh-cn") // moment does not support zh, fallback to zh-cn
+				else
+					moment.locale(e);
 				if (typeof window.GOsettingsChangeLanguage === "function") {
 					window.GOsettingsChangeLanguage(e).then(
 						() => null,

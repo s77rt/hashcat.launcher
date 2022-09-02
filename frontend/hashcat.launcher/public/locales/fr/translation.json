@@ -188,6 +188,8 @@
         "recovered_salts": "Sels récupérés",
         "speed": "La rapidité",
         "id": "IDENTIFIANT",
+        "name": "Nom",
+        "type": "Type",
         "temp": "Temp",
         "util": "Util",
         "started": "A débuté",

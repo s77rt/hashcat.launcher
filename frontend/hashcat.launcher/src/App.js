@@ -84,7 +84,12 @@ class App extends Component {
 				response => {
 					if (SupportedLanguages.includes(response)) {
 						i18n.changeLanguage(response).then(
-							() => moment.locale(response),
+							() => {
+								if (response === "zh")
+									moment.locale("zh-cn") // moment does not support zh, fallback to zh-cn
+								else
+									moment.locale(response);
+							},
 							error => {
 								message.warning("Unable to load language file" + " " + error);
 							}
