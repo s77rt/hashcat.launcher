@@ -2,6 +2,10 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [1.1.4] 01/10/2022
+### Changed:
+ - hashcat bundled version v6.2.6+42 (beta version)
+
 ## [1.1.3] 02/09/2022
 ### Added:
  - Chinese language

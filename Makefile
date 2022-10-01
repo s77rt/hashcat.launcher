@@ -6,7 +6,7 @@ BIN_DIR = ./bin/
 
 FRONTEND_DIR = ./frontend/
 
-HASHCAT_VERSION = "6.2.6"
+HASHCAT_VERSION = "6.2.6+42"
 
 RESOURCES_DIR = ./resources/
 RESOURCES_HASHCAT_DIR = ./resources/hashcat/
