@@ -17,8 +17,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/randall77/makefat v0.0.0-20210315173500-7ddd0e42c844 h1:GranzK4hv1/pqTIhMTXt2X8MmMOuH3hMeUR0o9SP5yc=
 github.com/randall77/makefat v0.0.0-20210315173500-7ddd0e42c844/go.mod h1:T1TLSfyWVBRXVGzWd0o9BI4kfoO9InEgfQe4NV3mLz8=
-github.com/s77rt/lorca v0.1.11-0.20220706135919-b517a3250761 h1:Eqlzwri0BU6ZW1t0sDslIFapVt0vtCOb4Y7TcZ43FfY=
-github.com/s77rt/lorca v0.1.11-0.20220706135919-b517a3250761/go.mod h1:TUOtEogaMwy0b+p9e4NxZC1jbPRUaNaEw5DnjQF//F8=
+github.com/s77rt/lorca v0.1.11-0.20230314074640-b8e1fabc070d h1:GNyTNd9FwgorPDg20TGzBLG+1YQ9F8L1jZlNmaRWkiI=
+github.com/s77rt/lorca v0.1.11-0.20230314074640-b8e1fabc070d/go.mod h1:TUOtEogaMwy0b+p9e4NxZC1jbPRUaNaEw5DnjQF//F8=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=

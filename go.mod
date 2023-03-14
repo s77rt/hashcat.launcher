@@ -8,7 +8,7 @@ require (
 	github.com/zserge/lorca v0.1.10
 )
 
-replace github.com/zserge/lorca => github.com/s77rt/lorca v0.1.11-0.20220706135919-b517a3250761
+replace github.com/zserge/lorca => github.com/s77rt/lorca v0.1.11-0.20230314074640-b8e1fabc070d
 
 require (
 	github.com/akavel/rsrc v0.10.2 // indirect

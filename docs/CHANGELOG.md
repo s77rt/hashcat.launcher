@@ -2,6 +2,10 @@
 
 All notable changes to this project (hashcat.launcher) will be documented in this file.
 
+## [1.1.5] 14/03/2023
+### Fixed:
+ - Not working with new Chrome versions (#114)
+
 ## [1.1.4] 01/10/2022
 ### Changed:
  - hashcat bundled version v6.2.6+42 (beta version)
