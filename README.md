@@ -1,11 +1,11 @@
 # hashcat.launcher
-hashcat.launcher is a cross-platform app that run and control hashcat  
+hashcat.launcher is a cross-platform app that runs and controls hashcat  
 it is designed to make it easier to use hashcat offering a friendly graphical user interface
 
 ## Getting Started
 
 ### Requirements
- - Chromium based browser (Chrome, Edge, etc...)
+ - Chromium-based browser (Chrome, Edge, etc...)
  - `zenity`, `qarma` or `matedialog` (Linux only)
  - `osascript` (macOS only)
 
